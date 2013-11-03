@@ -1,0 +1,6 @@
+BinaryReaderPlay/bin/
+BinaryReaderPlay/obj/
+*.suo
+*.swp
+*.cs~
+*.orig
