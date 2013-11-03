@@ -1,0 +1,16 @@
+﻿<Properties>
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug|x86" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="BinaryReaderPlay\org\rufwork\mooresDb\infrastructure\commands\CreateTableCommand.cs">
+    <Files>
+      <File FileName="BinaryReaderPlay\Main.cs" Line="1" Column="1" />
+      <File FileName="BinaryReaderPlay\org\rufwork\utils\Utils.cs" Line="1" Column="1" />
+      <File FileName="BinaryReaderPlay\org\rufwork\utils\GlobalEnums.cs" Line="1" Column="1" />
+      <File FileName="BinaryReaderPlay\org\rufwork\mooresDb\clients\Isql.cs" Line="1" Column="1" />
+      <File FileName="BinaryReaderPlay\org\rufwork\mooresDb\infrastructure\commands\CreateTableCommand.cs" Line="52" Column="67" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+</Properties>

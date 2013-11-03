@@ -1,0 +1,86 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <ProductVersion>9.0.21022</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{21089A8D-6944-4C6E-90F5-61BE82C9919C}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>BinaryReaderPlay</RootNamespace>
+    <AssemblyName>BinaryReaderPlay</AssemblyName>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <UpgradeBackupLocation>
+    </UpgradeBackupLocation>
+    <OldToolsVersion>3.5</OldToolsVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <DebugSymbols>True</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>False</Optimize>
+    <OutputPath>bin\Debug</OutputPath>
+    <DefineConstants>DEBUG;</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <PlatformTarget>x86</PlatformTarget>
+    <Externalconsole>True</Externalconsole>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <DebugType>none</DebugType>
+    <Optimize>True</Optimize>
+    <OutputPath>bin\Release</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <PlatformTarget>x86</PlatformTarget>
+    <Externalconsole>True</Externalconsole>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>org.rufwork.mooresDb.clients.Isql</StartupObject>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Main.cs" />
+    <Compile Include="AssemblyInfo.cs" />
+    <Compile Include="org\rufwork\mooresDb\exceptions\ImproperDatabaseFileException.cs" />
+    <Compile Include="org\rufwork\mooresDb\infrastructure\commands\CreateTableCommand.cs" />
+    <Compile Include="org\rufwork\mooresDb\infrastructure\commands\DeleteCommand.cs" />
+    <Compile Include="org\rufwork\mooresDb\infrastructure\commands\DropTableCommand.cs" />
+    <Compile Include="org\rufwork\mooresDb\infrastructure\commands\SelectCommand.cs" />
+    <Compile Include="org\rufwork\mooresDb\infrastructure\Comparison.cs" />
+    <Compile Include="org\rufwork\mooresDb\infrastructure\InfrastructureUtils.cs" />
+    <Compile Include="org\rufwork\mooresDb\infrastructure\serializers\BaseSerializer.cs" />
+    <Compile Include="org\rufwork\mooresDb\infrastructure\serializers\ByteSerializer.cs" />
+    <Compile Include="org\rufwork\mooresDb\infrastructure\serializers\CharSerializer.cs" />
+    <Compile Include="org\rufwork\mooresDb\infrastructure\serializers\DateSerializer.cs" />
+    <Compile Include="org\rufwork\mooresDb\infrastructure\serializers\DecimalSerializer.cs" />
+    <Compile Include="org\rufwork\mooresDb\infrastructure\serializers\IntSerializer.cs" />
+    <Compile Include="org\rufwork\mooresDb\infrastructure\serializers\Router.cs" />
+    <Compile Include="org\rufwork\mooresDb\clients\Isql.cs" />
+    <Compile Include="org\rufwork\utils\GlobalEnums.cs" />
+    <Compile Include="org\rufwork\utils\Utils.cs" />
+    <Compile Include="org\rufwork\mooresDb\infrastructure\CommandParser.cs" />
+    <Compile Include="org\rufwork\mooresDb\infrastructure\commands\InsertCommand.cs" />
+    <Compile Include="org\rufwork\mooresDb\infrastructure\tableParts\Column.cs" />
+    <Compile Include="org\rufwork\mooresDb\infrastructure\contexts\DatabaseContext.cs" />
+    <Compile Include="org\rufwork\mooresDb\infrastructure\contexts\TableContext.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <ItemGroup />
+  <ItemGroup />
+  <ProjectExtensions>
+    <MonoDevelop>
+      <Properties>
+        <Policies>
+          <TextStylePolicy inheritsSet="VisualStudio" inheritsScope="text/plain" scope="text/x-csharp" />
+          <CSharpFormattingPolicy inheritsSet="Mono" inheritsScope="text/x-csharp" scope="text/x-csharp" />
+        </Policies>
+      </Properties>
+    </MonoDevelop>
+  </ProjectExtensions>
+  <ItemGroup />
+</Project>
