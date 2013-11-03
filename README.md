@@ -56,7 +56,7 @@ As stated before, MVED#'s internal structure is designed to make it easy to visu
 
 ![HexReader screenshot](http://rufwork.com/code/mved/HexReaderScreenshot.png)
 
-Note the border around each column, made with 11's.  The first row starts with column type (index value from 0-255) followed by the column length.  The second row includes as many characters of the column's name as can fit in the length of the column.  In the third column of the screenshot, there is a CHAR column named "STATE" with a length of 2, and only "ST" is displayed.  The final column is DATETIME, which is a decimal value of Ticks serialized, taking eight bytes of length.  Its name is "TIMESTAMP", but only the first eight characters are displayed -- "TIMESTAM".  Deleted lines are written over with 88s, currently not cleaned.
+Note the border around each column, made with 11's.  The first row starts with column type (index value from 0-255) followed by the column length, except in the case of autoincrement columns.  The second row includes as many characters of the column's name as can fit in the length of the column.  In the third column of the screenshot, there is a CHAR column named "STATE" with a length of 2, and only "ST" is displayed.  The final column is DATETIME, which is a decimal value of Ticks serialized, taking eight bytes of length.  Its name is "TIMESTAMP", but only the first eight characters are displayed -- "TIMESTAM".  Deleted lines are written over with 88s, currently not cleaned.
 
 ## Liability
 
