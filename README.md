@@ -1,8 +1,8 @@
-# Moore's Database: A [Minimally Viable](http://en.wikipedia.org/wiki/Minimum_viable_product) Embeddable Datastore for Prototyping in C# (MVED#) #
+# Moore's Database (MVED#) #
 
 ---
 
-## License [(full text at this link)](http://mozilla.org/MPL/2.0/)
+### License [(full text at this link)](http://mozilla.org/MPL/2.0/)
 
     // =========================== LICENSE ===============================
     // This Source Code Form is subject to the terms of the Mozilla Public
@@ -20,6 +20,9 @@
 4. Code review.
 5. ORs in WHERE clauses.
 
+---
+
+## MVED#: [Minimally Viable](http://en.wikipedia.org/wiki/Minimum_viable_product) Embeddable Datastore in C#
 
 ### What?
 
@@ -27,9 +30,9 @@ MVED#'s goal is to be a simplest-case, embeddable, crossplaform datastore writte
 
 Using SQL has many benefits over using a custom-rolled text file as an application's datastore, facilitating both initial coding as well as changing to another, more fully-featured database when a project requires it.  **At this early stage, MVED# is best used for crossplatform application prototyping.**
 
-MVED# is a minimally viable product.  It does not currently support keys, constraints, searching with LIKE and "%" wildcards, JOINs beyond the simplest INNER JOINs, INSERTING more than one row in a single statement, any in-database functions (like CONCAT or MAX), TRIGGERs, OR in a WHERE clause (though IN works), SELECT INTO, or many datatypes.  **MVED# is surprisingly idiosyncratic.**  Please read through the Idiosyncracies.md page in the docs folder.
+MVED# is a minimally viable product.  It does not currently support keys, constraints, searching with LIKE and "%" wildcards, NOTs, JOINs beyond the simplest INNER JOINs, INSERTING more than one row in a single statement, any in-database functions (like CONCAT or MAX), TRIGGERs, OR in a WHERE clause (though IN works), SELECT INTO, or many datatypes.  **MVED# is surprisingly idiosyncratic.**  Please read through the Idiosyncracies.md page in the docs folder.
 
-Though its internal structure is designed to make it easy to visualize tables as raw hexadecimal values, the same structure makes column naming, well, strange.  Please read the documentation about "fuzzy" naming closely.  Additionally, some seemingly legitimate column lengths are not allowed.  **The previous paragraph may have undersold the project's idiosyncrasies.**
+Though its internal structure is designed to make it easy to visualize tables as raw hexadecimal values, the same structure makes column naming, well, strange.  Please read the documentation about "fuzzy" naming closely.  Additionally, some seemingly legitimate column lengths are not allowed.  **The previous paragraph may have undersold the project's [idiosyncrasies](https://github.com/ruffin--/mved/blob/master/docs/idiosyncrasies.md).**
 
 This project was developed under the code name "Moore's Database", which should help explain what else is missing from MVED#: Speed.  Too slow?  MVED# should [become approximately twice as fast every two years](http://en.wikipedia.org/wiki/Moore's_law), though that law is apparently losing steam.  Though indices will be added later, such a package would not necessarily be a part of the core project. 
 
@@ -42,11 +45,11 @@ It should be easy to prototype crossplatform C# code without wasting time instal
 
 MVED# was written largely because of setup hurdles encountered attempting to deploy other obvious embedded database solutions for C# crossplatform.  [SQL Server Express](http://msdn.microsoft.com/en-us/library/vstudio/ms233763.aspx) is not crossplatform.  [SQLite](http://www.sqlite.org/) must be installed on Windows and has a few [nontrivial setup requirements on OS X](http://stackoverflow.com/questions/8090152/), both of which create a clear barrier to entry out of proportion for applications that have modest data serialization needs. [C#-SQLite](https://code.google.com/p/csharp-sqlite/) is an interesting alternative, but [still had issues](https://groups.google.com/forum/#!topic/csharp-sqlite/osjfgLikIkU) when I tried it out in May of 2012.
 
-There's no reason for a search for a datastore library or dll usage limitations to slow up the prototyping of useful, crossplatform C# applications.
+There's no reason for a search for a datastore library or dll usage limitations to slow the prototyping of useful, crossplatform C# applications.
 
 ### License?
 
-This package is offered under the [Mozilla Public License (MPL)](http://mozilla.org/MPL/2.0/), following [GNG's not GNU](http://myfreakinname.blogspot.com/2002/05/gng-manifesto.html) guidelines, as it is intended to be used not just as a compiled library but, when useful, in code format as part of an otherwise independent solution of files.  The MPL allows this package's use without being forced to reference a precompiled dll.
+This package is offered under the [Mozilla Public License (MPL)](http://mozilla.org/MPL/2.0/), following [GNG's not GNU](http://myfreakinname.blogspot.com/2002/05/gng-manifesto.html) (GNG's) guidelines, as it is intended to be used not just as a compiled library but, when useful, in code format as part of an otherwise independent solution of files.  The MPL allows this package's use without being forced to reference a precompiled dll.
 
 **NOTE:** Regardless of any stated intention, strict adherence to the MPL is required. 
 

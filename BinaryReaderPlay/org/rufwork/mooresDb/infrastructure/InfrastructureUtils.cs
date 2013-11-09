@@ -15,7 +15,7 @@ using org.rufwork.mooresDb.infrastructure.contexts;
 
 namespace org.rufwork.mooresDb.infrastructure
 {
-    class InfrastructureUtils
+    public class InfrastructureUtils
     {
 
         public static string dataTableToString(DataTable dtIn)

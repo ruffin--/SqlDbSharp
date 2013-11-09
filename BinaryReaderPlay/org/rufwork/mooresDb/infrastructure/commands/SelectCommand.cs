@@ -17,6 +17,7 @@ using org.rufwork.mooresDb.infrastructure.serializers;
 using org.rufwork.mooresDb.infrastructure.contexts;
 using org.rufwork.mooresDb.infrastructure;
 using org.rufwork.utils;
+using org.rufwork.mooresDb.infrastructure.commands.Processors;
 
 
 namespace org.rufwork.mooresDb.infrastructure.commands
@@ -170,11 +171,12 @@ namespace org.rufwork.mooresDb.infrastructure.commands
             }
 
             _table = _database.getTableByName(selectParts.strTableName);
-
             dtReturn = _initDataTable(selectParts);
-            List<Comparison>  lstWhereConditions = _createWhereConditions(selectParts.strWhere);
-            _selectRows(ref dtReturn, selectParts.acolInSelect, lstWhereConditions, selectParts.dictColToSelectMapping);
 
+            WhereProcessor.ProcessRows(ref dtReturn, _table, selectParts, WhereProcessor.selectRowProcessor);
+
+            // (Joins are only in selects, so this isn't part of WhereProcessing.)
+            //
             // To take account of joins, we basically need to create a SelectParts
             // per inner join.  So we need to create a WHERE from the table we 
             // just selected and then send those values down to a new _selectRows.
@@ -183,7 +185,8 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                 dtReturn = _processInnerJoin(dtReturn, selectParts.strInnerJoinKludge, selectParts.strTableName);
             }
 
-            if (null != selectParts.strOrderBy && selectParts.strOrderBy.Length > 9)  {
+            if (null != selectParts.strOrderBy && selectParts.strOrderBy.Length > 9)
+            {
                 dtReturn.DefaultView.Sort = selectParts.strOrderBy.Substring(9);
                 dtReturn = dtReturn.DefaultView.ToTable();
             }
@@ -198,7 +201,8 @@ namespace org.rufwork.mooresDb.infrastructure.commands
             if (!string.IsNullOrWhiteSpace(strWhere)) {
                 strWhere = strWhere.Substring(6);
                 //string[] astrClauses = Regex.Split (strWhere, @"AND");
-                string[] astrClauses = strWhere.Split(new string[] { "AND" }, StringSplitOptions.None);
+                // TODO: Maybe think of a better way to handle case?
+                string[] astrClauses = strWhere.Split(new string[] { "AND", "and" }, StringSplitOptions.RemoveEmptyEntries);
 
                 for (int i=0; i < astrClauses.Length; i++)    {
                     Comparison comparison = null;
