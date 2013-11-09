@@ -26,7 +26,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
                 //Console.WriteLine(System.Text.Encoding.Default.GetString(abytCol));
 
                 // now translate/cast the value to the column in the row.
-                row[_OperativeName(mCol.strColName, dictColNameMapping)] = Router.routeMe(mCol).toNative(abytCol);
+                row[OperativeName(mCol.strColName, dictColNameMapping)] = Router.routeMe(mCol).toNative(abytCol);
             }
             table.Rows.Add(row);
             return true;
@@ -110,8 +110,9 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
         }
 
         // This subs in the name used in the SELECT if it's a fuzzy matched column.
+        // TODO: Seems like this might belong on the TableContext?
         // TODO: Looking it up with every row is pretty danged inefficient.
-        private static string _OperativeName(string strColname, Dictionary<string, string> dictNameMapping)
+        public static string OperativeName(string strColname, Dictionary<string, string> dictNameMapping)
         {
             string strReturn = strColname;
             if (dictNameMapping.ContainsKey(strColname))
@@ -141,8 +142,6 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
 
             return valueRelationship == comparison.comparisonType;
         }
-
-
 
 #region whereToComparisons
         private static List<Comparison> _CreateWhereConditions(string strWhere, TableContext table)

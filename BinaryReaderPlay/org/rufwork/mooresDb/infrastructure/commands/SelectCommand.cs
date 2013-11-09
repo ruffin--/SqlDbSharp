@@ -194,83 +194,6 @@ namespace org.rufwork.mooresDb.infrastructure.commands
             return dtReturn;
         }
 
-        private List<Comparison> _createWhereConditions(string strWhere)
-        {
-            List<Comparison> lstReturn = new List<Comparison>();
-
-            if (!string.IsNullOrWhiteSpace(strWhere)) {
-                strWhere = strWhere.Substring(6);
-                //string[] astrClauses = Regex.Split (strWhere, @"AND");
-                // TODO: Maybe think of a better way to handle case?
-                string[] astrClauses = strWhere.Split(new string[] { "AND", "and" }, StringSplitOptions.RemoveEmptyEntries);
-
-                for (int i=0; i < astrClauses.Length; i++)    {
-                    Comparison comparison = null;
-                    string strClause = astrClauses[i].Trim();
-                    if (MainClass.bDebug) Console.WriteLine("Where clause #" + i + " " + strClause);
-
-                    if (strClause.ToUpper().Contains(" IN "))
-                    {
-                        CompoundComparison inClause = new CompoundComparison(GROUP_TYPE.OR);
-                        if (MainClass.bDebug) Console.WriteLine("IN clause: " + strClause);
-                        string strField = strClause.Substring(0, strClause.IndexOf(' '));
-
-                        string strIn = strClause.Substring(strClause.IndexOf('(') + 1, strClause.LastIndexOf(')') - strClause.IndexOf('(') - 1);
-                        string[] astrInVals = strIn.Split(',');
-                        foreach (string strInVal in astrInVals)
-                        {
-                            string strFakeWhere = strField + " = " + strInVal;
-                            inClause.lstComparisons.Add(_createComparison(strFakeWhere));
-                        }
-                        lstReturn.Add(inClause);
-                    }
-                    else
-                    {
-                        comparison = _createComparison(strClause);
-                        if (null != comparison)
-                        {
-                            lstReturn.Add(comparison);
-                        }
-                        else
-                        {
-                            Console.WriteLine("Uncaptured WHERE clause type: " + strClause);
-                        }
-                    }
-                }
-            }
-
-            return lstReturn;
-        }
-
-        private Comparison _createComparison(string strClause)
-        {
-            char chrOperator = '=';
-            if (strClause.Contains('<'))
-            {
-                chrOperator = '<';
-            }
-            else if (strClause.Contains('>'))
-            {
-                chrOperator = '>';
-            }
-            else if (!strClause.Contains('='))
-            {
-                throw new Exception("Illegal comparison type in SelectCommand: " + strClause);
-            }
-            
-            string[] astrEqualsParts = strClause.Split(chrOperator);
-            Column colToConstrain = _table.getColumnByName(astrEqualsParts[0].Trim());
-            if (null == colToConstrain)
-            {
-                throw new Exception("Column not found in SELECT statement: " + astrEqualsParts[0]);
-            }
-
-            BaseSerializer serializer = Router.routeMe(colToConstrain);
-            byte[] abytComparisonVal = serializer.toByteArray(astrEqualsParts[1].Trim());
-
-            return new Comparison(chrOperator, colToConstrain, abytComparisonVal);
-        }
-
         private DataTable _processInnerJoin(DataTable dtReturn, string strJoinText, string strParentTable)
         {
             Console.WriteLine("Note that WHERE clauses are not yet applied to JOINed tables.");
@@ -372,7 +295,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands
             // http://msdn.microsoft.com/en-us/library/system.data.datacolumn.datatype.aspx
             foreach (Column colTemp in selectParts.acolInSelect)
             {
-                string strColNameForDT = _operativeName(colTemp.strColName, selectParts.dictColToSelectMapping);
+                string strColNameForDT = WhereProcessor.OperativeName(colTemp.strColName, selectParts.dictColToSelectMapping);
                 // In case we fuzzy matched a name, take what was in the SELECT statement, if it was explicitly named.
                 if (selectParts.dictColToSelectMapping.ContainsKey(colTemp.strColName))
                 {
@@ -415,116 +338,6 @@ namespace org.rufwork.mooresDb.infrastructure.commands
             }
 
             return dtReturn;
-        }
-
-        private void _selectRows(ref DataTable dtWithCols, Column[] acolsInSelect, List<Comparison> lstWhereConditions, Dictionary<string, string> dictColNameMapping)
-        {
-            using (BinaryReader b = new BinaryReader(File.Open(_table.strTableFileLoc, FileMode.Open)))
-            {
-                int intRowCount = _table.intFileLength / _table.intRowLength;
-
-                b.BaseStream.Seek(2 * _table.intRowLength, SeekOrigin.Begin);  // TODO: Code more defensively in case it's somehow not the right/minimum length
-
-                for (int i = 2; i < intRowCount; i++)
-                {
-                    byte[] abytRow = b.ReadBytes(_table.intRowLength);
-                    bool bKeepRow = true;
-
-                    // Check and make sure this is an active row, and has 
-                    // the standard row lead byte, 0x11.  If not, the row
-                    // should not be read.
-                    // I'm going to switch this to make it more defensive 
-                    // and a little easier to follow.
-                    switch (abytRow[0])
-                    {
-                        case 0x88:
-                            // DELETED
-                            bKeepRow = false;
-                            break;
-
-                        case 0x11:
-                            // ACTIVE
-                            // Find if the WHERE clause says to exclude this row.
-                            foreach (Comparison comparison in lstWhereConditions)
-                            {
-                                // Temp skip INs
-                                if (comparison is CompoundComparison)
-                                {
-                                    bool bInKeeper = false;
-                                    // Could use a lot more indexed logic here, but that'll need to be
-                                    // an extension to this package to keep this pretty simple.
-                                    // For now, this is basically handling a group of WHERE... ORs.
-                                    foreach (Comparison compInner in ((CompoundComparison)comparison).lstComparisons)
-                                    {
-                                        if (_comparisonEngine(compInner, abytRow))
-                                        {
-                                            bInKeeper = true;
-                                            break;
-                                        }
-                                    }
-                                    bKeepRow = bKeepRow && bInKeeper;
-                                }
-                                else
-                                {
-                                    bKeepRow = bKeepRow && _comparisonEngine(comparison, abytRow);
-                                }
-                            }
-                            break;
-
-                        default:
-                            throw new Exception("Unexpected row state in SELECT: " + abytRow[0]);
-                    }
-
-                    if (bKeepRow)   {
-                        DataRow row = dtWithCols.NewRow();
-
-                        foreach (Column mCol in acolsInSelect)
-                        {
-                            byte[] abytCol = new byte[mCol.intColLength];
-                            Array.Copy(abytRow, mCol.intColStart, abytCol, 0, mCol.intColLength);
-                            //Console.WriteLine(System.Text.Encoding.Default.GetString(abytCol));
-                            
-                            // now translate/cast the value to the column in the row.
-                            row[_operativeName(mCol.strColName, dictColNameMapping)] = Router.routeMe(mCol).toNative(abytCol);
-                        }
-
-                        dtWithCols.Rows.Add(row);
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Takes in a row's worth of bytes in a byte array and sees
-        /// if the row's proper value matches the active comparison.
-        /// </summary>
-        /// <returns></returns>
-        private bool _comparisonEngine(Comparison comparison, byte[] abytRow)
-        {
-            byte[] abytRowValue = new byte[comparison.colRelated.intColLength];
-            Array.Copy(abytRow, comparison.colRelated.intColStart, abytRowValue, 0, comparison.colRelated.intColLength);
-
-            // TODO: This is ugly.  Having CompareByteArrays on the serializers is ungainly at best.  Just not sure where else to put it.
-            COMPARISON_TYPE? valueRelationship = Router.routeMe(comparison.colRelated).CompareBytesToVal(abytRowValue, comparison.objParsedValue);
-
-            if (null == valueRelationship)
-            {
-                throw new Exception("Invalid value comparison in SELECT");
-            }
-
-            return valueRelationship == comparison.comparisonType;
-        }
-
-        // This subs in the name used in the SELECT if it's a fuzzy matched column.
-        // TODO: Looking it up with every row is pretty danged inefficient.
-        private string _operativeName(string strColname, Dictionary<string, string> dictNameMapping)
-        {
-            string strReturn = strColname;
-            if (dictNameMapping.ContainsKey(strColname))
-            {
-                strReturn = dictNameMapping[strColname];
-            }
-            return strReturn;
         }
 
         public static void Main(string[] args)
