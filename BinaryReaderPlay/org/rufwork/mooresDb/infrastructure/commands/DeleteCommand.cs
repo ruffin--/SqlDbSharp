@@ -34,7 +34,6 @@ namespace org.rufwork.mooresDb.infrastructure.commands  {
 
         public string strTableName; // TODO: Ob need to go to a collection of some sort
 
-        public Column[] acolInSelect;
         private DatabaseContext _database;
         private TableContext _tableContext;
 
@@ -104,7 +103,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands  {
             _table = _database.getTableByName(deleteParts.strTableName);
 
             List<Comparison> lstWhereConditions = _createWhereConditions(deleteParts.strWhere);
-            _deleteRows(deleteParts.acolInSelect, lstWhereConditions);
+            _deleteRows(lstWhereConditions);
         }
 
         private List<Comparison> _createWhereConditions(string strWhere)
@@ -202,7 +201,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands  {
             return lstReturn;
         }
 
-        private void _deleteRows(Column[] acolsInSelect, List<Comparison> lstWhereConditions)
+        private void _deleteRows(List<Comparison> lstWhereConditions)
         {
             using (BinaryReader b = new BinaryReader(File.Open(_table.strTableFileLoc, FileMode.Open)))
             {
