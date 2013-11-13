@@ -246,7 +246,6 @@ namespace org.rufwork.mooresDb.infrastructure.commands  {
 
                         default:
                             throw new Exception("Unexpected row state in DELETE: " + abytRow[0]);
-                            break;
                     }
 
                     if (bRowMatch)   {

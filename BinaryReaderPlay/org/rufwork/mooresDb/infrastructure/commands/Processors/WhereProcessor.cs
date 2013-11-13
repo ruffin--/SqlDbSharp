@@ -12,35 +12,18 @@ using System.Text;
 
 namespace org.rufwork.mooresDb.infrastructure.commands.Processors
 {
-    class WhereProcessor
+    public class WhereProcessor
     {
-        public delegate object RowProcessor(byte[] abytRow, Column[] acolsInSelect, Dictionary<string, string> dictColNameMapping, ref DataTable table);
-
-        public static object selectRowProcessor(byte[] abytRow, Column[] acolsInSelect, Dictionary<string,string> dictColNameMapping, ref DataTable table)
-        {
-            DataRow row = table.NewRow();
-            foreach (Column mCol in acolsInSelect)
-            {
-                byte[] abytCol = new byte[mCol.intColLength];
-                Array.Copy(abytRow, mCol.intColStart, abytCol, 0, mCol.intColLength);
-                //Console.WriteLine(System.Text.Encoding.Default.GetString(abytCol));
-
-                // now translate/cast the value to the column in the row.
-                row[OperativeName(mCol.strColName, dictColNameMapping)] = Router.routeMe(mCol).toNative(abytCol);
-            }
-            table.Rows.Add(row);
-            return true;
-        }
-
+        public delegate object RowProcessor(byte[] abytRow, Column[] acolsInSelect, Dictionary<string, string> dictColNameMapping, TableContext table, ref DataTable dt);
 
         public static void ProcessRows(ref DataTable dtWithCols,
             TableContext table,
-            SelectParts selectParts,
-            RowProcessor fnRowProcessor)
+            CommandParts commandParts
+        )
         {
-            Column[] acolsInSelect = selectParts.acolInSelect;
-            string strWhere = selectParts.strWhere;
-            Dictionary<string, string> dictColNameMapping = selectParts.dictColToSelectMapping;
+            //Column[] acolsInSelect = commandParts.acolInSelect;
+            string strWhere = commandParts.strWhere;
+            Dictionary<string, string> dictColNameMapping = commandParts.dictColToSelectMapping;
 
             List<Comparison> lstWhereConditions = _CreateWhereConditions(strWhere, table);
 
@@ -102,7 +85,77 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
 
                     if (bMatchingRow)
                     {
-                        fnRowProcessor(abytRow, acolsInSelect, dictColNameMapping, ref dtWithCols);
+                        switch (commandParts.commandType)
+                        {
+                            case CommandParts.COMMAND_TYPES.SELECT:
+                                DataRow row = dtWithCols.NewRow();
+                                foreach (Column mCol in commandParts.acolInSelect)
+                                {
+                                    byte[] abytCol = new byte[mCol.intColLength];
+                                    Array.Copy(abytRow, mCol.intColStart, abytCol, 0, mCol.intColLength);
+                                    //Console.WriteLine(System.Text.Encoding.Default.GetString(abytCol));
+
+                                    // now translate/cast the value to the column in the row.
+                                    row[OperativeName(mCol.strColName, dictColNameMapping)] = Router.routeMe(mCol).toNative(abytCol);
+                                }
+                                dtWithCols.Rows.Add(row);
+                                break;
+
+                            case CommandParts.COMMAND_TYPES.UPDATE:
+                                //throw new NotImplementedException("UPDATE implementation in progress.");
+                                foreach (Column mCol in table.getColumns())
+                                {
+
+                                    if (commandParts.dictUpdateColVals.ContainsKey(mCol.strColName))
+                                    {
+                                        // take values from update
+                                        
+                                        byte[] abytVal = null; // "raw" value.  Might not be the full column length.
+
+                                        BaseSerializer serializer = Router.routeMe(mCol);
+                                        abytVal = serializer.toByteArray(commandParts.dictUpdateColVals[mCol.strColName]);
+
+                                        // double check that the serializer at least
+                                        // gave you a value that's the right length so
+                                        // that everything doesn't go to heck (moved where 
+                                        // that was previously checked into the serializers)
+                                        if (abytVal.Length != mCol.intColLength)
+                                        {
+                                            throw new Exception("Improperly lengthed field from serializer (UPDATE): " + mCol.strColName);
+                                        }
+
+                                        // keep in mind that column.intColLength should always match abytColValue.Length.  While I'm
+                                        // testing, I'm going to put in this check, but at some point, you should be confident enough
+                                        // to consider removing this check.
+                                        if (abytVal.Length != mCol.intColLength)
+                                        {
+                                            throw new Exception("Surprising value and column length mismatch");
+                                        }
+                                        // Copy in value over our mortar of 0x00s.
+                                        Buffer.BlockCopy(abytVal, 0, abytRow, mCol.intColStart, abytVal.Length);
+                                    }
+                                    else
+                                    {
+                                        // take values from existing data.
+                                    }
+                                    b.BaseStream.Seek(-1 * table.intRowLength, SeekOrigin.Current);
+                                    b.BaseStream.Write(abytRow, 0, abytRow.Length);
+                                }
+                                break;
+
+                            case CommandParts.COMMAND_TYPES.DELETE:
+                                byte[] abytErase = new byte[table.intRowLength];   // should be initialized to zeroes.
+                                // at least to test, I'm going to write it all over with 0x88s.
+                                for (int j = 0; j < table.intRowLength; j++) { abytErase[j] = 0x88; }
+
+                                // move pointer back to the first byte of this row.
+                                b.BaseStream.Seek(-1 * table.intRowLength, SeekOrigin.Current);
+                                b.BaseStream.Write(abytErase, 0, abytErase.Length);
+                                break;
+
+                            default:
+                                throw new Exception("Unhandled command type in WhereProcessor: " + commandParts.commandType);
+                        }
                     }
                 }
             }
