@@ -56,13 +56,14 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
         {
             int intTail = strSql.Length;
             int intIndexOf = -1;
+            StringComparison casedCompare = StringComparison.CurrentCultureIgnoreCase;  // TODO: Parsing statements, why would I want cased only?  That is, why would this ever change?
 
             string[] astrTokens = strSql.Split();
             if (
                     astrTokens.Length < 6
-                    || !astrTokens[0].Equals("UPDATE", StringComparison.CurrentCultureIgnoreCase)
-                    || !astrTokens[2].Equals("SET", StringComparison.CurrentCultureIgnoreCase)
-                    || !astrTokens[4].Equals("=", StringComparison.CurrentCultureIgnoreCase)
+                    || !astrTokens[0].Equals("UPDATE", casedCompare)
+                    || !astrTokens[2].Equals("SET", casedCompare)
+                    || !astrTokens[4].Equals("=", casedCompare)
                 )
             {
                 throw new Exception("Invalid UPDATE statement");
@@ -70,17 +71,16 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
 
             this.strTableName = astrTokens[1];
 
-            intIndexOf = strSql.IndexOf("WHERE", StringComparison.CurrentCultureIgnoreCase);
+            intIndexOf = strSql.IndexOf("WHERE", casedCompare);
             if (-1 < intIndexOf)
             {
                 this.strWhere = strSql.Substring(intIndexOf, intTail - intIndexOf);
                 intTail = intIndexOf;
             }
 
-            intIndexOf = strSql.IndexOf("SET") + 3;
+            intIndexOf = strSql.IndexOf(" SET ", casedCompare) + 5;
             string strVals = strSql.Substring(intIndexOf, intTail - intIndexOf).Trim();
 
-            Console.WriteLine("strTemp: " + strVals + "\nstrWhere: " + strWhere);
             string[] astrVals = strVals.Split(',');
             foreach (string strVal in astrVals)
             {
@@ -90,7 +90,6 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
                     throw new Exception("Syntax error: Invalid update SET clause: " + strVal);
                 }
                 this.dictUpdateColVals.Add(astrColAndVal[0].Trim(), astrColAndVal[1].Trim());
-                Console.WriteLine(astrColAndVal[0].Trim() + " :: " + astrColAndVal[1].Trim());
             }
 
         }
