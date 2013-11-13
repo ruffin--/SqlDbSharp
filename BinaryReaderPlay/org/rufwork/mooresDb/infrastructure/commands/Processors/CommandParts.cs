@@ -68,6 +68,8 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
                 throw new Exception("Invalid UPDATE statement");
             }
 
+            this.strTableName = astrTokens[1];
+
             intIndexOf = strSql.IndexOf("WHERE", StringComparison.CurrentCultureIgnoreCase);
             if (-1 < intIndexOf)
             {

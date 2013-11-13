@@ -19,11 +19,12 @@ namespace org.rufwork.mooresDb.infrastructure
         private DatabaseContext _database;
 
         // TODO: So, obviously, make a base ICommand or CommandBase that everything can implement/extend.
-        // ????: What's the advantage of scoping these at object level, anyhow?
+        // ????: What's the advantage of scoping these at object level, anyhow?  <<< What he said.  For now, lemming it up, boah.
         private CreateTableCommand _createTableCommand;
         private InsertCommand _insertCommand;
         private SelectCommand _selectCommand;
         private DeleteCommand _deleteCommand;
+        private UpdateCommand _updateCommand;   // Two lemmings don't make a wren.
 
         public CommandParser (DatabaseContext database)
         {
@@ -36,10 +37,7 @@ namespace org.rufwork.mooresDb.infrastructure
             strSql = strSql.Replace("''", "`"); // TODO: WHOA!  Super kludge for single quote escapes.  See "Grave accent" in idiosyncracies.
 
             // TODO: This is assuming a single command.  Add splits by semi-colon.
-            string patternEndsSemiColon = @";\w*$";
-            Match endsWithSemiColonMatch = Regex.Match(strSql, patternEndsSemiColon, RegexOptions.IgnoreCase);
-
-            if (!endsWithSemiColonMatch.Success)
+            if (!strSql.Trim().EndsWith(";"))
             {
                 throw new Exception("Unterminated command.");
             }
@@ -67,7 +65,9 @@ namespace org.rufwork.mooresDb.infrastructure
                     break;
 
                 case "update":
-                    throw new NotImplementedException();
+                    _updateCommand = new UpdateCommand(_database);
+                    _updateCommand.executeStatement(strSql);
+                    break;
 
                 case "create":
                     _createTableCommand = new CreateTableCommand(_database);

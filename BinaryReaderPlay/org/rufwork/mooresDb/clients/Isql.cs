@@ -99,6 +99,10 @@ namespace org.rufwork.mooresDb.clients
                                 strCmd = @"DROP TABLE " + strTestTableName + @";";
                                 goto case "goto kludge";
 
+                            case "test update;":
+                                strCmd = @"UPDATE jive SET city = 'Gotham', LAT_N = 45.987 WHERE ID = 4;";
+                                goto case "goto kludge";
+
                             // Okay, Lippert doesn't say to use it quite like this, but he did give me the idea:
                             // http://blogs.msdn.com/b/ericlippert/archive/2009/08/13/four-switch-oddities.aspx
                             case "goto kludge":

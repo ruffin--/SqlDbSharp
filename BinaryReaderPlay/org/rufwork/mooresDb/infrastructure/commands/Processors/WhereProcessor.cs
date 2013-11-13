@@ -102,18 +102,26 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
                                 break;
 
                             case CommandParts.COMMAND_TYPES.UPDATE:
-                                //throw new NotImplementedException("UPDATE implementation in progress.");
+                                // kludge for fuzzy names:
+                                // (This should be a one-way process, so I don't think having the logic
+                                // in this cruddy a place is a huge problem that'll cause wasted 
+                                // resources; it's just having me rethink fuzzy names in general.)
+                                Dictionary<string, string> dictLaunderedUpdateVals = new Dictionary<string,string>();
+
+                                foreach (string key in commandParts.dictUpdateColVals.Keys)
+                                {
+                                    dictLaunderedUpdateVals.Add(table.getRawColName(key), commandParts.dictUpdateColVals[key]);
+                                }
+                                
                                 foreach (Column mCol in table.getColumns())
                                 {
-
-                                    if (commandParts.dictUpdateColVals.ContainsKey(mCol.strColName))
+                                    if (dictLaunderedUpdateVals.ContainsKey(mCol.strColName))
                                     {
-                                        // take values from update
-                                        
+                                        // Column needs updating; take values from update
                                         byte[] abytVal = null; // "raw" value.  Might not be the full column length.
 
                                         BaseSerializer serializer = Router.routeMe(mCol);
-                                        abytVal = serializer.toByteArray(commandParts.dictUpdateColVals[mCol.strColName]);
+                                        abytVal = serializer.toByteArray(dictLaunderedUpdateVals[mCol.strColName]);
 
                                         // double check that the serializer at least
                                         // gave you a value that's the right length so
@@ -131,16 +139,14 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
                                         {
                                             throw new Exception("Surprising value and column length mismatch");
                                         }
-                                        // Copy in value over our mortar of 0x00s.
+
                                         Buffer.BlockCopy(abytVal, 0, abytRow, mCol.intColStart, abytVal.Length);
-                                    }
-                                    else
-                                    {
-                                        // take values from existing data.
-                                    }
-                                    b.BaseStream.Seek(-1 * table.intRowLength, SeekOrigin.Current);
-                                    b.BaseStream.Write(abytRow, 0, abytRow.Length);
+                                    }   // else don't touch what's in the row; it's not an updated colum
                                 }
+  
+                                b.BaseStream.Seek(-1 * table.intRowLength, SeekOrigin.Current);
+                                b.BaseStream.Write(abytRow, 0, abytRow.Length);
+
                                 break;
 
                             case CommandParts.COMMAND_TYPES.DELETE:
