@@ -47,6 +47,7 @@
     <Compile Include="Main.cs" />
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="org\rufwork\mooresDb\exceptions\ImproperDatabaseFileException.cs" />
+    <Compile Include="org\rufwork\mooresDb\exceptions\SyntaxException.cs" />
     <Compile Include="org\rufwork\mooresDb\infrastructure\commands\CreateTableCommand.cs" />
     <Compile Include="org\rufwork\mooresDb\infrastructure\commands\DeleteCommand.cs" />
     <Compile Include="org\rufwork\mooresDb\infrastructure\commands\DropTableCommand.cs" />
