@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using org.rufwork.mooresDb.infrastructure.commands;
 using System.Text.RegularExpressions;
 using org.rufwork.mooresDb.infrastructure.contexts;
+using org.rufwork.mooresDb.exceptions;
 
 namespace org.rufwork.mooresDb.infrastructure
 {
@@ -52,6 +53,7 @@ namespace org.rufwork.mooresDb.infrastructure
                 case "insert":
                     _insertCommand = new InsertCommand(_database); // TODO: This is too much repeat instantiation.  Rethink that.
                     _insertCommand.executeInsert(strSql);
+                    objReturn = "INSERT executed.";
                     break;
                 
                 case "select":
@@ -62,25 +64,29 @@ namespace org.rufwork.mooresDb.infrastructure
                 case "delete":
                     _deleteCommand = new DeleteCommand(_database);
                     _deleteCommand.executeStatement(strSql);
+                    objReturn = "DELETE executed."; // TODO: Add ret val of how many rows returned
                     break;
 
                 case "update":
                     _updateCommand = new UpdateCommand(_database);
                     _updateCommand.executeStatement(strSql);
+                    objReturn = "UPDATE executed."; // TODO: Add ret val of how many rows returned
                     break;
 
                 case "create":
                     _createTableCommand = new CreateTableCommand(_database);
                     _createTableCommand.executeStatement(strSql);
+                    objReturn = "Table created.";
                     break;
 
                 case "drop":
                     DropTableCommand dropTableCommand = new DropTableCommand(_database);
                     dropTableCommand.executeStatement(strSql);
+                    objReturn = "Table dropped.";   // TODO: These are pretty sorry messages.  Have the executeStatement return something more informative.
                     break;
 
                 default:
-                    throw new Exception("Syntax error: Unhandled command type.");
+                    throw new SyntaxException("Syntax error: Unhandled command type.");
             }
 
             return objReturn;

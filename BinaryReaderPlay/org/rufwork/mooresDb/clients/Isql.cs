@@ -25,7 +25,7 @@ namespace org.rufwork.mooresDb.clients
             DatabaseContext database = null;
 
             Console.WriteLine("Embed DB isql client.\nType a single statement followed by a semi-colon and return to execute, or a period by itself to quit.\n\n");
-            
+
             // set up debug db
             Console.WriteLine("Starting at testing dir: MooresDbPlay");
             strParentDir = Utils.cstrHomeDir + System.IO.Path.DirectorySeparatorChar + "MooresDbPlay";
@@ -131,6 +131,10 @@ namespace org.rufwork.mooresDb.clients
                                 if (objResult is DataTable)
                                 {
                                     Console.WriteLine(InfrastructureUtils.dataTableToString((DataTable)objResult));
+                                }
+                                else if (objResult is string)
+                                {
+                                    Console.WriteLine(objResult.ToString());
                                 }
                             }
                             catch (Exception e)
