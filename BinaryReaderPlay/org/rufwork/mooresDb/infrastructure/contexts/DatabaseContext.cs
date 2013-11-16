@@ -13,6 +13,7 @@ namespace org.rufwork.mooresDb.infrastructure.contexts
 {
     public class DatabaseContext
     {
+        public StringComparison caseSetting = StringComparison.CurrentCultureIgnoreCase;
         public string strDbLoc = "";
         private Dictionary<string, TableContext> _dictTables = new Dictionary<string, TableContext>();
 
@@ -35,8 +36,12 @@ namespace org.rufwork.mooresDb.infrastructure.contexts
         {
             TableContext table = null;
 
-            if (!_dictTables.TryGetValue(strTableName, out table)) {
-                table = null;
+            foreach (string key in _dictTables.Keys)
+            {
+                if (key.Equals(strTableName, this.caseSetting))
+                {
+                    table = _dictTables[key];
+                }
             }
 
             return table;
@@ -80,9 +85,14 @@ namespace org.rufwork.mooresDb.infrastructure.contexts
         {
             int i = -1;
             try {
+                if (!Directory.Exists(strDbLoc))
+                {
+                    Directory.CreateDirectory(strDbLoc);
+                }
+
                 this.strDbLoc = strDbLoc;
                 _dictTables = new Dictionary<string, TableContext>();   // blank whatever was in there before.
-                
+
                 string[] astrTableName = Directory.GetFiles(strDbLoc, "*.mdbf");
                 for (i = 0; i < astrTableName.Length; i++)
                 {

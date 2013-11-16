@@ -412,6 +412,27 @@ namespace org.rufwork
                     case ',':
                         break;
 
+                    // TODO: Handle functions more cleanly.  Maybe translate to easily parsed, paren-less strings?
+                    // This is EMBARRASSINGLY hacky.
+                    case 'N':
+                        if (i + 4 < achrSql.Length)
+                        {
+                            if (achrSql[i+1].Equals('O')
+                                && achrSql[i+2].Equals('W')
+                                && achrSql[i+3].Equals('(')
+                                && achrSql[i+4].Equals(')')
+                            ) {
+                                qString.Enqueue("NOW()");
+                                i = i + 4;
+                                strTemp = "";
+                            }
+                            else
+                            {
+                                goto default;
+                            }
+                        }
+                        break;
+
                     default:
                         strTemp += achrSql[i];
                         break;

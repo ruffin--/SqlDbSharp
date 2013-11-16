@@ -60,11 +60,18 @@ namespace org.rufwork.mooresDb.infrastructure.serializers
             byte[] abytToReturn = null;
             DateTime dteTemp;
 
-            strToSerialize = strToSerialize.TrimEnd('\'').TrimStart('\'');
-
-            if (!DateTime.TryParse(strToSerialize, out dteTemp))
+            if (strToSerialize.Equals("NOW()", StringComparison.CurrentCultureIgnoreCase))
             {
-                throw new Exception("Illegal date format: " + strToSerialize);
+                dteTemp = DateTime.Now;
+            }
+            else
+            {
+                strToSerialize = strToSerialize.TrimEnd('\'').TrimStart('\'');
+
+                if (!DateTime.TryParse(strToSerialize, out dteTemp))
+                {
+                    throw new Exception("Illegal date format: " + strToSerialize);
+                }
             }
 
             long lngTicks = dteTemp.Ticks;

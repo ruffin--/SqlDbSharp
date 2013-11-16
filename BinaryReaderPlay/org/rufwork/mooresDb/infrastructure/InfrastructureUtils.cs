@@ -18,6 +18,8 @@ namespace org.rufwork.mooresDb.infrastructure
     public class InfrastructureUtils
     {
 
+        public static StringComparison caseSetting = StringComparison.CurrentCultureIgnoreCase;
+
         public static string dataTableToString(DataTable dtIn)
         {
             string strReturn = "";
@@ -162,6 +164,8 @@ namespace org.rufwork.mooresDb.infrastructure
         {
             COLUMN_TYPES? colType = null;
 
+            if (StringComparison.CurrentCultureIgnoreCase == InfrastructureUtils.caseSetting) strTypeName = strTypeName.ToUpper();
+
             switch (strTypeName)
             {
                 case "CHAR":
@@ -178,7 +182,8 @@ namespace org.rufwork.mooresDb.infrastructure
 
                 case "INT":
                 case "INTEGER":
-                    if ("AUTO_INCREMENT".Equals(strModifier) || "AUTOINCREMENT".Equals(strModifier))
+                    if ("AUTO_INCREMENT".Equals(strModifier, InfrastructureUtils.caseSetting) 
+                        || "AUTOINCREMENT".Equals(strModifier, InfrastructureUtils.caseSetting))
                     {
                         colType = COLUMN_TYPES.AUTOINCREMENT;
                     }

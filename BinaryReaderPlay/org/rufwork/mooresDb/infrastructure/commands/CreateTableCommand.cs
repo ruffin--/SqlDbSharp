@@ -14,6 +14,7 @@ using System.IO;
 
 using org.rufwork.mooresDb.infrastructure.tableParts;
 using org.rufwork.mooresDb.infrastructure.contexts;
+using org.rufwork.mooresDb.exceptions;
 
 namespace org.rufwork.mooresDb.infrastructure.commands
 {
@@ -149,7 +150,9 @@ namespace org.rufwork.mooresDb.infrastructure.commands
             }   // eo createTableMatch.Success regex check
             else
             {
-                strErr += "Illegal Create Table Statement" + System.Environment.NewLine;
+                strErr += "SYNTAX ERROR: Illegal Create Table Statement" + System.Environment.NewLine;
+                // go ahead and throw specific error type.
+                throw new SyntaxException(strErr);
             }
 
             if (!strErr.Equals(""))
