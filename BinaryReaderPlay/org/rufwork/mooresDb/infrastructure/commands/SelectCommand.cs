@@ -122,11 +122,10 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                     strOldField = field2;
                 }
 
-                //Console.WriteLine("Phrase: " + strInnerJoin + System.Environment.NewLine 
-                //    + "New table/field: " + strNewTable + "/" + strNewField + System.Environment.NewLine
-                //    + "Old table/field: " + strOldTable + "/" + strOldField);
                 string strInClause = "";
 
+                dictTables[strOldTable].CaseSensitive = false;  // TODO: If we keep this, do it in a smarter place.
+                strOldField = this._database.getTableByName(strOldTable).getRawColName(strOldField);  // TODO: This is kinda convoluted (I *think*, since we can have lots of tables in dictTables) since we only have "one" table related to a join (in _table)
                 foreach (DataRow row in dictTables[strOldTable].Rows)
                 {
                     strInClause += row[strOldField].ToString() + ",";
@@ -137,7 +136,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                     + strNewField + " IN (" + strInClause + ");";
 
                 // TODO: Figure out the best time to handle the portion of the WHERE 
-                // that impacts the join portion of the SQL.
+                // that impacts the tables mentioned in the join portion of the SQL.
 
                 if (MainClass.bDebug)
                 {
@@ -146,7 +145,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands
 
                 SelectCommand selectCommand = new SelectCommand(_database);
                 object objReturn = selectCommand.executeStatement(strInnerSelect);
-                
+
                 if (objReturn is DataTable)
                 {
                     DataTable dtInnerJoinResult = (DataTable)objReturn;
