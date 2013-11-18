@@ -382,7 +382,7 @@ namespace org.rufwork
                 switch (achrSql[i])
                 {
                     case ' ':
-                        if (string.Empty != strTemp)
+                        if (string.Empty != strTemp.Trim())
                         {
                             qString.Enqueue(strTemp);
                         }

@@ -14,15 +14,17 @@
 ### VERSION 0.0: Nothing is guaranteed to work.  NOTHING.  Use at your own risk.
 
 ### Major TODOs:
-1. UPDATE statements.
+1. <del>UPDATE statements</del>. **Done**.
 2. Tests.
 3. Docs.
 4. Code review.
 5. ORs in WHERE clauses.
 
+### Major DONES:
+
 ---
 
-## MVED#: [Minimally Viable](http://en.wikipedia.org/wiki/Minimum_viable_product) Embeddable Datastore in C#
+## MVED#: [Minimally Viable](http://en.wikipedia.org/wiki/Minimum_viable_product) Embeddable Datastore in C&#35;
 
 ### What?
 

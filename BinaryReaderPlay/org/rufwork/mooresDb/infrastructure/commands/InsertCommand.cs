@@ -61,19 +61,23 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                 }
 
                 int i=3;
-                strTemp = astrCmdTokens[i];
-                while (!strTemp.ToLower().Equals("values") && i < astrCmdTokens.Length)
+                strTemp = astrCmdTokens[i].Trim();
+                while (!strTemp.Equals("values", StringComparison.CurrentCultureIgnoreCase) && i < astrCmdTokens.Length-1)
                 {
                     lstColumnNames.Add (strTemp);
-                    strTemp = astrCmdTokens[++i];
+                    strTemp = astrCmdTokens[++i].Trim();
                 }
 
-                if (astrCmdTokens[i].ToLower() != "values")    {
+                if (strTemp.ToLower() != "values")
+                {
                     throw new Exception ("Illegal insert command 21");
-                }    else {    // okay, odd place for an else, I know, since the Exception would kill the if block anyhow.
+                }
+                else 
+                {
+                    // okay, odd place for an else, I know, since the Exception would kill the if block anyhow.
                     while (strTemp.IndexOf(";") == -1 && i < astrCmdTokens.Length-1)
                     {
-                        strTemp = astrCmdTokens[++i];
+                        strTemp = astrCmdTokens[++i].Trim();
                         lstStringRowValues.Add(strTemp);  // I don't think we care where the ")" appears, do we?  Maybe I should split on parens first.  But INSERT doesn't have something after the ), right?
                     }
                 }
