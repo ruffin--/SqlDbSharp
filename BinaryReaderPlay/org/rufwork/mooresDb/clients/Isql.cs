@@ -11,6 +11,7 @@ using System.Text;
 using org.rufwork.mooresDb.infrastructure;
 using org.rufwork.mooresDb.infrastructure.contexts;
 using System.Data;
+using System.IO;
 
 namespace org.rufwork.mooresDb.clients
 {
@@ -24,6 +25,7 @@ namespace org.rufwork.mooresDb.clients
 
             DatabaseContext database = null;
 
+            Console.SetIn(new StreamReader(Console.OpenStandardInput(4096)));
             Console.WriteLine("Embed DB isql client.\nType a single statement followed by a semi-colon and return to execute, or a period by itself to quit.\n\n");
 
             // set up debug db

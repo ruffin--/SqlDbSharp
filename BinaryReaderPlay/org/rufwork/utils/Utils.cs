@@ -386,11 +386,11 @@ namespace org.rufwork
                         {
                             qString.Enqueue(strTemp);
                         }
+                        strTemp = "";
                         while (' ' == achrSql[i] && i < achrSql.Length)
                         {
                             i++;
                         }
-                        strTemp = "";
                         if (i < achrSql.Length)
                         {
                             i--;    // pick back up with next non-space character.
@@ -409,7 +409,14 @@ namespace org.rufwork
 
                     case '(':
                     case ')':
+                        break;
+
                     case ',':
+                        if (string.Empty != strTemp.Trim())
+                        {
+                            qString.Enqueue(strTemp);
+                        }
+                        strTemp = "";
                         break;
 
                     // TODO: Handle functions more cleanly.  Maybe translate to easily parsed, paren-less strings?
