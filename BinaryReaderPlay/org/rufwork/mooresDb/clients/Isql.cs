@@ -23,6 +23,15 @@ namespace org.rufwork.mooresDb.clients
             string strParentDir = "";
             string strTestTableName = "jive";
 
+            try
+            {
+                Console.SetWindowSize(160, 50);
+            }
+            catch (Exception)
+            {
+                Console.WriteLine("Screen doesn't support chosen console window dimensions.");
+            }
+
             DatabaseContext database = null;
 
             Console.SetIn(new StreamReader(Console.OpenStandardInput(4096)));

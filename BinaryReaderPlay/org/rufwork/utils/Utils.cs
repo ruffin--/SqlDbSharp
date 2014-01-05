@@ -37,6 +37,11 @@ namespace org.rufwork
         
         public static readonly string cstrHomeDir = System.Environment.GetFolderPath (System.Environment.SpecialFolder.Personal);
         
+        /// <summary>
+        /// Logs an error to console and file, duh.
+        /// </summary>
+        /// <param name="strErrDesc">Description of the error</param>
+        /// <param name="strLoc">Where the error occurred.</param>
         public static void logErr (string strErrDesc, string strLoc)
         {
             Console.WriteLine ("ERROR: " + strLoc + "\n" + strErrDesc);

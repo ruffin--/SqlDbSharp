@@ -72,7 +72,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                 {
                     throw new Exception ("Illegal insert command 21");
                 }
-                else 
+                else
                 {
                     // okay, odd place for an else, I know, since the Exception would kill the if block anyhow.
                     while (strTemp.IndexOf(";") == -1 && i < astrCmdTokens.Length-1)

@@ -15,12 +15,13 @@ using org.rufwork.mooresDb.infrastructure.commands;
 using org.rufwork.mooresDb.infrastructure.contexts;
 using org.rufwork.mooresDb.infrastructure.serializers;
 
-class MainClass
+public class MainClass
 {
     // Right now, on Windows, that's "C:\\Users\\YourUserName\\Documents\\MooresDbPlay"
     public static readonly string cstrDbDir = Utils.cstrHomeDir + Path.DirectorySeparatorChar + "MooresDbPlay";
     public static bool bDebug = false;
-    public static string version = "0.0.0a";
+    public static string buildData = "20140104";
+    public static string version = "0.0.0b";
 
     public static void Main (string[] args)
     {
