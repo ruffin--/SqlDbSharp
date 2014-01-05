@@ -125,7 +125,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                 string strInClause = "";
 
                 dictTables[strOldTable].CaseSensitive = false;  // TODO: If we keep this, do it in a smarter place.
-                strOldField = this._database.getTableByName(strOldTable).getRawColName(strOldField);  // TODO: This is kinda convoluted (I *think*, since we can have lots of tables in dictTables) since we only have "one" table related to a join (in _table)
+                // Right now, strOldField has the name that's in the DataTable from the previous select.
                 foreach (DataRow row in dictTables[strOldTable].Rows)
                 {
                     strInClause += row[strOldField].ToString() + ",";
@@ -149,15 +149,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                 if (objReturn is DataTable)
                 {
                     DataTable dtInnerJoinResult = (DataTable)objReturn;
-
-                    // Merge the two tables (one the total of any previous joins, the other
-                    // from the latest new statement) together.
-                    TableContext tableNew = _database.getTableByName(strNewTable);
-                    if (null == tableNew)
-                    {
-                        throw new Exception(strNewTable + " is in JOIN but does not exist in database: " + _database.strDbLoc);
-                    }
-                    dtReturn = InfrastructureUtils.equijoinTables(dtReturn, dtInnerJoinResult, _table, tableNew, strOldField, strNewField);
+                    dtReturn = InfrastructureUtils.equijoinTables(dtReturn, dtInnerJoinResult, strOldField, strNewField);
                 }
                 else
                 {
