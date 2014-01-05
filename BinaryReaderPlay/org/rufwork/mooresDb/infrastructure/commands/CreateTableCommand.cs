@@ -78,7 +78,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                         string[] astrColInfo = Utils.stringToNonWhitespaceTokens2(strNextColumnInfo);
 
                         if (astrColInfo.Length < 2) {
-                            strErr += "Illegal column defintion; table not created\n";
+                            strErr += "Illegal column defintion; table not created: " + string.Join(":",astrColInfo) + "#\n";
                         }   else    {
                             //=====================
                             //======= DEBUG =======
