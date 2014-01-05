@@ -68,7 +68,6 @@ namespace org.rufwork.mooresDb.infrastructure
         // I could do this with DataSets and DataRelations, but this 
         // is more straightfoward for now, I think.
         static public DataTable equijoinTables(DataTable dt1, DataTable dt2, 
-            TableContext tblContext1, TableContext tblContext2,
             string strDt1JoinColName, string strDt2JoinColName
         )
         {
@@ -78,8 +77,8 @@ namespace org.rufwork.mooresDb.infrastructure
             // We could count on the programmer having already done this conversion
             // from menumonic to raw column name, but it's non-destructive to, at worst,
             // do it again here.
-            strDt1JoinColName = tblContext1.getRawColName(strDt1JoinColName);
-            strDt2JoinColName = tblContext2.getRawColName(strDt2JoinColName);
+            //strDt1JoinColName = tblContext1.getRawColName(strDt1JoinColName);
+            //strDt2JoinColName = tblContext2.getRawColName(strDt2JoinColName);
 
             if (null == strDt1JoinColName || null == strDt2JoinColName)
             {
@@ -195,6 +194,13 @@ namespace org.rufwork.mooresDb.infrastructure
                     {
                         colType = COLUMN_TYPES.INT;
                     }
+                    break;
+
+                case "BYTE":
+                    if (isSingleByteLength)
+                        colType = COLUMN_TYPES.BYTE;
+                    else
+                        throw new Exception("Byte columns must have a length of one.");
                     break;
 
                 case "FLOAT":
