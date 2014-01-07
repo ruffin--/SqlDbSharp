@@ -210,7 +210,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
             if (!string.IsNullOrWhiteSpace(strWhere))
             {
                 strWhere = strWhere.Substring(6);
-                string[] astrClauses = strWhere.Split(new string[] { "AND", "and" }, StringSplitOptions.None);
+                string[] astrClauses = strWhere.Split(new string[] { "AND", "and" }, StringSplitOptions.None);  // TODO: Fix this. Overly naive.
 
                 for (int i = 0; i < astrClauses.Length; i++)
                 {
@@ -218,7 +218,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
                     string strClause = astrClauses[i].Trim();
                     if (MainClass.bDebug) Console.WriteLine("Where clause #" + i + " " + strClause);
 
-                    if (strClause.ToUpper().Contains(" IN "))
+                    if (strClause.ToUpper().Contains(" IN "))   // TODO: Fix this.  Overly naive
                     {
                         CompoundComparison inClause = new CompoundComparison(GROUP_TYPE.OR);
                         if (MainClass.bDebug) Console.WriteLine("IN clause: " + strClause);
@@ -253,21 +253,21 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
 
         private static Comparison _CreateComparison(string strClause, TableContext table)
         {
-            char chrOperator = '=';
+            char[] achrOperator = {'='};
             if (strClause.Contains('<'))
             {
-                chrOperator = '<';
+                achrOperator[0] = '<';
             }
             else if (strClause.Contains('>'))
             {
-                chrOperator = '>';
+                achrOperator[0] = '>';
             }
             else if (!strClause.Contains('='))
             {
                 throw new Exception("Illegal comparison type in SelectCommand: " + strClause);
             }
 
-            string[] astrComparisonParts = strClause.Split(chrOperator);
+            string[] astrComparisonParts = strClause.Split(achrOperator, 2);
             Column colToConstrain = table.getColumnByName(astrComparisonParts[0].Trim());
             if (null == colToConstrain)
             {
@@ -277,7 +277,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
             BaseSerializer serializer = Router.routeMe(colToConstrain);
             byte[] abytComparisonVal = serializer.toByteArray(astrComparisonParts[1].Trim());
 
-            return new Comparison(chrOperator, colToConstrain, abytComparisonVal);
+            return new Comparison(achrOperator[0], colToConstrain, abytComparisonVal);
         }
 #endregion whereToComparisons
     }
