@@ -146,6 +146,10 @@ namespace org.rufwork.mooresDb.infrastructure.contexts
                     fs.Close(); // TODO: Keep open until you're done; closing now to avoid leaving it open when I break/stop when debugging
 
                     // Now see if we've gotten to the first 0x11, 0x11 line end.
+                    // Note: The real disadvantage of this routine is if a field length
+                    // is 4369 (decimal), which is 0x1111.  Ooops!  So 4369 is out as a length.
+                    // (as is 69904-69919, etc etc, but let's pretend nobody's doing something
+                    // that long for now. I mean, heck, 4369 is ludicrous enough).
                     for (int i = intStartingByte; i < abytFirstLine.Length - 1; i++)
                     {
                         if (0x11 == abytFirstLine[i] && 0x11 == abytFirstLine[i + 1])
@@ -234,7 +238,7 @@ namespace org.rufwork.mooresDb.infrastructure.contexts
                             column.intColStart = j; // start is at the first byte of the entry; this col starts on the jth bit of each row.s
                             column.colType = (COLUMN_TYPES)abytFirstLine[j++];
                             Stack<byte> stackLength = new Stack<byte>();
-                            while (abytFirstLine[j] != 0x00 && abytFirstLine[j] != 0x11)
+                            while (abytFirstLine[j] != 0x00 && abytSecondLine[j] != 0x11)
                             {
                                 stackLength.Push(abytFirstLine[j++]);
                             }
@@ -251,9 +255,8 @@ namespace org.rufwork.mooresDb.infrastructure.contexts
                                 column.intColLength = Utils.byteArrayToInt(stackLength.ToArray());
                             }
 
-                            // roll to the end of the column's space.
-                            // we should be able to figure that out by column.intColLength at this point, but I'm going to keep array rolling.
-                            while (abytFirstLine[j] != 0x11)
+                            // Roll to the end of the column's space.
+                            while (abytSecondLine[j] != 0x11)
                             {
                                 j++;
                             }

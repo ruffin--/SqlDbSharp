@@ -20,8 +20,8 @@ public class MainClass
     // Right now, on Windows, that's "C:\\Users\\YourUserName\\Documents\\MooresDbPlay"
     public static readonly string cstrDbDir = Utils.cstrHomeDir + Path.DirectorySeparatorChar + "MooresDbPlay";
     public static bool bDebug = false;
-    public static string buildData = "20140104";
-    public static string version = "0.0.0b";
+    public static string buildData = "20140111";    // not always incremented with each build.
+    public static string version = "0.0.1a";
 
     public static void Main (string[] args)
     {

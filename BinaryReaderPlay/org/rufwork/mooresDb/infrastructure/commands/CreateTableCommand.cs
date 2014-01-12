@@ -20,7 +20,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands
 {
     class CreateTableCommand
     {
-        const int cintDefaultLength = 20;   // should at least be larger than one
+        const int cintDefaultColumnLength = 20;   // should at least be larger than one
         private DatabaseContext _database;
         private TableContext _table;
         private string _strDbLoc;
@@ -72,7 +72,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                     {
                         COLUMN_TYPES? colType = null;  // This really should never be null after running through the code.  It'll throw an exception first.
                         string strColName = "";
-                        int intFieldLength = cintDefaultLength;
+                        int intFieldLength = cintDefaultColumnLength;
 
                         string strNextColumnInfo = astrSections[i].Trim();
                         string[] astrColInfo = Utils.stringToNonWhitespaceTokens2(strNextColumnInfo);
@@ -97,6 +97,10 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                                 int intLength;
                                 if (int.TryParse(astrColInfo[2], out intLength))
                                 {
+                                    if (4369 == intLength)
+                                    {
+                                        throw new Exception("idiosyncratically, column lengths of [exactly] 4369 are not allowed. " + astrColInfo[1]);
+                                    }
                                     intFieldLength = intLength;
                                 }
                             }
