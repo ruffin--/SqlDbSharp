@@ -89,7 +89,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands
             strJoinText = System.Text.RegularExpressions.Regex.Replace(strJoinText, @"\s+", " ");
             string[] astrInnerJoins = strJoinText.ToLower().Split(new string[] {"inner join"}, StringSplitOptions.RemoveEmptyEntries);
             Dictionary<string, DataTable> dictTables = new Dictionary<string, DataTable>();
-            dictTables.Add(strParentTable, dtReturn);
+            dictTables.Add(strParentTable.ToLower(), dtReturn);
 
             foreach (string strInnerJoin in astrInnerJoins)
             {
