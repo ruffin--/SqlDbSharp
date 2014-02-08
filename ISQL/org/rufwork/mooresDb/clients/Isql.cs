@@ -10,7 +10,7 @@ using System.Linq;
 using System.Text;
 using org.rufwork.mooresDb.infrastructure;
 using org.rufwork.mooresDb.infrastructure.contexts;
-using System.Data;
+using org.rufwork.shims.data;
 using System.IO;
 
 namespace org.rufwork.mooresDb.clients

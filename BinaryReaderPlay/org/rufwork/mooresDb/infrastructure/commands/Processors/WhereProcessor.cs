@@ -5,7 +5,7 @@ using org.rufwork.mooresDb.infrastructure.tableParts;
 using org.rufwork.utils;
 using System;
 using System.Collections.Generic;
-using System.Data;
+using org.rufwork.shims.data;
 using System.IO;
 using System.Linq;
 using System.Text;
