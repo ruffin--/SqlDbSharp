@@ -4,3 +4,5 @@ BinaryReaderPlay/obj/
 *.swp
 *.cs~
 *.orig
+ISQL/bin/Debug/
+ISQL/obj/Debug/

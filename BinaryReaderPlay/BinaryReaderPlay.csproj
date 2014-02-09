@@ -65,7 +65,6 @@
     <Compile Include="org\rufwork\mooresDb\infrastructure\serializers\DecimalSerializer.cs" />
     <Compile Include="org\rufwork\mooresDb\infrastructure\serializers\IntSerializer.cs" />
     <Compile Include="org\rufwork\mooresDb\infrastructure\serializers\Router.cs" />
-    <Compile Include="org\rufwork\mooresDb\clients\Isql.cs" />
     <Compile Include="org\rufwork\utils\GlobalEnums.cs" />
     <Compile Include="org\rufwork\utils\Utils.cs" />
     <Compile Include="org\rufwork\mooresDb\infrastructure\CommandParser.cs" />

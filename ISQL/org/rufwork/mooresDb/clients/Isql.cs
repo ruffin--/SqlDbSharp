@@ -40,6 +40,7 @@ namespace org.rufwork.mooresDb.clients
             // set up debug db
             Console.WriteLine("Starting at testing dir: MooresDbPlay");
             strParentDir = Utils.cstrHomeDir + System.IO.Path.DirectorySeparatorChar + "MooresDbPlay";
+            strParentDir = Utils.cstrHomeDir + @"\..\MailTimeData\MTDB";
             database = new DatabaseContext(strParentDir);
             Console.WriteLine(strParentDir + "\n\n");
             // eo setup debug db
