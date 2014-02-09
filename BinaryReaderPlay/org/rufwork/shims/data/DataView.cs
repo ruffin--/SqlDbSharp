@@ -11,7 +11,6 @@ using System.Linq;
 using System.Text;
 using org.rufwork.collections;
 using System.IO;
-using System.Runtime.Serialization.Formatters.Binary;
 
 namespace org.rufwork.shims.data
 {
@@ -31,16 +30,12 @@ namespace org.rufwork.shims.data
             {
                 _strSort = value;
                 this.sortedTable = _sortTable();
-                // sort the sortedTable.
-                Console.WriteLine("TODO: Sort the sortedTable: " + _strSort);
             }
         }
 
         private DataTable _sortTable()
         {
-            Console.WriteLine("Get the column from name");
             int intTempIndex = -1;
-
             string[] astrSort = _strSort.Split(' ');
 
             if (astrSort.Length != 2)

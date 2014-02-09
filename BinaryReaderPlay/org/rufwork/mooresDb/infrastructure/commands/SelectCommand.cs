@@ -213,28 +213,5 @@ namespace org.rufwork.mooresDb.infrastructure.commands
 
             return dtReturn;
         }
-
-        public static void Main(string[] args)
-        {
-            //string strSql = "SELECT ID, CITY, LAT_N FROM TableContextTest WHERE city = 'Chucktown'";
-            //string strSql = "SELECT ID, CITY, LAT_N FROM TableContextTest WHERE city = 'Chucktown' AND LAT_N > 32";
-            string strSql = @"SELECT ID, CITY, LAT_N 
-                    FROM jive 
-                    INNER JOIN joinTest
-                    ON jive.Id = joinTest.CityId
-                    inner join joinTest2
-                    on joinTest.Id = joinTest2.joinId
-                    WHERE city = 'Chucktown' AND LAT_N > 32";
-            DatabaseContext database = new DatabaseContext(MainClass.cstrDbDir);
-
-            SelectCommand selectCommand = new SelectCommand(database);
-            DataTable dtOut = selectCommand.executeStatement(strSql);
-
-            Console.WriteLine(InfrastructureUtils.dataTableToString(dtOut));
-
-            Console.WriteLine("Return to quit.");
-            Console.Read();
-
-        }
     }
 }

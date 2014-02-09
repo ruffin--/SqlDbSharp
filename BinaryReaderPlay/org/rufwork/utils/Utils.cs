@@ -24,6 +24,8 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Linq;
 using org.rufwork.shims.data;
+using System.Text;
+using Windows.Storage;
 
 namespace org.rufwork
 {
@@ -31,30 +33,33 @@ namespace org.rufwork
     {
 
         // TODO: Rename static methods with capitals
-        
+
         private static object _LogLock = 0;     // needs to be at the containing object's level
         // so, in this case, static object global
-        
-        public static readonly string cstrHomeDir = System.Environment.GetFolderPath (System.Environment.SpecialFolder.Personal);
-        
+
+        // The SpecialFolder.Personal call isn't supported on the WP8 platform
+        // TODO: Abstract home directory initialization one more step.
+        public static readonly string cstrHomeDir = ApplicationData.Current.LocalFolder.Path;
+        //public static readonly string cstrHomeDir = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal);
+
         /// <summary>
         /// Logs an error to console and file, duh.
         /// </summary>
         /// <param name="strErrDesc">Description of the error</param>
         /// <param name="strLoc">Where the error occurred.</param>
-        public static void logErr (string strErrDesc, string strLoc)
+        public static void logErr(string strErrDesc, string strLoc)
         {
-            Console.WriteLine ("ERROR: " + strLoc + "\n" + strErrDesc);
-            Utils.logStuff ("ERROR: " + strLoc + "\n" + strErrDesc);
+            Console.WriteLine("ERROR: " + strLoc + "\n" + strErrDesc);
+            Utils.logStuff("ERROR: " + strLoc + "\n" + strErrDesc);
         }
-        
+
         // Convenience function to log jive.
-        public static void logStuff (string strToLog)
+        public static void logStuff(string strToLog)
         {
             // obviously the folder must exist
-            string strLogFile = System.IO.Path.Combine (Utils.cstrHomeDir, "appLog.log");
+            string strLogFile = System.IO.Path.Combine(Utils.cstrHomeDir, "appLog.log");
             string strDateFormat = "MM/dd/yyyy hh:mm:ss.fff tt";
-            
+
             try
             {
                 // When you have multiple AJAX (because, duh, asynchronous)
@@ -66,67 +71,77 @@ namespace org.rufwork
                 // going to want to lock the process so that you don't throw
                 // exceptions.  Now, the second logStuff call will wait
                 // patiently until the lock on _LogLock is released.
-                
+
                 // More information here:
                 // http://stackoverflow.com/questions/7419172/streamwriter-lock-not-working
                 // http://msdn.microsoft.com/en-us/library/c5kehkcz(v=vs.71).aspx
-                lock (_LogLock) {
-                    if (!File.Exists (strLogFile)) {
+                lock (_LogLock)
+                {
+                    if (!File.Exists(strLogFile))
+                    {
                         // Create a file to write to.
-                        using (StreamWriter sw = File.CreateText(strLogFile)) {
-                            sw.WriteLine ("Our application's log file.");
-                            sw.WriteLine ("Created " + DateTime.Now.ToString (strDateFormat));
-                            sw.Close ();
+                        using (StreamWriter sw = File.CreateText(strLogFile))
+                        {
+                            sw.WriteLine("Our application's log file.");
+                            sw.WriteLine("Created " + DateTime.Now.ToString(strDateFormat));
+                            sw.Close();
                         }
                     }
-                    
+
                     // This text is always added, making the file longer over time
                     // if it is not deleted or cleaned up.
-                    using (StreamWriter sw = File.AppendText(strLogFile)) {
-                        sw.WriteLine (DateTime.Now.ToString (strDateFormat) + ":");
-                        sw.WriteLine ("\t" + strToLog.Replace ("\n", "\n\t"));
-                        sw.Close ();
+                    using (StreamWriter sw = File.AppendText(strLogFile))
+                    {
+                        sw.WriteLine(DateTime.Now.ToString(strDateFormat) + ":");
+                        sw.WriteLine("\t" + strToLog.Replace("\n", "\n\t"));
+                        sw.Close();
                     }
                 }
-            } catch (Exception) {
+            }
+            catch (Exception)
+            {
                 // probably b/c log location doesn't exist or isn't accessible.
-                System.Diagnostics.Debugger.Break ();    
-                
+                System.Diagnostics.Debugger.Break();
+
                 // insure that's the problem.
                 // In production, if you forget to remove this exception handler
                 // or to move log location to something valid on the server/box, 
                 // it'll quietly fail.
             }
-            
+
         }
-        
-        
-        public static string scrubValue(string strToScrub)    {
+
+
+        public static string scrubValue(string strToScrub)
+        {
             string strReturn = strToScrub;
-            
+
             strReturn.Replace("'", "''");
-            
+
             return strReturn;
         }
-        
+
         // put debugging here so it's easier to blast or reroute later.
-        public static void write2Console (string strToWrite)
+        public static void write2Console(string strToWrite)
         {
-            Console.WriteLine (strToWrite);
+            Console.WriteLine(strToWrite);
         }
-        
-        
-        public static string[] splitExtension (string strFileName)
+
+
+        public static string[] splitExtension(string strFileName)
         {
             string[] astrReturn = new string[2];
-            
-            int intLastDot = strFileName.LastIndexOf (".");
-            if (intLastDot > 0) {    // > 0 and not >= 0 b/c .vimrc is a file name.
-                astrReturn [0] = strFileName.Substring (0, intLastDot);
-                astrReturn [1] = strFileName.Substring (intLastDot, strFileName.Length - intLastDot);
-            } else {
-                astrReturn [0] = strFileName;
-                astrReturn [1] = "";
+
+            int intLastDot = strFileName.LastIndexOf(".");
+            if (intLastDot > 0)
+            {    // > 0 and not >= 0 b/c .vimrc is a file name.
+                astrReturn[0] = strFileName.Substring(0, intLastDot);
+                astrReturn[1] = strFileName.Substring(intLastDot, strFileName.Length - intLastDot);
+            }
+            else
+            {
+                astrReturn[0] = strFileName;
+                astrReturn[1] = "";
             }
             return astrReturn;
         }
@@ -141,16 +156,19 @@ namespace org.rufwork
             return strReturn;
         }
 
-        public static int string2int (string strIn)
+        public static int string2int(string strIn)
         {
             int intReturn = -13371337;
-            
-            if ("13377331".Equals (strIn)) {
-                throw new Exception ("You have found some poor programming");
-            } else {                
-                if (!int.TryParse (strIn, out intReturn))
+
+            if ("13377331".Equals(strIn))
+            {
+                throw new Exception("You have found some poor programming");
+            }
+            else
+            {
+                if (!int.TryParse(strIn, out intReturn))
                     intReturn = 13377331;
-            }            
+            }
             return intReturn;
         }
 
@@ -161,39 +179,41 @@ namespace org.rufwork
         {
             int intReturn = 0;
 
-            if (abytIn.Length > 4) 
+            if (abytIn.Length > 4)
             {
                 throw new Exception("Illegal byte array for Int: " + abytIn.Length);
             }
 
 
-            for (int i=0; i<abytIn.Length; i++) {
+            for (int i = 0; i < abytIn.Length; i++)
+            {
                 intReturn += (int)Math.Pow(256, abytIn.Length - (i + 1)) * abytIn[i];   // should probably check to make sure this doesn't overshoot an int.
                 // Note to self -- C# has no ^ operator for exponents.  It is, instead, xor.
                 // http://blogs.msdn.com/b/csharpfaq/archive/2004/03/07/why-doesn-t-c-have-a-power-operator.aspx
             }
-            
+
             return intReturn;
         }
-        
+
         // Assuming positive values here.
         // Actually it works either way.
         // int is an int64, so eight bytes is what we want.
-        static public long byteArrayToLong (byte[] abytIn)
+        static public long byteArrayToLong(byte[] abytIn)
         {
             long lngReturn = 0;
 
-            if (abytIn.Length > 8) 
+            if (abytIn.Length > 8)
             {
                 throw new Exception("Illegal byte array for Long: " + abytIn.Length);
             }
-            
-            for (int i=0; i<abytIn.Length; i++) {
+
+            for (int i = 0; i < abytIn.Length; i++)
+            {
                 lngReturn += (long)Math.Pow(256, abytIn.Length - (i + 1)) * abytIn[i];   // should probably check to make sure this doesn't overshoot an int.
                 // Note to self -- C# has no ^ operator for exponents.  It is, instead, xor.
                 // http://blogs.msdn.com/b/csharpfaq/archive/2004/03/07/why-doesn-t-c-have-a-power-operator.aspx
             }
-            
+
             return lngReturn;
         }
 
@@ -283,15 +303,15 @@ namespace org.rufwork
         // I don't like the immediate returns, but I'm betting it
         // helps performance.  I don't have any performant uses,
         // but I'll leave it for now.
-        static public bool AreByteArraysEqual(byte[] a1, byte[] a2) 
+        static public bool AreByteArraysEqual(byte[] a1, byte[] a2)
         {
-            if(a1.Length!=a2.Length)
+            if (a1.Length != a2.Length)
                 return false;
-            
-            for(int i=0; i<a1.Length; i++)
-                if(a1[i]!=a2[i])
+
+            for (int i = 0; i < a1.Length; i++)
+                if (a1[i] != a2[i])
                     return false;
-            
+
             return true;
         }
 
@@ -370,7 +390,22 @@ namespace org.rufwork
         // What's the advantage over .Split()?  Specific whitespaces?
         public static string[] stringToNonWhitespaceTokens2(string strToToke)
         {
+            // Not sure why, but I'm getting:
+            //A first chance exception of type 'System.PlatformNotSupportedException' occurred in mscorlib.ni.dll
+            //'Utils.stringToNonWhitespaceTokens("Test this.")' threw an exception of type 'System.TypeInitializationException'
+            // using the code above on Windows Phone 8.
             return Regex.Split(strToToke, @"[\(\)\s,]+").Where(s => s != String.Empty).ToArray<string>(); // TODO: Better way of doing this.  Can I add to regex intelligently?
+            
+            //string[] astrTemp = Regex.Split(strToToke, @"[\(\)\s,]+");
+            //Queue<string> qRet = new Queue<string>();
+            //foreach (string str in astrTemp)
+            //{
+            //    if (!string.IsNullOrEmpty(str))
+            //    {
+            //        qRet.Enqueue(str);
+            //    }
+            //}
+            //return qRet.ToArray();
         }
 
         // Yes, I gave up on RegExp and used a char array.  Sue me.
@@ -429,11 +464,12 @@ namespace org.rufwork
                     case 'N':
                         if (i + 4 < achrSql.Length)
                         {
-                            if (achrSql[i+1].Equals('O')
-                                && achrSql[i+2].Equals('W')
-                                && achrSql[i+3].Equals('(')
-                                && achrSql[i+4].Equals(')')
-                            ) {
+                            if (achrSql[i + 1].Equals('O')
+                                && achrSql[i + 2].Equals('W')
+                                && achrSql[i + 3].Equals('(')
+                                && achrSql[i + 4].Equals(')')
+                            )
+                            {
                                 qString.Enqueue("NOW()");
                                 i = i + 4;
                                 strTemp = "";
@@ -462,11 +498,53 @@ namespace org.rufwork
             return strToSearch.Length - (strToSearch.Replace(strToFind, "").Length / strToFind.Length);
         }
 
-        public static string removeNewlines(string strIn, string strReplacement)  {
+        public static string removeNewlines(string strIn, string strReplacement)
+        {
             return Regex.Replace(strIn, @"\r\n?|\n", strReplacement);
         }
 
-        public Utils ()
+        public static byte[] stringToASCIIBytes(string strToParse)
+        {
+            byte[] abytReturn = new byte[strToParse.Length];
+
+            try
+            {
+                char[] chrLaunder = strToParse.ToCharArray();
+                for (int i = 0; i < strToParse.Length; i++)
+                {
+                    if ((int)chrLaunder[i] <= 255)
+                        abytReturn[i] = (byte)chrLaunder[i];
+                    else
+                        abytReturn[i] = (byte)'!';
+                }
+            }
+            catch (Exception)
+            {
+                abytReturn = new byte[strToParse.Length];
+            }
+
+            return abytReturn;
+        }
+
+        public static string ASCIIBytesToString(byte[] abytASCII)
+        {
+            // I'm not sure if I want to play [one or more sets of] extended ASCII or not
+            // For now, even though I'm serializing any byte value from a string, I'm only
+            // going to unserialize <= 127
+            StringBuilder sbOut = new StringBuilder();
+
+            for (int i = 0; i < abytASCII.Length; i++)
+            {
+                if (abytASCII[i] >= 0 && abytASCII[i] <= 127)
+                    sbOut.Append((char)abytASCII[i]);
+                else
+                    sbOut.Append('!');
+            }
+
+            return sbOut.ToString();
+        }
+
+        public Utils()
         {
         }
     }

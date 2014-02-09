@@ -440,26 +440,5 @@ namespace org.rufwork.mooresDb.infrastructure.contexts
                 b.Write(abytLength);
             }
         }
-
-        public static void Main(string[] args)
-        {
-            TableContext TableContext = new TableContext();
-            TableContext.prePrepareNewTable(MainClass.cstrDbDir, "TableContextTest");
-
-            //if (false)  // if that file doesn't already exist/run only the first time.
-            //{
-            //    List<byte> lstMetadataRow = new List<byte>(new byte[] { 0x11, 0x03, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x11, 0x02, 0x05, 0x00, 0x00, 0x00, 0x11, 0x02, 0x02, 0x11, 0x04, 0x05, 0x00, 0x00, 0x00, 0x11, 0x04, 0x05, 0x00, 0x00, 0x00, 0x11 });
-            //    List<byte> lstColNames = new List<byte>(new byte[] { 0x11, 0x49, 0x44, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x11, 0x43, 0x49, 0x54, 0x59, 0x00, 0x11, 0x53, 0x54, 0x11, 0x4C, 0x41, 0x54, 0x5F, 0x4E, 0x11, 0x4C, 0x4F, 0x4E, 0x47, 0x5F, 0x11 });
-
-            //    TableContext.writeMetadataRowsAndPrepareNewTable(lstMetadataRow, lstColNames);
-            //}
-
-            TableContext._prepareTableFromFile();
-
-            Column[] columns = TableContext.getColumns();
-
-            Console.WriteLine("Press return to end");
-            Console.Read();
-        }
     }
 }

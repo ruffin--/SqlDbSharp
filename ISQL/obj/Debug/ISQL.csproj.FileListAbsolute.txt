@@ -1,8 +1,0 @@
-C:\Users\Ruffin\Documents\Projects\mooresdatabaseWP8\ISQL\bin\Debug\ISQL.exe.config
-C:\Users\Ruffin\Documents\Projects\mooresdatabaseWP8\ISQL\bin\Debug\ISQL.exe
-C:\Users\Ruffin\Documents\Projects\mooresdatabaseWP8\ISQL\bin\Debug\ISQL.pdb
-C:\Users\Ruffin\Documents\Projects\mooresdatabaseWP8\ISQL\bin\Debug\BinaryReaderPlay.dll
-C:\Users\Ruffin\Documents\Projects\mooresdatabaseWP8\ISQL\bin\Debug\BinaryReaderPlay.pdb
-C:\Users\Ruffin\Documents\Projects\mooresdatabaseWP8\ISQL\obj\Debug\ISQL.csprojResolveAssemblyReference.cache
-C:\Users\Ruffin\Documents\Projects\mooresdatabaseWP8\ISQL\obj\Debug\ISQL.exe
-C:\Users\Ruffin\Documents\Projects\mooresdatabaseWP8\ISQL\obj\Debug\ISQL.pdb

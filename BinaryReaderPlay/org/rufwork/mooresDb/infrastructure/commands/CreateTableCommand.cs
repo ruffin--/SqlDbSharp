@@ -257,35 +257,5 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                 _lstByteColNames.Add(0x11);
             }
         }
-
-        public static void Main(string[] args)
-        {
-            DatabaseContext database = new DatabaseContext(MainClass.cstrDbDir);
-
-            // TODO: I think I'm missing an AS, right?
-            string strSql = @"create TABLE " + DateTime.Now.Ticks + @"
-                (ID INTEGER (4) AUTO_INCREMENT,
-                CITY CHAR (35),
-                STATE CHAR (2),
-                LAT_N REAL (5),
-                LONG_W REAL (5));";
-
-            Console.WriteLine("Executing:" + System.Environment.NewLine + strSql);
-
-            // I could call a CommandParser here, but that's overkill.  Test *just* this class.
-            // Though this stuff would typically be handled in the CommandParser and sent to
-            // its CreateTableCommand object.
-
-            // TODO: That said, come back and handle like it's handled in the CommandParser rather than parsing the string in CreateTableCommand.
-            // >>> string[] astrAllTokens = strSql.Split ();
-            // >>> string[] astrCmdTokens =
-            // >>>     Array.FindAll(astrAllTokens, _NotEmptyString);
-            CreateTableCommand createTableCommand = new CreateTableCommand(database);
-            createTableCommand.executeStatement(strSql);
-
-            Console.WriteLine("Return to quit.");
-            Console.Read();
-
-        }
     }
 }
