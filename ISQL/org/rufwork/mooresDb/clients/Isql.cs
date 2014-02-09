@@ -32,7 +32,7 @@ namespace org.rufwork.mooresDb.clients
                 Console.WriteLine("Screen doesn't support chosen console window dimensions.");
             }
 
-            DatabaseContext database = null;
+            DatabaseContext dbTemp = null;
 
             Console.SetIn(new StreamReader(Console.OpenStandardInput(4096)));
             Console.WriteLine("Embed DB isql client.\nType a single statement followed by a semi-colon and return to execute, or a period by itself to quit.\n\n");
@@ -40,8 +40,7 @@ namespace org.rufwork.mooresDb.clients
             // set up debug db
             Console.WriteLine("Starting at testing dir: MooresDbPlay");
             strParentDir = Utils.cstrHomeDir + System.IO.Path.DirectorySeparatorChar + "MooresDbPlay";
-            strParentDir = Utils.cstrHomeDir + @"\..\MailTimeData\MTDB";
-            database = new DatabaseContext(strParentDir);
+            dbTemp = new DatabaseContext(strParentDir);
             Console.WriteLine(strParentDir + "\n\n");
             // eo setup debug db
                 
@@ -69,6 +68,24 @@ namespace org.rufwork.mooresDb.clients
                         // Ob remove when live.
                         switch (strCmd)
                         {
+                            case "test usage;":
+                                DatabaseContext database = new DatabaseContext(@"C:\temp\DatabaseName"); // or Mac path, etc.
+                                CommandParser parser = new CommandParser(database);
+                                string sql = @"CREATE TABLE TestTable (
+                                        ID INTEGER (4) AUTOINCREMENT,
+                                        CITY CHAR (10));";
+                                parser.executeCommand(sql);
+                                parser.executeCommand("INSERT INTO TestTable (CITY) VALUES ('New York');");
+                                parser.executeCommand("INSERT INTO TestTable (CITY) VALUES ('Boston');");
+                                parser.executeCommand("INSERT INTO TestTable (CITY) VALUES ('Fuquay');");
+                                sql = "SELECT * FROM TestTable;";
+                                DataTable dataTable = (DataTable)parser.executeCommand(sql);
+                                Console.WriteLine(InfrastructureUtils.dataTableToString(dataTable));
+                                parser.executeCommand("DROP TABLE TestTable;");
+
+                                strCmd = "";
+                                goto case "goto kludge";
+
                             case "test create;":
                                 strTestTableName = "jive" + DateTime.Now.Ticks;
                                 strCmd = @"create TABLE " + strTestTableName + @"
@@ -87,7 +104,7 @@ namespace org.rufwork.mooresDb.clients
                                     ID INTEGER (4) AUTOINCREMENT,
                                     CityId INTEGER (4),
                                     Name CHAR (30)
-                                    );";               
+                                    );";
                                 goto case "goto kludge";
 
                             case "test select;":
@@ -126,7 +143,7 @@ namespace org.rufwork.mooresDb.clients
                         if (strCmd.ToLower().StartsWith("use"))
                         {
                             strParentDir = Utils.cstrHomeDir + System.IO.Path.DirectorySeparatorChar + strCmd.Split()[1].TrimEnd(';');
-                            database = new DatabaseContext(strParentDir);
+                            dbTemp = new DatabaseContext(strParentDir);
                             Console.WriteLine(strParentDir);
                         }
                         else if (strParentDir.Equals(""))
@@ -137,7 +154,7 @@ namespace org.rufwork.mooresDb.clients
                         {
                             try
                             {
-                                CommandParser parser = new CommandParser(database);
+                                CommandParser parser = new CommandParser(dbTemp);
                                 object objResult = parser.executeCommand(strCmd);
 
                                 if (objResult is DataTable)
