@@ -151,15 +151,12 @@ namespace org.rufwork.mooresDb.infrastructure
             return dtReturn;
         }
 
-        /// <summary>
-        /// Returns which COLUMN_TYPES enum value matches this type name.
-        /// Eg, translates CHAR or VARCHAR into COLUMN_TYPES.SINGLE_CHAR 
-        /// or COLUMN_TYPES.CHAR.
-        /// </summary>
-        /// <param name="strTypeName">The column type from the SQL</param>
-        /// <param name="isSingleByteLength">True if it's a byte or SINGLE_CHAR, etc.</param>
-        /// <returns></returns>
-        static public COLUMN_TYPES? colTypeFromString(string strTypeName, bool isSingleByteLength, string strModifier)
+        // <summary>
+        // Returns which COLUMN_TYPES enum value matches this type name.
+        // Eg, translates CHAR or VARCHAR into COLUMN_TYPES.SINGLE_CHAR 
+        // or COLUMN_TYPES.CHAR.
+        // </summary>
+        static public COLUMN_TYPES? colTypeFromString(string strTypeName, int intByteLength, string strModifier)
         {
             COLUMN_TYPES? colType = null;
 
@@ -169,7 +166,7 @@ namespace org.rufwork.mooresDb.infrastructure
             {
                 case "CHAR":
                 case "VARCHAR":
-                    if (isSingleByteLength)
+                    if (1 == intByteLength)
                     {
                         colType = COLUMN_TYPES.SINGLE_CHAR;
                     }
@@ -186,7 +183,7 @@ namespace org.rufwork.mooresDb.infrastructure
                     {
                         colType = COLUMN_TYPES.AUTOINCREMENT;
                     }
-                    else if (isSingleByteLength)
+                    else if (1 == intByteLength)
                     {
                         colType = COLUMN_TYPES.BYTE;
                     }
@@ -196,8 +193,12 @@ namespace org.rufwork.mooresDb.infrastructure
                     }
                     break;
 
+                // TODO: Log somehow that BIT is being treated like BYTE.
+                case "BIT":
                 case "BYTE":
-                    if (!isSingleByteLength)
+                    // a byte length of -1 means that there was likely no length specified.
+                    // Don't error out, and let the default length get spit in later.
+                    if (1 < intByteLength)
                         throw new Exception("Byte columns must have a length of one.");
                     else
                         goto case "TINYINT";

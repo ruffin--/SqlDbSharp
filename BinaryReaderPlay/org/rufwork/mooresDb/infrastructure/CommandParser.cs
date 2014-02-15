@@ -46,7 +46,7 @@ namespace org.rufwork.mooresDb.infrastructure
             strSql = strSql.TrimEnd(';');
 
             string[] astrCmdTokens = Utils.stringToNonWhitespaceTokens2(strSql);
-                
+
             // TODO: Want to ISqlCommand this stuff -- we need to have execute
             // methods that don't take strings but "command tokens".
             switch (astrCmdTokens[0].ToLower())    {

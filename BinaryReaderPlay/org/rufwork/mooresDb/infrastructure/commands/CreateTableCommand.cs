@@ -125,7 +125,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                                 if (astrColInfo.Length > 3)
                                     strModifier = string.Join(" ", astrColInfo, 3, astrColInfo.Length - 3);
 
-                                colType = InfrastructureUtils.colTypeFromString(astrColInfo[1], 1 == intFieldLength, strModifier);
+                                colType = InfrastructureUtils.colTypeFromString(astrColInfo[1], intFieldLength, strModifier);
 
                                 if (null == colType)
                                 {

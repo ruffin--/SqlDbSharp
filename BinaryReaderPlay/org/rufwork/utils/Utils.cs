@@ -24,6 +24,7 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Linq;
 using System.Data;
+using System.Text;
 
 namespace org.rufwork
 {
@@ -373,8 +374,47 @@ namespace org.rufwork
             return Regex.Split(strToToke, @"[\(\)\s,]+").Where(s => s != String.Empty).ToArray<string>(); // TODO: Better way of doing this.  Can I add to regex intelligently?
         }
 
+        // Another cheesy regular expression end run.  Don't overcomplicate jive.
+        // This should split up strings with multiple commands into, well, multiple commands.
+        // Semi-colons within backticks are ignored.
+        // TODO: Consider making this smarter/not depend on the s/'/` kludge.
+        public static Queue<String> SplitCommandsBySemiColon(string strSql)
+        {
+            char[] achrSql = strSql.ToCharArray();
+            Queue<string> qReturn = new Queue<string>();
+            StringBuilder stringBuilder = new StringBuilder();
+
+            bool inQuotes = false;
+
+            for (int i = 0; i < achrSql.Length; i++)
+            {
+                stringBuilder.Append(achrSql[i]);
+
+                switch (achrSql[i])
+                {
+                    case '`':
+                        inQuotes = !inQuotes;
+                        break;
+
+                    case ';':
+                        if (!inQuotes && stringBuilder.ToString().Trim().Length > 0)
+                        {
+                            qReturn.Enqueue(stringBuilder.ToString());
+                            stringBuilder = new StringBuilder();
+                        }
+                        break;
+                }
+            }
+            if (stringBuilder.ToString().Trim().Length > 0)
+            {
+                qReturn.Enqueue(stringBuilder.ToString());  // this really shouldn't happen, but I'll let the parser throw the error for the missing semi-colon later.
+            }
+
+            return qReturn;
+        }
+
         // Yes, I gave up on RegExp and used a char array.  Sue me.
-        // Honeslty, this is much more straightforward.  It's like a regexp
+        // Honestly, this is much more straightforward.  It's like a regexp
         // as an exploded view.
         public static string[] SqlToTokens(string strToToke)
         {
