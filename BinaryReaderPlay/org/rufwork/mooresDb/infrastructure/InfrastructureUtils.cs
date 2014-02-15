@@ -181,8 +181,8 @@ namespace org.rufwork.mooresDb.infrastructure
 
                 case "INT":
                 case "INTEGER":
-                    if ("AUTO_INCREMENT".Equals(strModifier, InfrastructureUtils.caseSetting) 
-                        || "AUTOINCREMENT".Equals(strModifier, InfrastructureUtils.caseSetting))
+                    if (strModifier.IndexOf("AUTO_INCREMENT", InfrastructureUtils.caseSetting) > -1
+                        || strModifier.IndexOf("AUTOINCREMENT", InfrastructureUtils.caseSetting) > -1)
                     {
                         colType = COLUMN_TYPES.AUTOINCREMENT;
                     }
@@ -197,10 +197,13 @@ namespace org.rufwork.mooresDb.infrastructure
                     break;
 
                 case "BYTE":
-                    if (isSingleByteLength)
-                        colType = COLUMN_TYPES.BYTE;
-                    else
+                    if (!isSingleByteLength)
                         throw new Exception("Byte columns must have a length of one.");
+                    else
+                        goto case "TINYINT";
+
+                case "TINYINT":
+                    colType = COLUMN_TYPES.BYTE;
                     break;
 
                 case "FLOAT":

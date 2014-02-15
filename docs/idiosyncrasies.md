@@ -41,6 +41,13 @@ Here are some major examples:
 	* SELECT * FROM jive jiveTown INNER JOIN music GreatMusic on jiveTown.ID = GreatMusic.OriginId; -- Also no good.
 10. **AUTOINCREMENT columns must be four byte INTs**
     * ID INTEGER (4) AUTOINCREMENT
+11. **Columns of length 4369 aren't allowed**
+    * Totally my new favorite idiosyncratic behavior.
+    * Initially, columns this length would cause strange, destructive (?) errors.
+    * Now the error: "Idiosyncratically, column lengths of [exactly] 4369 are not allowed." is displayed if you try.
+    * The end of the first table metadata row is marked with 0x11 0x11.  Guess what [4369 is in hex](http://lmgtfy.com/?q=4369+in+hexadecimal)?
+    * Columns of lengths 4368 and 4370 are fine.
+    * 69905 would also be bad, but that's even bat-crazier huge than 4369, which already really shouldn't have happened in practice.  Discuss. 
 
 
 Enjoy.
