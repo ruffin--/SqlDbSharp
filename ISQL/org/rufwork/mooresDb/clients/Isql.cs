@@ -43,7 +43,7 @@ namespace org.rufwork.mooresDb.clients
             dbTemp = new DatabaseContext(strParentDir);
             Console.WriteLine(strParentDir + "\n\n");
             // eo setup debug db
-                
+
             while (!strInput.Equals("."))
             {
                 string strCmd = "";
@@ -55,7 +55,10 @@ namespace org.rufwork.mooresDb.clients
                     while (!strInput.Equals(".") && -1 == strInput.IndexOf(";")) 
                     {
                         strInput = Console.ReadLine();
-                        strCmd += strInput + " ";
+                        if (!strInput.StartsWith("--"))
+                        {
+                            strCmd += strInput + " ";
+                        }
                     }
 
                     if (!strCmd.Trim().Equals("."))
