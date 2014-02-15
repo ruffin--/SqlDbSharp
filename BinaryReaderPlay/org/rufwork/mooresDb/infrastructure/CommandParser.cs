@@ -82,7 +82,7 @@ namespace org.rufwork.mooresDb.infrastructure
                 case "drop":
                     DropTableCommand dropTableCommand = new DropTableCommand(_database);
                     dropTableCommand.executeStatement(strSql);
-                    objReturn = "Table dropped.";   // TODO: These are pretty sorry messages.  Have the executeStatement return something more informative.
+                    objReturn = @"Table dropped (or, if ""IF EXISTS"" was used, dropped iff found).";   // TODO: These are pretty sorry messages.  Have the executeStatement return something more informative.
                     break;
 
                 default:

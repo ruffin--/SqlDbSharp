@@ -28,12 +28,17 @@ namespace org.rufwork.mooresDb.infrastructure.commands
 
         public void executeStatement(string strSql)
         {
+            bool bIgnoreMissingTable = false;
+
             // NOTE: Forced case insensitivity.
             strSql = strSql.ToLower().TrimEnd(';');
 
             string[] astrCmdTokens = Utils.stringToNonWhitespaceTokens2(strSql);
 
-            bool bQuickTokenCheck = astrCmdTokens.Length >= 3 && "drop" == astrCmdTokens[0].ToLower() && "table" == astrCmdTokens[1].ToLower();
+            bool bQuickTokenCheck = astrCmdTokens.Length >= 3
+                && "drop" == astrCmdTokens[0].ToLower() 
+                && "table" == astrCmdTokens[1].ToLower();
+
             if (!bQuickTokenCheck)
             {
                 throw new Exception("Illegal drop command -- Syntax DROP TABLE TableName;");
@@ -42,13 +47,28 @@ namespace org.rufwork.mooresDb.infrastructure.commands
             {
                 string strTableName = astrCmdTokens[2];
 
+                if (astrCmdTokens.Length >= 5 
+                        && astrCmdTokens[2].Equals("if", StringComparison.CurrentCultureIgnoreCase)
+                        && astrCmdTokens[3].Equals("exists", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    bIgnoreMissingTable = true;
+                    strTableName = astrCmdTokens[4];
+                }
+                strTableName = strTableName.Trim('`');
+                
                 _table = _database.getTableByName(strTableName);
                 if (null == _table)
                 {
-                    throw new Exception("Table not found in database: " + strTableName);
+                    if (!bIgnoreMissingTable)
+                    {
+                        throw new Exception("Table not found in database: " + strTableName);
+                    }
                 }
-                File.Delete(_table.strTableFileLoc);
-                _database.removeExistingTable(_table);
+                else
+                {
+                    File.Delete(_table.strTableFileLoc);
+                    _database.removeExistingTable(_table);
+                }
             }
         }
 
