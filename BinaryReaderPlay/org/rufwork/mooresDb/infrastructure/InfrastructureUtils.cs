@@ -178,8 +178,12 @@ namespace org.rufwork.mooresDb.infrastructure
 
                 case "INT":
                 case "INTEGER":
-                    if (strModifier.IndexOf("AUTO_INCREMENT", InfrastructureUtils.caseSetting) > -1
-                        || strModifier.IndexOf("AUTOINCREMENT", InfrastructureUtils.caseSetting) > -1)
+                    if (null != strModifier 
+                        && (
+                            strModifier.IndexOf("AUTO_INCREMENT", InfrastructureUtils.caseSetting) > -1
+                            || strModifier.IndexOf("AUTOINCREMENT", InfrastructureUtils.caseSetting) > -1
+                           )
+                        )
                     {
                         colType = COLUMN_TYPES.AUTOINCREMENT;
                     }
