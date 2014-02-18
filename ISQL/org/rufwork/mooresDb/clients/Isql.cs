@@ -69,7 +69,7 @@ Type only a period on a line by itself to quit.
 
                     if (!strCmd.Trim().Equals("."))
                     {
-                        Queue<string> qCmds = Utils.SplitCommandsBySemiColon(strCmd.Trim(' ').Trim('.'));
+                        Queue<string> qCmds = Utils.SplitSeeingQuotes(strCmd.Trim(' ').Trim('.'), ";", true);
 
                         foreach (string strSingleCommand in qCmds)
                         {

@@ -210,7 +210,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
             if (!string.IsNullOrWhiteSpace(strWhere))
             {
                 strWhere = strWhere.Substring(6);
-                string[] astrClauses = strWhere.Split(new string[] { "AND", "and" }, StringSplitOptions.None);  // TODO: Fix this. Overly naive.
+                string[] astrClauses = Utils.SplitSeeingQuotes(strWhere, "AND", false).ToArray();
 
                 for (int i = 0; i < astrClauses.Length; i++)
                 {
@@ -218,7 +218,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
                     string strClause = astrClauses[i].Trim();
                     if (MainClass.bDebug) Console.WriteLine("Where clause #" + i + " " + strClause);
 
-                    if (strClause.ToUpper().Contains(" IN "))   // TODO: Fix this.  Overly naive
+                    if (Utils.SplitSeeingQuotes(strClause, " IN ", false).Count > 1)
                     {
                         CompoundComparison inClause = new CompoundComparison(GROUP_TYPE.OR);
                         if (MainClass.bDebug) Console.WriteLine("IN clause: " + strClause);

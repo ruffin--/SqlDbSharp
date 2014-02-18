@@ -376,38 +376,59 @@ namespace org.rufwork
 
         // Another cheesy regular expression end run.  Don't overcomplicate jive.
         // This should split up strings with multiple commands into, well, multiple commands.
-        // Semi-colons within backticks are ignored.
+        // Tokens within backticks are ignored.
         // TODO: Consider making this smarter/not depend on the s/'/` kludge.
-        public static Queue<String> SplitCommandsBySemiColon(string strSql)
+        public static Queue<String> SplitSeeingQuotes(string strToSplit, string strSplittingToken, bool bIncludeToken, bool bTrimResults = true)
         {
-            char[] achrSql = strSql.ToCharArray();
             Queue<string> qReturn = new Queue<string>();
             StringBuilder stringBuilder = new StringBuilder();
 
-            bool inQuotes = false;
+            // TODO: A smarter way to ensure you're comparing apples to apples
+            // in the first byte knockout comparison.
+            string STRTOSPLIT = strToSplit.ToUpper();
+            string STRSPLITTINGTOKEN = strSplittingToken.ToUpper();
 
-            for (int i = 0; i < achrSql.Length; i++)
+            bool inSingleQuotes = false;
+            bool inBackTicks = false;
+
+            for (int i = 0; i < strToSplit.Length; i++)
             {
-                stringBuilder.Append(achrSql[i]);
-
-                switch (achrSql[i])
+                // TOOD: Reconsider efficiency of these checks.
+                if (!inSingleQuotes && '`' == strToSplit[i])
                 {
-                    case '`':
-                        inQuotes = !inQuotes;
-                        break;
-
-                    case ';':
-                        if (!inQuotes && stringBuilder.ToString().Trim().Length > 0)
-                        {
-                            qReturn.Enqueue(stringBuilder.ToString());
-                            stringBuilder = new StringBuilder();
-                        }
-                        break;
+                    inBackTicks = !inBackTicks;
+                    stringBuilder.Append(strToSplit[i]);
+                }
+                else if ('\'' == strToSplit[i])
+                {
+                    inSingleQuotes = !inSingleQuotes;
+                    stringBuilder.Append(strToSplit[i]);
+                }
+                else if (!inSingleQuotes && !inBackTicks
+                    && STRSPLITTINGTOKEN[0] == STRTOSPLIT[i]
+                    && strToSplit.Length >= i + strSplittingToken.Length
+                    && strSplittingToken.Equals(strToSplit.Substring(i, strSplittingToken.Length), StringComparison.CurrentCultureIgnoreCase))
+                {
+                    if (bIncludeToken)
+                    {
+                        stringBuilder.Append(strSplittingToken);
+                    }
+                    if (stringBuilder.Length > 0 && (!bTrimResults || stringBuilder.ToString().Trim().Length > 0))
+                    {
+                        qReturn.Enqueue(stringBuilder.ToString());
+                        stringBuilder = new StringBuilder();
+                    }
+                    i = i + (strSplittingToken.Length - 1); // -1 for the char we've already got in strToSplit[i]
+                }
+                else
+                {
+                    stringBuilder.Append(strToSplit[i]);
                 }
             }
-            if (stringBuilder.ToString().Trim().Length > 0)
+
+            if (stringBuilder.Length > 0 && (!bTrimResults || stringBuilder.ToString().Trim().Length > 0))
             {
-                qReturn.Enqueue(stringBuilder.ToString());  // this really shouldn't happen, but I'll let the parser throw the error for the missing semi-colon later.
+                qReturn.Enqueue(stringBuilder.ToString());
             }
 
             return qReturn;
