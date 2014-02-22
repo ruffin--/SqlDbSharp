@@ -5,15 +5,13 @@
 // ======================== EO LICENSE ===============================
 
 using System;
+using System.Linq;
 
 namespace org.rufwork.mooresDb.infrastructure.tableParts
 {
-    // Static Jive: I'm not sure there's enough to warrant another class.
-    // I'm going to pretend it's okay to limit to these four for now, as
-    // each of the others can give or take be boiled to these other than
-    // blobs.
+    // TODO: Consider putting enum into its own file.
     //
-    // I should probably return and handle DECIMAL, however.
+    // I should probably return and handle DECIMAL correctly.
     // See DECIMAL fun here: stackoverflow.com/questions/618535/
     //
     // Note that single byte-long types are handled differently when
@@ -21,14 +19,17 @@ namespace org.rufwork.mooresDb.infrastructure.tableParts
     // here.
     public enum COLUMN_TYPES
     {
+        // Note that removing or adding new types (other than at the end) will break backwards compat (of all those millions of apps using this)
+        // since the number is written right into the header of the database file.
         AUTOINCREMENT,  // I'm kludging autoincrement a bit too much.  With this setup, I might add AUTOINCREMENT_8 later for a "near-long".
         SINGLE_CHAR,
-        BYTE,
+        BYTE,           // Probably deprecated (if you can call something unsupported "deprecated"). Replacing with a real BIT type at some point.
         CHAR,
         INT,
         FLOAT,
         DECIMAL,
-        DATETIME
+        DATETIME,
+        TINYINT
     }
 
     // Convenience class to keep track of columns
@@ -52,6 +53,15 @@ namespace org.rufwork.mooresDb.infrastructure.tableParts
             }
         }
 
+        public static bool IsSingleByteType(COLUMN_TYPES colType)
+        {
+            COLUMN_TYPES[] asingleByteTypes = new COLUMN_TYPES[] { 
+                COLUMN_TYPES.BYTE, 
+                COLUMN_TYPES.SINGLE_CHAR, 
+                COLUMN_TYPES.TINYINT
+            };
+            return asingleByteTypes.Contains(colType);
+        }
     }
 }
 

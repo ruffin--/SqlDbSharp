@@ -190,6 +190,9 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                         break;
 
                     case COLUMN_TYPES.BYTE:
+                        throw new NotImplementedException("Currently, BYTE columns are not handled correctly.");
+
+                    case COLUMN_TYPES.TINYINT:
                     case COLUMN_TYPES.INT:
                     case COLUMN_TYPES.AUTOINCREMENT:
                         colForDt.DataType = System.Type.GetType("System.Int32");

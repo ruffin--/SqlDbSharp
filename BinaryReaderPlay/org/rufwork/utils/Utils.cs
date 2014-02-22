@@ -164,9 +164,8 @@ namespace org.rufwork
 
             if (abytIn.Length > 4) 
             {
-                throw new Exception("Illegal byte array for Int: " + abytIn.Length);
+                throw new Exception("Illegal byte array for Int (greater than four bytes): " + abytIn.Length);
             }
-
 
             for (int i=0; i<abytIn.Length; i++) {
                 intReturn += (int)Math.Pow(256, abytIn.Length - (i + 1)) * abytIn[i];   // should probably check to make sure this doesn't overshoot an int.

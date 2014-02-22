@@ -220,6 +220,10 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                     intReturn = 4;  // 4*8 = Int32
                     break;
 
+                case COLUMN_TYPES.TINYINT:
+                    intReturn = 1;
+                    break;
+
                 case COLUMN_TYPES.SINGLE_CHAR:
                     intReturn = 1;
                     break;
@@ -236,12 +240,13 @@ namespace org.rufwork.mooresDb.infrastructure.commands
             List<byte> lstBytToAdd = new List<byte>();
             lstBytToAdd.Add((byte)colType);
 
-            if (colType == COLUMN_TYPES.SINGLE_CHAR || colType == COLUMN_TYPES.BYTE)
+            if (Column.IsSingleByteType(colType))
             {
                 if (intLength != 1)
                 {
-                    throw new Exception("Bytes and single character columns must have length of 1");    // TODO: Consider string prefixes for all exceptions in each class.
+                    throw new Exception("cannot create column. Single byte column type with length greater than 1: " + strName + " :: " + intLength);    // TODO: Consider string prefixes for all exceptions in each class.
                 }
+                lstBytToAdd.Add(0x11);  // bookend with 11s
                 // Otherwise, that's it.  We've got the length implicitly in the colType we wrote, above.
                 // (and there's no space to add a length; the column only has one byte of metadata that 
                 // we wrote in with .Add((byte)colType), above.
@@ -289,38 +294,38 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                     }
                     lstBytToAdd.Add(0x11);  // bookend with 11s
                 }
-
-                _lstByteDataTypeRow = _lstByteDataTypeRow.Concat(lstBytToAdd).ToList();
-
-
-                //================================================================
-                // Column names row
-                //================================================================
-                // Write out row of column names.  Watch out for insane kludges.
-                // TODO: Look out for duplicate column names and for masking longer 
-                // names when shortened.
-                if (intLength > strName.Length)
-                {
-                    foreach (byte bytTemp in strName.ToCharArray())
-                    {
-                        _lstByteColNames.Add(bytTemp);
-                    }
-                    for (int j = strName.Length; j < intLength; j++)
-                    {
-                        _lstByteColNames.Add(0x00);
-                    }
-                }
-                else
-                {
-                    string strShortenedName = strName.Substring(0, intLength);
-                    Console.WriteLine("TODO: Write out a file with shortened name mappings just to make things easier.");
-                    foreach (byte bytTemp in strShortenedName.ToCharArray())
-                    {
-                        _lstByteColNames.Add(bytTemp);
-                    }
-                }
-                _lstByteColNames.Add(0x11);
             }
+
+            _lstByteDataTypeRow = _lstByteDataTypeRow.Concat(lstBytToAdd).ToList();
+
+
+            //================================================================
+            // Column names row
+            //================================================================
+            // Write out row of column names.  Watch out for insane kludges.
+            // TODO: Look out for duplicate column names and for masking longer 
+            // names when shortened.
+            if (intLength > strName.Length)
+            {
+                foreach (byte bytTemp in strName.ToCharArray())
+                {
+                    _lstByteColNames.Add(bytTemp);
+                }
+                for (int j = strName.Length; j < intLength; j++)
+                {
+                    _lstByteColNames.Add(0x00);
+                }
+            }
+            else
+            {
+                string strShortenedName = strName.Substring(0, intLength);
+                Console.WriteLine("TODO: Write out a file with shortened name mappings just to make things easier.");
+                foreach (byte bytTemp in strShortenedName.ToCharArray())
+                {
+                    _lstByteColNames.Add(bytTemp);
+                }
+            }
+            _lstByteColNames.Add(0x11);
         }
 
         public static void Main(string[] args)

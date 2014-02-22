@@ -21,6 +21,7 @@ namespace org.rufwork.mooresDb.infrastructure.serializers
             switch (colToRoute.colType)
             {
                 case COLUMN_TYPES.INT:
+                case COLUMN_TYPES.TINYINT:
                 case COLUMN_TYPES.AUTOINCREMENT:
                     serializer = new IntSerializer(colToRoute);
                     break;

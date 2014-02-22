@@ -235,24 +235,33 @@ namespace org.rufwork.mooresDb.infrastructure.contexts
                             }
                             column.isFuzzyName = 0x00 != abytSecondLine[k]; // if we were forced to end early (0x11 "end of col", not 0x00 "end of name"), we've got a fuzzy name.  See above.
 
-                            column.intColStart = j; // start is at the first byte of the entry; this col starts on the jth bit of each row.s
+                            column.intColStart = j; // start is at the first byte of the entry; this col starts on the jth bit of each row.
                             column.colType = (COLUMN_TYPES)abytFirstLine[j++];
-                            Stack<byte> stackLength = new Stack<byte>();
-                            while (abytFirstLine[j] != 0x00 && abytSecondLine[j] != 0x11)
-                            {
-                                stackLength.Push(abytFirstLine[j++]);
-                            }
 
-                            if (COLUMN_TYPES.AUTOINCREMENT == column.colType)
+                            if (Column.IsSingleByteType(column.colType))
                             {
-                                // We're using the intColLength to store the last autoincrement
-                                // value in this column type.
-                                column.intColLength = 4;    // NOTE: Changing from INT(4) will bork things.
-                                column.intAutoIncrementCount = Utils.byteArrayToInt(stackLength.ToArray());
+                                // handle one byte col types
+                                column.intColLength = 1;
                             }
                             else
                             {
-                                column.intColLength = Utils.byteArrayToInt(stackLength.ToArray());
+                                Stack<byte> stackLength = new Stack<byte>();
+                                while (abytFirstLine[j] != 0x00 && abytSecondLine[j] != 0x11)
+                                {
+                                    stackLength.Push(abytFirstLine[j++]);
+                                }
+
+                                if (COLUMN_TYPES.AUTOINCREMENT == column.colType)
+                                {
+                                    // We're using the intColLength to store the last autoincrement
+                                    // value in this column type.
+                                    column.intColLength = 4;    // NOTE: Changing from INT(4) will bork things.
+                                    column.intAutoIncrementCount = Utils.byteArrayToInt(stackLength.ToArray());
+                                }
+                                else
+                                {
+                                    column.intColLength = Utils.byteArrayToInt(stackLength.ToArray());
+                                }
                             }
 
                             // Roll to the end of the column's space.
