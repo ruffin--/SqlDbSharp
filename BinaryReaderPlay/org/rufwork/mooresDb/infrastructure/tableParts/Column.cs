@@ -23,7 +23,7 @@ namespace org.rufwork.mooresDb.infrastructure.tableParts
         // since the number is written right into the header of the database file.
         AUTOINCREMENT,  // I'm kludging autoincrement a bit too much.  With this setup, I might add AUTOINCREMENT_8 later for a "near-long".
         SINGLE_CHAR,
-        BYTE,           // Probably deprecated (if you can call something unsupported "deprecated"). Replacing with a real BIT type at some point.
+        BIT,
         CHAR,
         INT,
         FLOAT,
@@ -56,8 +56,8 @@ namespace org.rufwork.mooresDb.infrastructure.tableParts
         public static bool IsSingleByteType(COLUMN_TYPES colType)
         {
             COLUMN_TYPES[] asingleByteTypes = new COLUMN_TYPES[] { 
-                COLUMN_TYPES.BYTE, 
-                COLUMN_TYPES.SINGLE_CHAR, 
+                COLUMN_TYPES.BIT,
+                COLUMN_TYPES.SINGLE_CHAR,
                 COLUMN_TYPES.TINYINT
             };
             return asingleByteTypes.Contains(colType);

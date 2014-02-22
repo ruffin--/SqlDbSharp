@@ -176,7 +176,10 @@ namespace org.rufwork.mooresDb.infrastructure
                     }
                     break;
 
+                // TODO: True BIT column type.
+                // Check BIT here: http://dev.mysql.com/doc/refman/5.1/en/bit-type.html
                 case "TINYINT":
+                case "BIT":
                     // If == 1, great.  If < 1, then probably nothing explicitly said.
                     // Will take default length of 1, below, so let it continue.
                     if (1 < intByteLength)
@@ -206,24 +209,6 @@ namespace org.rufwork.mooresDb.infrastructure
                         colType = COLUMN_TYPES.INT;
                     }
                     break;
-
-                // TODO: Log somehow that BIT is being treated like BYTE.
-                // TODO: Okay, not sure what I was doing with BYTE initially.
-                // Check BIT here: http://dev.mysql.com/doc/refman/5.1/en/bit-type.html
-                // But nobody does BYTE as its own type (outside of TINYINT, which
-                // really is just an INT), and the length of a BIT is, I think, literally
-                // the number of BITs to store.
-                case "BIT":
-                case "BYTE":
-                    throw new Exception("We're not sure what we're doing with BYTEs and BITs yet.");
-                    //// a byte length of -1 means that there was likely no length specified.
-                    //// Don't error out, and let the default length get spit in later.
-                    //if (1 < intByteLength)
-                    //{
-                    //    throw new Exception("Byte columns must have a length of one.");
-                    //}
-                    //colType = COLUMN_TYPES.BYTE;
-                    //break;
 
                 case "FLOAT":
                 case "DECIMAL": // so that's not really accurate.

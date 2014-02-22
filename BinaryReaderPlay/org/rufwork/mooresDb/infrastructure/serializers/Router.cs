@@ -41,8 +41,9 @@ namespace org.rufwork.mooresDb.infrastructure.serializers
                     serializer = new DecimalSerializer(colToRoute);
                     break;
 
-                case COLUMN_TYPES.BYTE:
-                    serializer = new ByteSerializer(colToRoute);
+                // TODO: Create a real BIT column type with serializer.
+                case COLUMN_TYPES.BIT:
+                    serializer = new IntSerializer(colToRoute);
                     break;
 
                 case COLUMN_TYPES.DATETIME:

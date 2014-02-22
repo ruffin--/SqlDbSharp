@@ -198,7 +198,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                     intReturn = 4;
                     break;
 
-                case COLUMN_TYPES.BYTE:
+                case COLUMN_TYPES.BIT:
                     intReturn = 1;
                     break;
 

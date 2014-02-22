@@ -189,12 +189,10 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                         colForDt.MaxLength = colTemp.intColLength;
                         break;
 
-                    case COLUMN_TYPES.BYTE:
-                        throw new NotImplementedException("Currently, BYTE columns are not handled correctly.");
-
-                    case COLUMN_TYPES.TINYINT:
-                    case COLUMN_TYPES.INT:
                     case COLUMN_TYPES.AUTOINCREMENT:
+                    case COLUMN_TYPES.TINYINT:
+                    case COLUMN_TYPES.BIT:              // TODO: This will "work", but non 0/1 values can be inserted, obviously.  So it's a kludge for now.
+                    case COLUMN_TYPES.INT:
                         colForDt.DataType = System.Type.GetType("System.Int32");
                         break;
 
