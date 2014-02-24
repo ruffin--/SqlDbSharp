@@ -39,6 +39,8 @@ namespace org.rufwork.mooresDb.infrastructure.tableParts
         public string strColName;
         public int intColStart;
         public int intColLength;
+
+        // TODO: Why isn't this on the TableContext?
         public int intAutoIncrementCount;   // Another kludge, but this is the cleanest way not to affect the rest of the code.
 
         public int intColIndex;

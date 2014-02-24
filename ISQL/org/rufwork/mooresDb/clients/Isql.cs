@@ -44,6 +44,7 @@ Type only a period on a line by itself to quit.
             // set up debug db
             Console.WriteLine("Starting at testing dir: MooresDbPlay");
             strParentDir = Utils.cstrHomeDir + System.IO.Path.DirectorySeparatorChar + "MooresDbPlay";
+            
             dbTemp = new DatabaseContext(strParentDir);
             Console.WriteLine(strParentDir + "\n\n");
             // eo setup debug db
@@ -177,6 +178,14 @@ Type only a period on a line by itself to quit.
                                     else if (objResult is string)
                                     {
                                         Console.WriteLine(objResult.ToString());
+                                    }
+                                    else if (strCmd.Trim().ToUpper().StartsWith("INSERT"))
+                                    {
+                                        Console.WriteLine("Row ID for new row is: " + objResult);
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine("Uncaptured return value.");
                                     }
                                 }
                                 catch (Exception e)

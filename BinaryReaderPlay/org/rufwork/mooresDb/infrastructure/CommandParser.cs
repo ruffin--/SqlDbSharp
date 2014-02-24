@@ -52,8 +52,7 @@ namespace org.rufwork.mooresDb.infrastructure
             switch (astrCmdTokens[0].ToLower())    {
                 case "insert":
                     _insertCommand = new InsertCommand(_database); // TODO: This is too much repeat instantiation.  Rethink that.
-                    _insertCommand.executeInsert(strSql);
-                    objReturn = "INSERT executed.";
+                    objReturn = _insertCommand.executeInsert(strSql);
                     break;
                 
                 case "select":

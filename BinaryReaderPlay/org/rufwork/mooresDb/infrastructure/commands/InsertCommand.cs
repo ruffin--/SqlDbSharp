@@ -31,8 +31,9 @@ namespace org.rufwork.mooresDb.infrastructure.commands
         /// </summary>
         /// <param name="astrCmdTokens">string[] of tokens from the SQL, split on whitespace</param>
         /// <returns></returns>
-        public bool executeInsert (string strSql)
+        public int executeInsert (string strSql)
         {
+            int intNewlyInsertedRowId = -1;
             byte[] abytFullRow = null;
             string[] astrCmdTokens = Utils.SqlToTokens(strSql);
 
@@ -164,6 +165,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                             throw new Exception("Autoincrement overflow.  Congratulations.  Column: " + column.strColName);
                         }
                         column.intAutoIncrementCount++;
+                        intNewlyInsertedRowId = column.intAutoIncrementCount;   // the return value for the function.
                         byte[] abytAutoIncrementValue = Utils.intToByteArray(column.intAutoIncrementCount, 4);  // NOTE: Changing from hard-coded 4 for AUTOINCREMENT length borks this
                         // This is the nasty bit.  We need to increase the spot where we keep
                         // the greatest autoincrement value so that, in case we delete, we can
@@ -183,7 +185,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands
             abytFullRow[abytFullRow.Length - 1] = 0x11; // insert final 0x11 to end the row
             _table.writeRow(abytFullRow);
 
-            return true;
+            return intNewlyInsertedRowId;
         }
 
         public static void Main(string[] args)
