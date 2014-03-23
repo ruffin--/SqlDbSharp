@@ -43,14 +43,14 @@ namespace org.rufwork
         /// </summary>
         /// <param name="strErrDesc">Description of the error</param>
         /// <param name="strLoc">Where the error occurred.</param>
-        public static void logErr (string strErrDesc, string strLoc)
+        public static void LogErr (string strErrDesc, string strLoc)
         {
             Console.WriteLine ("ERROR: " + strLoc + "\n" + strErrDesc);
-            Utils.logStuff ("ERROR: " + strLoc + "\n" + strErrDesc);
+            Utils.LogStuff ("ERROR: " + strLoc + "\n" + strErrDesc);
         }
         
         // Convenience function to log jive.
-        public static void logStuff (string strToLog)
+        public static void LogStuff (string strToLog)
         {
             // obviously the folder must exist
             string strLogFile = System.IO.Path.Combine (Utils.cstrHomeDir, "appLog.log");
@@ -102,22 +102,22 @@ namespace org.rufwork
         }
         
         
-        public static string scrubValue(string strToScrub)    {
+        public static string ScrubValue(string strToScrub)    {
             string strReturn = strToScrub;
-            
-            strReturn.Replace("'", "''");
-            
+
+            strReturn = strReturn.Replace("'", "''");
+
             return strReturn;
         }
         
         // put debugging here so it's easier to blast or reroute later.
-        public static void write2Console (string strToWrite)
+        public static void Write2Console (string strToWrite)
         {
             Console.WriteLine (strToWrite);
         }
         
         
-        public static string[] splitExtension (string strFileName)
+        public static string[] SplitExtension (string strFileName)
         {
             string[] astrReturn = new string[2];
             
@@ -132,7 +132,7 @@ namespace org.rufwork
             return astrReturn;
         }
 
-        public static string printByte(byte bytIn)
+        public static string PrintByte(byte bytIn)
         {
             string strReturn = bytIn.ToString("X2");
             if (bytIn >= 32 && bytIn <= 126)
@@ -142,7 +142,7 @@ namespace org.rufwork
             return strReturn;
         }
 
-        public static int string2int (string strIn)
+        public static int String2int (string strIn)
         {
             int intReturn = -13371337;
             
@@ -158,7 +158,7 @@ namespace org.rufwork
         // Assuming positive ints here.
         // Actually it works either way.
         // int is an int32, so four bytes is what we want.
-        static public int byteArrayToInt(byte[] abytIn)
+        static public int ByteArrayToInt(byte[] abytIn)
         {
             int intReturn = 0;
 
@@ -179,7 +179,7 @@ namespace org.rufwork
         // Assuming positive values here.
         // Actually it works either way.
         // int is an int64, so eight bytes is what we want.
-        static public long byteArrayToLong (byte[] abytIn)
+        static public long ByteArrayToLong (byte[] abytIn)
         {
             long lngReturn = 0;
 
@@ -205,7 +205,7 @@ namespace org.rufwork
         /// <param name="intIn"></param>
         /// <param name="intArrayLength"></param>
         /// <returns></returns>
-        static public byte[] intToByteArray(int intIn, int intArrayLength = 0)
+        static public byte[] IntToByteArray(int intIn, int intArrayLength = 0)
         {
             byte[] abytInteger;
 
@@ -249,7 +249,7 @@ namespace org.rufwork
 
         // Returns array with most significant byte first.
         // TODO: Close enough to int to consider merging.
-        static public byte[] longToByteArray(long lngIn)
+        static public byte[] LongToByteArray(long lngIn)
         {
             byte[] abytInteger;
 
@@ -368,7 +368,7 @@ namespace org.rufwork
         }
 
         // What's the advantage over .Split()?  Specific whitespaces?
-        public static string[] stringToNonWhitespaceTokens2(string strToToke)
+        public static string[] StringToNonWhitespaceTokens2(string strToToke)
         {
             return Regex.Split(strToToke, @"[\(\)\s,]+").Where(s => s != String.Empty).ToArray<string>(); // TODO: Better way of doing this.  Can I add to regex intelligently?
         }
@@ -517,12 +517,12 @@ namespace org.rufwork
             return qString.ToArray();
         }
 
-        public static int countCharInString(string strToSearch, string strToFind)
+        public static int CountCharInString(string strToSearch, string strToFind)
         {
             return strToSearch.Length - (strToSearch.Replace(strToFind, "").Length / strToFind.Length);
         }
 
-        public static string removeNewlines(string strIn, string strReplacement)  {
+        public static string RemoveNewlines(string strIn, string strReplacement)  {
             return Regex.Replace(strIn, @"\r\n?|\n", strReplacement);
         }
 

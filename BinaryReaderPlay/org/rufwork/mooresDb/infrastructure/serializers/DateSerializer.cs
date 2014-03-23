@@ -38,7 +38,7 @@ namespace org.rufwork.mooresDb.infrastructure.serializers
             long lngComparison = dteTemp.Ticks;
 
             // Handle raw value from table.
-            long lngFromRow = Utils.byteArrayToLong(abytValFromRow);
+            long lngFromRow = Utils.ByteArrayToLong(abytValFromRow);
 
             if (lngFromRow > lngComparison)
             {
@@ -75,7 +75,7 @@ namespace org.rufwork.mooresDb.infrastructure.serializers
             }
 
             long lngTicks = dteTemp.Ticks;
-            abytToReturn = Utils.longToByteArray(lngTicks);
+            abytToReturn = Utils.LongToByteArray(lngTicks);
 
             return abytToReturn;
         }
@@ -87,7 +87,7 @@ namespace org.rufwork.mooresDb.infrastructure.serializers
 
         public override object toNative(byte[] abytValue)
         {
-            long lngTicks = Utils.byteArrayToLong(abytValue);
+            long lngTicks = Utils.ByteArrayToLong(abytValue);
             DateTime dteReturn = new DateTime(lngTicks);
 
             return dteReturn;

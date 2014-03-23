@@ -83,7 +83,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                         }
                         else
                         {
-                            string[] astrColInfo = Utils.stringToNonWhitespaceTokens2(strNextColumnInfo);
+                            string[] astrColInfo = Utils.StringToNonWhitespaceTokens2(strNextColumnInfo);
 
                             if (astrColInfo.Length < 2) {
                                 strErr += "Illegal column defintion; table not created: " + string.Join(":",astrColInfo) + "#\n";
@@ -269,7 +269,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                 else
                 {
                     // Else determine and write the column's metadata.
-                    byte[] abyteIntLength = Utils.intToByteArray(intLength);
+                    byte[] abyteIntLength = Utils.IntToByteArray(intLength);
                     int i = 0;
 
                     int intPaddingLength = intLength - ((abyteIntLength.Length - i) + 1);

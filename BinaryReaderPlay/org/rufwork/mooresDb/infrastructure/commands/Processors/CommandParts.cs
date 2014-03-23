@@ -155,7 +155,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
             Column[] allColumns = _tableContext.getColumns();   // TODO: I think all you really want here is the length, right?
             // Makes sense to cache it, sure, but we're letting TableContext do most of the logic, so that's not really helpful.
 
-            string[] astrCmdTokens = Utils.stringToNonWhitespaceTokens2(strSelect);
+            string[] astrCmdTokens = Utils.StringToNonWhitespaceTokens2(strSelect);
             if ("*" == astrCmdTokens[1])
             {
                 acolReturn = _tableContext.getColumns();

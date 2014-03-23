@@ -166,7 +166,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                         }
                         column.intAutoIncrementCount++;
                         intNewlyInsertedRowId = column.intAutoIncrementCount;   // the return value for the function.
-                        byte[] abytAutoIncrementValue = Utils.intToByteArray(column.intAutoIncrementCount, 4);  // NOTE: Changing from hard-coded 4 for AUTOINCREMENT length borks this
+                        byte[] abytAutoIncrementValue = Utils.IntToByteArray(column.intAutoIncrementCount, 4);  // NOTE: Changing from hard-coded 4 for AUTOINCREMENT length borks this
                         // This is the nasty bit.  We need to increase the spot where we keep
                         // the greatest autoincrement value so that, in case we delete, we can
                         // still pick up where we left off.  That is, because we increased the 

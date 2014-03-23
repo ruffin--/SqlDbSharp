@@ -75,7 +75,7 @@ Type only a period on a line by itself to quit.
                         foreach (string strSingleCommand in qCmds)
                         {
                             strCmd = strSingleCommand.Substring(0, strSingleCommand.IndexOf(";") + 1).Trim();    // kinda kludging to reuse code for now.
-                            strCmd = Utils.removeNewlines(strCmd, " ");
+                            strCmd = Utils.RemoveNewlines(strCmd, " ");
 
                             // I'm going to cheat and set up some test strings,
                             // just to save some typing.

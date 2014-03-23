@@ -256,11 +256,11 @@ namespace org.rufwork.mooresDb.infrastructure.contexts
                                     // We're using the intColLength to store the last autoincrement
                                     // value in this column type.
                                     column.intColLength = 4;    // NOTE: Changing from INT(4) will bork things.
-                                    column.intAutoIncrementCount = Utils.byteArrayToInt(stackLength.ToArray());
+                                    column.intAutoIncrementCount = Utils.ByteArrayToInt(stackLength.ToArray());
                                 }
                                 else
                                 {
-                                    column.intColLength = Utils.byteArrayToInt(stackLength.ToArray());
+                                    column.intColLength = Utils.ByteArrayToInt(stackLength.ToArray());
                                 }
                             }
 
@@ -442,7 +442,7 @@ namespace org.rufwork.mooresDb.infrastructure.contexts
                 throw new Exception("Autoincrement overflow (2).  Congratulations.  Column: " + strColName);
             }
 
-            byte[] abytLength = Utils.intToByteArray(intNewCount);
+            byte[] abytLength = Utils.IntToByteArray(intNewCount);
             using (BinaryWriter b = new BinaryWriter(File.Open(this.strTableFileLoc, FileMode.Open)))
             {
                 b.Seek(colAutoInc.intColStart+1, SeekOrigin.Begin);     // +1 to move past the colType marker.

@@ -33,7 +33,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands
             // NOTE: Forced case insensitivity.
             strSql = strSql.ToLower().TrimEnd(';');
 
-            string[] astrCmdTokens = Utils.stringToNonWhitespaceTokens2(strSql);
+            string[] astrCmdTokens = Utils.StringToNonWhitespaceTokens2(strSql);
 
             bool bQuickTokenCheck = astrCmdTokens.Length >= 3
                 && "drop" == astrCmdTokens[0].ToLower() 
