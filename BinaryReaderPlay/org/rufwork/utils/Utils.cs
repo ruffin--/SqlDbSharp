@@ -359,7 +359,7 @@ namespace org.rufwork
         {
             return !s.Equals("");
         }
-        public static string[] stringToNonWhitespaceTokens(string strToToke)
+        public static string[] StringToNonWhitespaceTokens(string strToToke)
         {
             string[] astrAllTokens = strToToke.Split();
             string[] astrCmdTokens =
@@ -431,6 +431,31 @@ namespace org.rufwork
             }
 
             return qReturn;
+        }
+
+        // Only replace double single quotes inside of single quotes.
+        public static string BacktickQuotes(string strToClean)
+        {
+            bool inQuotes = false;
+            string strOut = string.Empty;
+            for (int i = 0; i < strToClean.Length - 1; i++)
+            {
+                if (strToClean[i].Equals('\'') && strToClean[i + 1].Equals('\''))
+                {
+                    strOut += inQuotes ? "`" : "''";
+                    i++;
+                }
+                else if (strToClean[i].Equals('\''))
+                {
+                    strOut += '\'';
+                    inQuotes = !inQuotes;
+                }
+                else
+                    strOut += strToClean[i];
+            }
+            strOut += strToClean[strToClean.Length-1];
+            Console.WriteLine(strOut);
+            return strOut;
         }
 
         // Yes, I gave up on RegExp and used a char array.  Sue me.

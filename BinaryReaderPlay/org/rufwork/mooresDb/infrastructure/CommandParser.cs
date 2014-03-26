@@ -35,7 +35,7 @@ namespace org.rufwork.mooresDb.infrastructure
         public object executeCommand(string strSql)    {
             object objReturn = null;
 
-            strSql = strSql.Replace("''", "`"); // TODO: WHOA!  Super kludge for single quote escapes.  See "Grave accent" in idiosyncracies.
+            strSql = Utils.BacktickQuotes(strSql); // TODO: WHOA!  Super kludge for single quote escapes.  See "Grave accent" in idiosyncracies.
 
             // TODO: This is assuming a single command.  Add splits by semi-colon.
             if (!strSql.Trim().EndsWith(";"))
