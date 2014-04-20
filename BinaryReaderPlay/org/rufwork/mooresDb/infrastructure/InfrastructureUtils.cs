@@ -75,7 +75,7 @@ namespace org.rufwork.mooresDb.infrastructure
             Dictionary<string, string> dictTable2ColAliases = new Dictionary<string,string>();
 
             // We could count on the programmer having already done this conversion
-            // from menumonic to raw column name, but it's non-destructive to, at worst,
+            // from mneumonic to raw column name, but it's non-destructive to, at worst,
             // do it again here.
             //strDt1JoinColName = tblContext1.getRawColName(strDt1JoinColName);
             //strDt2JoinColName = tblContext2.getRawColName(strDt2JoinColName);

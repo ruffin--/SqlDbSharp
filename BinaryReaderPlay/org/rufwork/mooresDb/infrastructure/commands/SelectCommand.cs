@@ -122,7 +122,25 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                     strOldField = field2;
                 }
 
-                string strInClause = "";
+                string strInClause = string.Empty;
+                string strFuzzyJoinFields = string.Empty;
+
+                // Because this isn't convoluted enough, we've got to check and see if
+                // the way the join field for the new table was written in the JOIN is
+                // fuzzy or not, and if it is, we've got to add it to the stock subSELECT.
+                // There are good ways to do this.  We're going for straightforward, but 
+                // cache/efficiency-less.
+                try
+                {
+                    if (null == _database.getTableByName(strNewTable).getColumnByName(strNewField, false))
+                    {
+                        strFuzzyJoinFields += "," + strNewField;
+                    }
+                }
+                catch (Exception)
+                {
+                    throw new Exception("Inner join column name lookup didn't work: " + strNewTable + " :: " + strNewField);
+                }
 
                 dictTables[strOldTable].CaseSensitive = false;  // TODO: If we keep this, do it in a smarter place.
                 // Right now, strOldField has the name that's in the DataTable from the previous select.
@@ -132,8 +150,12 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                 }
                 strInClause = strInClause.Trim (',');
 
-                string strInnerSelect = "SELECT * FROM " + strNewTable + " WHERE "
-                    + strNewField + " IN (" + strInClause + ");";
+                string strInnerSelect = string.Format("SELECT *{0} FROM {1} WHERE {2} IN ({3});",
+                    strFuzzyJoinFields,
+                    strNewTable,
+                    strNewField,
+                    strInClause
+                );
 
                 // TODO: Figure out the best time to handle the portion of the WHERE 
                 // that impacts the tables mentioned in the join portion of the SQL.

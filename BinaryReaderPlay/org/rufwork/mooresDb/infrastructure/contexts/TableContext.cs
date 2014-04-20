@@ -321,9 +321,10 @@ namespace org.rufwork.mooresDb.infrastructure.contexts
         /// <summary>
         /// Returns null if no name found.
         /// </summary>
-        /// <param name="strColName">Column name to find; checks fuzzy matches as well.</param>
+        /// <param name="strColName">Column name to find.</param>
+        /// <param name="bIncludeFuzzy">If true (the default value), getColumnByName will include Fuzzy matches with strColName.</param>
         /// <returns>null if column name isn't found</returns>
-        public Column getColumnByName(string strColName)
+        public Column getColumnByName(string strColName, bool bIncludeFuzzy = true)
         {
             Column colReturn = null;
 
@@ -332,7 +333,7 @@ namespace org.rufwork.mooresDb.infrastructure.contexts
                 // TODO: Figure out StringComparison a little better.
                 // http://msdn.microsoft.com/en-us/library/system.stringcomparison.aspx
                 if (colTemp.strColName.Equals(strColName, StringComparison.InvariantCultureIgnoreCase) 
-                    || (colTemp.isFuzzyName && strColName.ToLower().StartsWith(colTemp.strColName.ToLower())))
+                    || (bIncludeFuzzy && colTemp.isFuzzyName && strColName.ToLower().StartsWith(colTemp.strColName.ToLower())))
                 {
                     colReturn = colTemp;
                     break;
