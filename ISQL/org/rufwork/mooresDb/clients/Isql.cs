@@ -156,7 +156,12 @@ Type only a period on a line by itself to quit.
                             // Execute the command.
                             if (strCmd.ToLower().StartsWith("use"))
                             {
-                                strParentDir = Utils.cstrHomeDir + System.IO.Path.DirectorySeparatorChar + strCmd.Split()[1].TrimEnd(';');
+                                string strDbPath = strCmd.Split()[1].TrimEnd(';');
+                                // Complete kludge.  Use regexp and check for xplat formats.
+                                if (strDbPath.StartsWith(@"C:\"))
+                                    strParentDir = strDbPath;
+                                else
+                                    strParentDir = Utils.cstrHomeDir + System.IO.Path.DirectorySeparatorChar + strDbPath;
                                 dbTemp = new DatabaseContext(strParentDir);
                                 Console.WriteLine(strParentDir);
                             }
