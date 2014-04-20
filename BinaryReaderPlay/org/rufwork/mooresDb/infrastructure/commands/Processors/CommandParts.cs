@@ -22,7 +22,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
 
         public Column[] acolInSelect;
         public Dictionary<string, string> dictUpdateColVals = new Dictionary<string, string>();
-        public Dictionary<string, string> dictColToSelectMapping = new Dictionary<string, string>();
+        public Dictionary<string, string> dictFuzzyToColNameMappings = new Dictionary<string, string>();
         public COMMAND_TYPES commandType;
 
         private DatabaseContext _database;
@@ -150,27 +150,27 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
 
         public void _getColumnsToReturn()
         {
-            Queue<Column> qCol = new Queue<Column>();
-            Column[] acolReturn = null;
-            Column[] allColumns = _tableContext.getColumns();   // TODO: I think all you really want here is the length, right?
-            // Makes sense to cache it, sure, but we're letting TableContext do most of the logic, so that's not really helpful.
-
+            Queue<Column> qCols = new Queue<Column>();
             string[] astrCmdTokens = Utils.StringToNonWhitespaceTokens2(strSelect);
-            if ("*" == astrCmdTokens[1])
+
+            // kludge check for all columns/asterisk selector.
+            if (strSelect.Contains("*"))
             {
-                acolReturn = _tableContext.getColumns();
+                qCols = new Queue<Column>(_tableContext.getColumns());
             }
-            else
+
+            for (int i = 1; i < astrCmdTokens.Length; i++)
             {
-                for (int i = 1; i < astrCmdTokens.Length; i++)
+                // TODO: Handle * check with regexp or something. .Equals (in place of .Contains) is legit here if trimmed in StringToNonWhitespaceTokens2, yes?
+                if (!astrCmdTokens[i].Contains("*"))
                 {
                     Column colTemp = _tableContext.getColumnByName(astrCmdTokens[i]);
                     if (null != colTemp)
                     {
-                        qCol.Enqueue(colTemp);
+                        qCols.Enqueue(colTemp);
                         if (!colTemp.strColName.Equals(astrCmdTokens[i], StringComparison.CurrentCultureIgnoreCase))
                         {
-                            this.dictColToSelectMapping.Add(colTemp.strColName, astrCmdTokens[i]);
+                            this.dictFuzzyToColNameMappings.Add(astrCmdTokens[i], colTemp.strColName);
                         }
                     }
                     else
@@ -180,10 +180,9 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
                         throw new Exception("SELECT Column does not exist: " + astrCmdTokens[i]);
                     }
                 }
-                acolReturn = qCol.ToArray();
             }
 
-            this.acolInSelect = acolReturn;
+            this.acolInSelect = qCols.ToArray();
         }
     }
 

@@ -164,16 +164,20 @@ namespace org.rufwork.mooresDb.infrastructure.commands
         {
             DataTable dtReturn = new DataTable();
             dtReturn.TableName = selectParts.strTableName;
+            // So that I can have columns appear more than once in a single table,
+            // I'm going to make a dupe of dictColToSelectMapping.  We'd have to go a
+            // touch more complicated to keep the order from the original SELECT accurate.
+            Dictionary<string, string> dictColMappingCopy = new Dictionary<string, string>(selectParts.dictFuzzyToColNameMappings);
 
             // info on creating a datatable by hand here: 
             // http://msdn.microsoft.com/en-us/library/system.data.datacolumn.datatype.aspx
             foreach (Column colTemp in selectParts.acolInSelect)
             {
-                string strColNameForDT = WhereProcessor.OperativeName(colTemp.strColName, selectParts.dictColToSelectMapping);
-                // In case we fuzzy matched a name, take what was in the SELECT statement, if it was explicitly named.
-                if (selectParts.dictColToSelectMapping.ContainsKey(colTemp.strColName))
+                // "Translate" the SqlDBSharp column name to the name used in the SELECT statement.
+                string strColNameForDT = WhereProcessor.GetFuzzyNameIfExists(colTemp.strColName, dictColMappingCopy);
+                if (dictColMappingCopy.ContainsKey(strColNameForDT)) // these col names are from the SELECT statement, so they could be "fuzzy"
                 {
-                    strColNameForDT = selectParts.dictColToSelectMapping[colTemp.strColName];
+                    dictColMappingCopy.Remove(strColNameForDT);  // This is the kludge that allows us to have the same col with different names.
                 }
                 DataColumn colForDt = new DataColumn(strColNameForDT);
                 //colForDt.MaxLength = colTemp.intColLength;    // MaxLength is only useful for string columns, strangely enough.

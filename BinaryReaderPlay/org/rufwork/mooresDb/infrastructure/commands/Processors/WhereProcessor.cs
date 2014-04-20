@@ -3,6 +3,7 @@ using org.rufwork.mooresDb.infrastructure.contexts;
 using org.rufwork.mooresDb.infrastructure.serializers;
 using org.rufwork.mooresDb.infrastructure.tableParts;
 using org.rufwork.utils;
+using org.rufwork.extensions;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -23,7 +24,6 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
         {
             //Column[] acolsInSelect = commandParts.acolInSelect;
             string strWhere = commandParts.strWhere;
-            Dictionary<string, string> dictColNameMapping = commandParts.dictColToSelectMapping;
 
             List<Comparison> lstWhereConditions = _CreateWhereConditions(strWhere, table);
 
@@ -88,6 +88,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
                         switch (commandParts.commandType)
                         {
                             case CommandParts.COMMAND_TYPES.SELECT:
+                                Dictionary<string, string> dictFuzzyToColName = new Dictionary<string,string>(commandParts.dictFuzzyToColNameMappings); // resets with each row.
                                 DataRow row = dtWithCols.NewRow();
                                 foreach (Column mCol in commandParts.acolInSelect)
                                 {
@@ -96,7 +97,23 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
                                     //Console.WriteLine(System.Text.Encoding.Default.GetString(abytCol));
 
                                     // now translate/cast the value to the column in the row.
-                                    row[OperativeName(mCol.strColName, dictColNameMapping)] = Router.routeMe(mCol).toNative(abytCol);
+                                    // OLD:  row[OperativeName(mCol.strColName, dictColNameMapping)] = Router.routeMe(mCol).toNative(abytCol);
+                                    // foreach b/c we're supporting multiple calls to the same col in a SELECT now.
+                                    foreach (DataColumn dc in dtWithCols.Columns)
+                                    {
+                                        // See if we should use this column's (mCol's) value with this DataColumn.
+                                        if (dictFuzzyToColName.ContainsValue(mCol.strColName) || mCol.strColName.Equals(dc.ColumnName))
+                                        {
+                                            // If so, see if there's a fuzzy name mapped for this column.
+                                            string strColName = GetFuzzyNameIfExists(mCol.strColName, dictFuzzyToColName);
+                                            row[strColName] = Router.routeMe(mCol).toNative(abytCol);
+                                            // If we had a fuzzy name, remove from the dictionary so we don't dupe it.
+                                            if (dictFuzzyToColName.ContainsKey(strColName))
+                                            {
+                                                dictFuzzyToColName.Remove(strColName);
+                                            }
+                                        }
+                                    }
                                 }
                                 dtWithCols.Rows.Add(row);
                                 break;
@@ -171,12 +188,16 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
         // This subs in the name used in the SELECT if it's a fuzzy matched column.
         // TODO: Seems like this might belong on the TableContext?
         // TODO: Looking it up with every row is pretty danged inefficient.
-        public static string OperativeName(string strColname, Dictionary<string, string> dictNameMapping)
+        // Flipping the key/value here b/c the fuzzy name is unique, not the strict name,
+        // now that we're supporting the same column multiple times with different [fuzzy, for now]
+        // names.
+        // TODO: Allow column name aliases.
+        public static string GetFuzzyNameIfExists(string strStrictColName, Dictionary<string, string> dictNameMapping)
         {
-            string strReturn = strColname;
-            if (dictNameMapping.ContainsKey(strColname))
+            string strReturn = strStrictColName;
+            if (dictNameMapping.ContainsValue(strStrictColName))
             {
-                strReturn = dictNameMapping[strColname];
+                strReturn = dictNameMapping.XGetFirstKeyByValue<string>(strStrictColName);
             }
             return strReturn;
         }
