@@ -10,6 +10,7 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using System.Text;
+using org.rufwork.mooresDb.exceptions;
 
 namespace org.rufwork.mooresDb.infrastructure.commands.Processors
 {
@@ -292,7 +293,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
             Column colToConstrain = table.getColumnByName(astrComparisonParts[0].Trim());
             if (null == colToConstrain)
             {
-                throw new Exception("Column not found in SELECT statement: " + astrComparisonParts[0]);
+                throw new ColumnNotFoundException("Column not found in SELECT statement: " + astrComparisonParts[0]);
             }
 
             BaseSerializer serializer = Router.routeMe(colToConstrain);

@@ -48,6 +48,7 @@
     <Compile Include="Main.cs" />
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="org\rufwork\extensions\DictionaryOfStringsExtensions.cs" />
+    <Compile Include="org\rufwork\mooresDb\exceptions\ColumnNotFoundException.cs" />
     <Compile Include="org\rufwork\mooresDb\exceptions\ImproperDatabaseFileException.cs" />
     <Compile Include="org\rufwork\mooresDb\exceptions\SyntaxException.cs" />
     <Compile Include="org\rufwork\mooresDb\infrastructure\commands\CreateTableCommand.cs" />

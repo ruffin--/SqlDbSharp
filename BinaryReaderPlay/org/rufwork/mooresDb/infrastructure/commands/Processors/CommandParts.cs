@@ -133,6 +133,9 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
                     {
                         this.strInnerJoinKludge = this.strFrom.Substring(intInnerJoin);
                         this.strFrom = this.strFrom.Substring(0, intInnerJoin);
+
+                        // TODO: Check the WHERE clause to see if anything belongs to the JOIN.
+                        //do that ^^^
                     }
                 }
 
