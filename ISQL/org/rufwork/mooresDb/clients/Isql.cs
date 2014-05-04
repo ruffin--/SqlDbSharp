@@ -39,14 +39,27 @@ namespace org.rufwork.mooresDb.clients
 Type one or more statements terminated by semi-colons and then a period on a line by itself to execute.
 Type only a period on a line by itself to quit.
 
+You may set a start-up database by including the full path on a single line in a file called 
+SqlDbSharp.config, placed in this folder:
+
+     " + Environment.GetFolderPath(Environment.SpecialFolder.Personal) + @"
 ");
 
-            // set up debug db
-            Console.WriteLine("Starting at testing dir: MooresDbPlay");
-            strParentDir = Utils.cstrHomeDir + System.IO.Path.DirectorySeparatorChar + "MooresDbPlay";
-            
+            string strConfigFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), "SqlDbSharp.config");
+            if (File.Exists(strConfigFile))
+            {
+                strParentDir = File.ReadAllText(strConfigFile);
+                strParentDir = strParentDir.TrimEnd(System.Environment.NewLine.ToCharArray());
+            }
+            else
+            {
+                // set up debug db
+                Console.WriteLine("Starting at testing dir: MooresDbPlay");
+                strParentDir = Utils.cstrHomeDir + System.IO.Path.DirectorySeparatorChar + "MooresDbPlay";
+            }
+
             dbTemp = new DatabaseContext(strParentDir);
-            Console.WriteLine(strParentDir + "\n\n");
+            Console.WriteLine("Current home dir: " + strParentDir + "\n\n");
             // eo setup debug db
 
             string strCmd = "";
