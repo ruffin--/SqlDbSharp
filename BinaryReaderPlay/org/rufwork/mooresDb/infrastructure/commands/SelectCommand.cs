@@ -102,6 +102,16 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                     throw new Exception("We're only supporting inner equi joins right now: " + strInnerJoin);
                 }
 
+                // Kludge alert -- must have table prefixes for now.
+                if (!astrTokens[2].Contains(".") || !astrTokens[4].Contains("."))
+                {
+                    throw new Exception(string.Format(
+                        "For now, joined fields must include table prefixes: {0} {1}",
+                        astrTokens[2],
+                        astrTokens[2])
+                    );
+                }
+
                 string field1Parent = astrTokens[2].Substring(0, astrTokens[2].IndexOf("."));
                 string field2Parent = astrTokens[4].Substring(0, astrTokens[4].IndexOf("."));
                 string field1 = astrTokens[2].Substring(astrTokens[2].IndexOf(".")+1);
