@@ -158,11 +158,11 @@ namespace org.rufwork
         // Assuming positive ints here.
         // Actually it works either way.
         // int is an int32, so four bytes is what we want.
-        static public int ByteArrayToInt(byte[] abytIn)
+        static public int ByteArrayToInt(byte[] abytIn, bool bIgnoreOfficialIntLengthCheck = false)
         {
             int intReturn = 0;
 
-            if (abytIn.Length > 4) 
+            if (abytIn.Length > 4 && !bIgnoreOfficialIntLengthCheck) 
             {
                 throw new Exception("Illegal byte array for Int (greater than four bytes): " + abytIn.Length);
             }

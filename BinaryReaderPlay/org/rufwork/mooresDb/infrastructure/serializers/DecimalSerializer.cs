@@ -176,8 +176,8 @@ namespace org.rufwork.mooresDb.infrastructure.serializers
             Array.Copy(abytValue, intCutOffPoint + 1, abytDecimal, 0, intSignAndPlaces);
 
             // Make sure you get this (from Skeet): The decimal type doesn't normalize itself - it remembers how many decimal digits it has (by maintaining the exponent where possible) and on formatting, zero may be counted as a significant decimal digit.
-            int intWholeNumber = Utils.ByteArrayToInt(abytWholeNumber);
-            int intDecimalVal = Utils.ByteArrayToInt(abytDecimal);
+            int intWholeNumber = Utils.ByteArrayToInt(abytWholeNumber, true);
+            int intDecimalVal = Utils.ByteArrayToInt(abytDecimal, true);
 
             // There got to be a smarter way to do this.  I'm being lazy right now
             // by pretending to be clever.
