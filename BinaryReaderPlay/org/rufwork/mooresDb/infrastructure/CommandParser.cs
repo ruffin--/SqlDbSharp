@@ -11,6 +11,7 @@ using org.rufwork.mooresDb.infrastructure.commands;
 using System.Text.RegularExpressions;
 using org.rufwork.mooresDb.infrastructure.contexts;
 using org.rufwork.mooresDb.exceptions;
+using System.Data;
 
 namespace org.rufwork.mooresDb.infrastructure
 {
@@ -32,7 +33,23 @@ namespace org.rufwork.mooresDb.infrastructure
             _database = database;
         }
 
-        public object executeCommand(string strSql)    {
+        // TODO: Not any serious savings here; currently solely a convenience class.
+        public object executeScalar(string strSql)
+        {
+            object objReturn = null;
+
+            // Not sure if I want CommandParser to know about DataTable.  I think that's okay.
+            DataTable dtTemp = (DataTable)this.executeCommand(strSql);
+            if (dtTemp.Rows.Count > 0)
+            {
+                objReturn = dtTemp.Rows[0][0];
+            }
+
+            return objReturn;
+        }
+
+        public object executeCommand(string strSql)    
+        {
             object objReturn = null;
 
             strSql = Utils.BacktickQuotes(strSql); // TODO: WHOA!  Super kludge for single quote escapes.  See "Grave accent" in idiosyncracies.
