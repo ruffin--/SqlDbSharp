@@ -18,6 +18,37 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
     {
         public delegate object RowProcessor(byte[] abytRow, Column[] acolsInSelect, Dictionary<string, string> dictColNameMapping, TableContext table, ref DataTable dt);
 
+        private static bool _colsAreCompatible(Column colToUpdate, Column colSource)
+        {
+            bool bCompatible = false;
+
+            if (colToUpdate.colType.Equals(COLUMN_TYPES.AUTOINCREMENT))
+            {
+                bCompatible = false;    // hard stop.  Can't update autoincrement fields.
+            }
+            else if (colToUpdate.colType.Equals(colSource.colType))
+            {
+                bCompatible = true;
+            }
+            else
+            {
+                // TODO: Are there other sets we want to consider equivalent?
+                Queue<COLUMN_TYPES[]> qLinkedTypes = new Queue<COLUMN_TYPES[]>();
+                COLUMN_TYPES[] sharedIntTypes = { COLUMN_TYPES.INT, COLUMN_TYPES.AUTOINCREMENT, COLUMN_TYPES.TINYINT };
+                qLinkedTypes.Enqueue(sharedIntTypes);
+
+                foreach (COLUMN_TYPES[] relatedColTypes in qLinkedTypes)
+                {
+                    if (sharedIntTypes.Contains(colToUpdate.colType) && sharedIntTypes.Contains(colSource.colType))
+                    {
+                        bCompatible = true;
+                        break;
+                    }
+                }
+            }
+            return bCompatible && colToUpdate.intColLength >= colSource.intColLength;
+        }
+
         public static void ProcessRows(ref DataTable dtWithCols,
             TableContext table,
             CommandParts commandParts
@@ -145,9 +176,9 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
 
                                         if (null != colToPullValueFrom)
                                         {
-                                            if (mCol.intColLength < colToPullValueFrom.intColLength || mCol.colType != colToPullValueFrom.colType)
+                                            if (mCol.intColLength < colToPullValueFrom.intColLength || !_colsAreCompatible(mCol, colToPullValueFrom))
                                             {
-                                                throw new Exception("UPDATE attempted to update with a value that was potentially too large or with a column of a different type.");
+                                                throw new Exception("UPDATE attempted to update with a value that was potentially too large or with columns of incompatible types.");
                                             }
                                             abytVal = new byte[colToPullValueFrom.intColLength];
                                             Array.Copy(abytRow, colToPullValueFrom.intColStart, abytVal, 0, colToPullValueFrom.intColLength);
