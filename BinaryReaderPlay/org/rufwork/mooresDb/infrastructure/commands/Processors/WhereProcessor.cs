@@ -23,7 +23,6 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
             CommandParts commandParts
         )
         {
-            //Column[] acolsInSelect = commandParts.acolInSelect;
             string strWhere = commandParts.strWhere;
 
             List<Comparison> lstWhereConditions = _CreateWhereConditions(strWhere, table);
@@ -136,10 +135,28 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
                                     if (dictLaunderedUpdateVals.ContainsKey(mCol.strColName))
                                     {
                                         // Column needs updating; take values from update
-                                        byte[] abytVal = null; // "raw" value.  Might not be the full column length.
+                                        byte[] abytVal = null; // Will hold "raw" value.  Might not be the full column length.
 
-                                        BaseSerializer serializer = Router.routeMe(mCol);
-                                        abytVal = serializer.toByteArray(dictLaunderedUpdateVals[mCol.strColName]);
+                                        // Check to see if we're updating using another column from the same row or a value.
+                                        // TODO: Performance here should be crappy.  Create a mapping of col names & Cols for
+                                        // in-statement column value transfers.  ie, "UPDATE table1 SET col1 = col2 WHERE col1 = 'update me';"
+                                        string valueAsString = dictLaunderedUpdateVals[mCol.strColName];
+                                        Column colToPullValueFrom = table.getColumnByName(valueAsString);
+
+                                        if (null != colToPullValueFrom)
+                                        {
+                                            if (mCol.intColLength < colToPullValueFrom.intColLength || mCol.colType != colToPullValueFrom.colType)
+                                            {
+                                                throw new Exception("UPDATE attempted to update with a value that was potentially too large or with a column of a different type.");
+                                            }
+                                            abytVal = new byte[colToPullValueFrom.intColLength];
+                                            Array.Copy(abytRow, colToPullValueFrom.intColStart, abytVal, 0, colToPullValueFrom.intColLength);
+                                        }
+                                        else
+                                        {
+                                            BaseSerializer serializer = Router.routeMe(mCol);
+                                            abytVal = serializer.toByteArray(dictLaunderedUpdateVals[mCol.strColName]);
+                                        }
 
                                         // double check that the serializer at least
                                         // gave you a value that's the right length so

@@ -120,6 +120,10 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                                 }
 
                                 // every column declaration has already been checked to ensure it has at least two entries (checked above)
+                                // TODO: Check for statements expecting the default length but with modifiers, like
+                                // `id` INT NOT NULL AUTO_INCREMENT DEFAULT NULL,
+                                // This is handled with AUTO_INCREMENT because NOT NULL is thrown out as if it had the length.
+                                // Which is to say, NOT NULL isn't passed along as part of the modifier string.
                                 strColName = astrColInfo[0].Trim('`');
                                 string strModifier = null;
                                 if (astrColInfo.Length > 3)

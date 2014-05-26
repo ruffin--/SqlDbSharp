@@ -328,12 +328,21 @@ namespace org.rufwork.mooresDb.infrastructure.contexts
         {
             Column colReturn = null;
 
-            foreach (Column colTemp in _columns)
+            StringComparison caseSensitive = StringComparison.CurrentCultureIgnoreCase;
+            if (!this.bIgnoreColNameCase)
             {
+                caseSensitive = StringComparison.CurrentCulture;
+            }
+
+            // TODO: Handle casing more deliberately.  This is hacky.
+            foreach (Column colTemp in _columns)    {
                 // TODO: Figure out StringComparison a little better.
                 // http://msdn.microsoft.com/en-us/library/system.stringcomparison.aspx
-                if (colTemp.strColName.Equals(strColName, StringComparison.InvariantCultureIgnoreCase) 
-                    || (bIncludeFuzzy && colTemp.isFuzzyName && strColName.ToLower().StartsWith(colTemp.strColName.ToLower())))
+                // TODO: Aren't we doing case at a global level?
+                if ( colTemp.strColName.Equals(strColName, caseSensitive)
+                    || (colTemp.isFuzzyName && strColName.StartsWith(colTemp.strColName))
+                    || (this.bIgnoreColNameCase && colTemp.isFuzzyName && strColName.ToLower().StartsWith(colTemp.strColName.ToLower()))
+                )
                 {
                     colReturn = colTemp;
                     break;
@@ -343,32 +352,19 @@ namespace org.rufwork.mooresDb.infrastructure.contexts
             return colReturn;
         }
 
-        public bool containsColumn(string strColName)
+        public bool containsColumn(string strColName, bool bIncludeFuzzy = true)
         {
-            return this.getRawColName(strColName) != null;
+            return this.getRawColName(strColName, bIncludeFuzzy) != null;
         }
 
-        public string getRawColName(string strColName)
+        public string getRawColName(string strColName, bool bIncludeFuzzy = true)
         {
             string strReturn = null;
-            StringComparison caseSensitive = StringComparison.CurrentCultureIgnoreCase;
-            if (!this.bIgnoreColNameCase)
+            Column colTemp = this.getColumnByName(strColName, bIncludeFuzzy);
+            if (null != colTemp)
             {
-                caseSensitive = StringComparison.CurrentCulture;
+                strReturn = colTemp.strColName;
             }
-
-            // TODO: Handle casing more deliberately.  This is hacky.
-            foreach (Column colTemp in _columns)    {
-                if ( colTemp.strColName.Equals(strColName, caseSensitive)
-                    || (colTemp.isFuzzyName && strColName.StartsWith(colTemp.strColName))
-                    || (this.bIgnoreColNameCase && colTemp.isFuzzyName && strColName.ToLower().StartsWith(colTemp.strColName.ToLower()))
-                )
-                {
-                    strReturn = colTemp.strColName;
-                    break;
-                }
-            }
-
             return strReturn;
         }
 
