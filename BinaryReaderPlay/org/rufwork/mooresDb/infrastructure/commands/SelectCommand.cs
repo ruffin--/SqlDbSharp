@@ -135,6 +135,9 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                 string strInClause = string.Empty;
                 string strFuzzyJoinFields = string.Empty;
 
+                TableContext tableOld = _database.getTableByName(strOldTable);
+                TableContext tableNew = _database.getTableByName(strNewTable);
+
                 // Because this isn't convoluted enough, we've got to check and see if
                 // the way the join field for the new table was written in the JOIN is
                 // fuzzy or not, and if it is, we've got to add it to the stock subSELECT.
@@ -142,7 +145,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                 // cache/efficiency-less.
                 try
                 {
-                    if (null == _database.getTableByName(strNewTable).getColumnByName(strNewField, false))
+                    if (null == tableNew.getColumnByName(strNewField, false))
                     {
                         strFuzzyJoinFields += "," + strNewField;
                     }
@@ -154,9 +157,11 @@ namespace org.rufwork.mooresDb.infrastructure.commands
 
                 dictTables[strOldTable].CaseSensitive = false;  // TODO: If we keep this, do it in a smarter place.
                 // Right now, strOldField has the name that's in the DataTable from the previous select.
+
+                string strCanonicalOldField = tableOld.getRawColName(strOldField);    // allow fuzzy names in join, if not the DataTable -- yet.
                 foreach (DataRow row in dictTables[strOldTable].Rows)
                 {
-                    strInClause += row[strOldField].ToString() + ",";
+                    strInClause += row[strCanonicalOldField].ToString() + ",";
                 }
                 strInClause = strInClause.Trim (',');
 
@@ -181,7 +186,12 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                 if (objReturn is DataTable)
                 {
                     DataTable dtInnerJoinResult = (DataTable)objReturn;
-                    dtReturn = InfrastructureUtils.equijoinTables(dtReturn, dtInnerJoinResult, strOldField, strNewField);
+                    dtReturn = InfrastructureUtils.equijoinTables(
+                        dtReturn,
+                        dtInnerJoinResult,
+                        tableOld.getRawColName(strOldField),
+                        tableNew.getRawColName(strNewField)
+                    );
                 }
                 else
                 {

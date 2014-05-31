@@ -36,11 +36,13 @@ namespace org.rufwork.mooresDb.infrastructure.contexts
         {
             TableContext table = null;
 
+            // Doing the weird foreach instead of ContainsKey so we can be case insensitive.
             foreach (string key in _dictTables.Keys)
             {
                 if (key.Equals(strTableName, this.caseSetting))
                 {
                     table = _dictTables[key];
+                    break;
                 }
             }
 
