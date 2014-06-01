@@ -21,6 +21,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Externalconsole>true</Externalconsole>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -52,7 +53,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\BinaryReaderPlay\BinaryReaderPlay.csproj">
-      <Project>{21089a8d-6944-4c6e-90f5-61be82c9919c}</Project>
+      <Project>{21089A8D-6944-4C6E-90F5-61BE82C9919C}</Project>
       <Name>BinaryReaderPlay</Name>
     </ProjectReference>
   </ItemGroup>
