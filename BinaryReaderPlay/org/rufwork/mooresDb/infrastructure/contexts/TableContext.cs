@@ -340,8 +340,8 @@ namespace org.rufwork.mooresDb.infrastructure.contexts
                 // http://msdn.microsoft.com/en-us/library/system.stringcomparison.aspx
                 // TODO: Aren't we doing case at a global level?
                 if ( colTemp.strColName.Equals(strColName, caseSensitive)
-                    || (colTemp.isFuzzyName && strColName.StartsWith(colTemp.strColName))
-                    || (this.bIgnoreColNameCase && colTemp.isFuzzyName && strColName.ToLower().StartsWith(colTemp.strColName.ToLower()))
+                    || (bIncludeFuzzy && colTemp.isFuzzyName && strColName.StartsWith(colTemp.strColName))
+                    || (bIncludeFuzzy && this.bIgnoreColNameCase && colTemp.isFuzzyName && strColName.ToLower().StartsWith(colTemp.strColName.ToLower()))
                 )
                 {
                     colReturn = colTemp;
