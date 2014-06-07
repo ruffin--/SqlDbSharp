@@ -154,15 +154,15 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
         public void _getColumnsToReturn()
         {
             Queue<Column> qCols = new Queue<Column>();
-            string[] astrCmdTokens = Utils.StringToNonWhitespaceTokens2(strSelect);
+            string[] astrCmdTokens = Utils.StringToNonWhitespaceTokens2(this.strSelect).Skip(1).ToArray();   // Skip 1 to ignore SELECT.
 
             // kludge check for all columns/asterisk selector.
-            if (strSelect.Contains("*"))
+            if (this.strSelect.Contains("*"))
             {
                 qCols = new Queue<Column>(_tableContext.getColumns());
             }
 
-            for (int i = 1; i < astrCmdTokens.Length; i++)
+            for (int i = 0; i < astrCmdTokens.Length; i++)
             {
                 // TODO: Handle * check with regexp or something. .Equals (in place of .Contains) is legit here if trimmed in StringToNonWhitespaceTokens2, yes?
                 if (!astrCmdTokens[i].Contains("*"))
