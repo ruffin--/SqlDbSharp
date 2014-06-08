@@ -60,7 +60,7 @@ namespace org.rufwork.mooresDb.infrastructure.serializers
 
             if (!int.TryParse(strToSerialize, out intValue))
             {
-                throw new Exception("Invalid INT value for " + this.colRelated.strColName);
+                throw new Exception("Invalid INT value for " + this.colRelated.strColName + ": #" + strToSerialize + "#");
             }
             if (4 < this.colRelated.intColLength)
             {

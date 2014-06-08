@@ -454,7 +454,7 @@ namespace org.rufwork
                     strOut += strToClean[i];
             }
             strOut += strToClean[strToClean.Length-1];
-            Console.WriteLine(strOut);
+            //Console.WriteLine(strOut);
             return strOut;
         }
 

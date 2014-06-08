@@ -54,6 +54,8 @@ namespace org.rufwork.mooresDb.infrastructure.commands
             }
 
             _table = _database.getTableByName(selectParts.strTableName);
+            Queue<TableContext> qAllTables = new Queue<TableContext>();
+            qAllTables.Enqueue(_table);
             dtReturn = _initDataTable(selectParts);
 
             WhereProcessor.ProcessRows(ref dtReturn, _table, selectParts);
@@ -65,19 +67,60 @@ namespace org.rufwork.mooresDb.infrastructure.commands
             // just selected and then send those values down to a new _selectRows.
             if (selectParts.strInnerJoinKludge.Length > 0)
             {
-                dtReturn = _processInnerJoin(dtReturn, selectParts.strInnerJoinKludge, selectParts.strTableName);
+                
+                dtReturn = _processInnerJoin(qAllTables, dtReturn, selectParts.strInnerJoinKludge, selectParts.strTableName, selectParts.strOrderBy);
             }
 
             if (null != selectParts.strOrderBy && selectParts.strOrderBy.Length > 9)
             {
-                dtReturn.DefaultView.Sort = selectParts.strOrderBy.Substring(9);
+                // ORDER BY needs to make sure it's not sorting on a fuzzy named column
+                // that may not have been explicitly selected in the SELECT.
+                string[] astrOrderByFields = selectParts.strOrderBy.Substring(9).Split(',');    // Substring(9) to get rid of "ORDER BY "
+                string strCleanedOrderBy = string.Empty;
+
+                foreach (string orderByClause in astrOrderByFields)
+                {
+                    bool ascNotDesc = true;
+
+                    string strOrderByClause = orderByClause.Trim();
+                    string strField = orderByClause.Trim();
+
+                    if (strField.Split().Length > 1)
+                    {
+                        strField = strOrderByClause.Substring(0, strOrderByClause.IndexOf(' ')).Trim();
+                        string strAscDesc = strOrderByClause.Substring(strOrderByClause.IndexOf(' ')).Trim();
+                        ascNotDesc = (-1 == strAscDesc.IndexOf("DESC", StringComparison.CurrentCultureIgnoreCase));
+                    }
+
+                    strOrderByClause += ",";    // This is the default value if there's no fuzziness, and it needs the comma put back.
+
+                    // TODO: Integrate fields prefixed by specific table names.
+                    if (!dtReturn.Columns.Contains(strField))
+                    {
+                        // Check for fuzziness.
+                        foreach (TableContext table in qAllTables)
+                        {
+                            if (!table.containsColumn(strField, false) && table.containsColumn(strField, true))
+                            {
+                                strOrderByClause = table.getRawColName(strField)
+                                    + (ascNotDesc ? " ASC" : " DESC")
+                                    + ",";
+                                break;
+                            }
+                        }
+                    }
+
+                    strCleanedOrderBy += " " + strOrderByClause;
+                }
+
+                dtReturn.DefaultView.Sort = strCleanedOrderBy.Trim(',');
                 dtReturn = dtReturn.DefaultView.ToTable();
             }
 
             return dtReturn;
         }
 
-        private DataTable _processInnerJoin(DataTable dtReturn, string strJoinText, string strParentTable)
+        private DataTable _processInnerJoin(Queue<TableContext> qAllTables, DataTable dtReturn, string strJoinText, string strParentTable, string strOrderBy)
         {
             Console.WriteLine("Note that WHERE clauses are not yet applied to JOINed tables.");
 
@@ -137,7 +180,11 @@ namespace org.rufwork.mooresDb.infrastructure.commands
 
                 TableContext tableOld = _database.getTableByName(strOldTable);
                 TableContext tableNew = _database.getTableByName(strNewTable);
+                qAllTables.Enqueue(tableNew);   // we need this to figure out column parents later.
 
+                //==========================================================================
+                // ADD COLUMNS TO TABLE WITH GIVEN NAMES
+                //==========================================================================
                 // Because this isn't convoluted enough, we've got to check and see if
                 // the way the join field for the new table was written in the JOIN is
                 // fuzzy or not, and if it is, we've got to add it to the stock subSELECT.
@@ -145,7 +192,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                 // cache/efficiency-less.
                 try
                 {
-                    if (null == tableNew.getColumnByName(strNewField, false))
+                    if (!tableNew.containsColumn(strNewField, false))
                     {
                         strFuzzyJoinFields += "," + strNewField;
                     }
@@ -154,6 +201,24 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                 {
                     throw new Exception("Inner join column name lookup didn't work: " + strNewTable + " :: " + strNewField);
                 }
+
+                // Now let's do something similar for fields in the ORDER BY clause, if
+                // there are any, so that we can sort on fuzzy names.
+                // TODO: Handle col names prefixed by table names.
+                if (!string.IsNullOrWhiteSpace(strOrderBy))
+                {
+                    string[] astrOrderTokens = Utils.StringToNonWhitespaceTokens2(strOrderBy);
+                    for (int i = 2; i < astrOrderTokens.Length; i++)
+                    {
+                        string testString = astrOrderTokens[i].Trim(' ', ',');
+                        if (!tableNew.containsColumn(testString, false) && tableNew.containsColumn(testString, true))
+                        {
+                            strFuzzyJoinFields += "," + testString;
+                        }
+                    }
+                }
+                //==========================================================================
+                //==========================================================================
 
                 dictTables[strOldTable].CaseSensitive = false;  // TODO: If we keep this, do it in a smarter place.
                 // Right now, strOldField has the name that's in the DataTable from the previous select.
@@ -202,6 +267,8 @@ namespace org.rufwork.mooresDb.infrastructure.commands
             return dtReturn;
         }
 
+        // TODO: Remove concept of mainTable, and pass in an IEnumerable of all table
+        // contexts so that we can figure out which owns each SELECTed column.
         private DataTable _initDataTable(CommandParts selectParts)
         {
             DataTable dtReturn = new DataTable();

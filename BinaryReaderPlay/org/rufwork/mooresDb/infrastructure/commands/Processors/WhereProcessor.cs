@@ -282,6 +282,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
                 strWhere = strWhere.Substring(6);
                 string[] astrClauses = Utils.SplitSeeingQuotes(strWhere, "AND", false).ToArray();
 
+                // TODO: Handle NOTs, duh.
                 for (int i = 0; i < astrClauses.Length; i++)
                 {
                     Comparison comparison = null;
