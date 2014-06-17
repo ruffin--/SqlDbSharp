@@ -472,12 +472,15 @@ namespace org.rufwork
                 switch (achrSql[i])
                 {
                     case ' ':
-                        if (string.Empty != strTemp.Trim())
+                    case '\r':
+                    case '\n':
+                    case '\t':
+                        if (!string.IsNullOrWhiteSpace(strTemp))
                         {
                             qString.Enqueue(strTemp);
                         }
                         strTemp = "";
-                        while (' ' == achrSql[i] && i < achrSql.Length)
+                        while (string.IsNullOrWhiteSpace(achrSql[i].ToString()) && i < achrSql.Length)
                         {
                             i++;
                         }
