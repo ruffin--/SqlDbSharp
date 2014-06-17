@@ -76,7 +76,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                 else
                 {
                     // okay, odd place for an else, I know, since the Exception would kill the if block anyhow.
-                    while (strTemp.IndexOf(";") == -1 && i < astrCmdTokens.Length-1)
+                    while (strTemp.IndexOf(";") != strTemp.Length-1 && i < astrCmdTokens.Length-1)
                     {
                         strTemp = astrCmdTokens[++i].Trim();
                         lstStringRowValues.Add(strTemp);  // I don't think we care where the ")" appears, do we?  Maybe I should split on parens first.  But INSERT doesn't have something after the ), right?
@@ -86,7 +86,9 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                 // can't tell if I'd rather keep this all in the else or pretend like these are
                 // separate bits of logic.
                 if (lstStringRowValues.Count != lstColumnNames.Count)    {
-                    throw new Exception("Number of insert command columns and number of values are different; cannot insert row.");
+                    throw new Exception("Number of insert command columns and number of values are different; cannot insert row: " + Environment.NewLine
+                        + "Names: " + String.Join(", ", lstColumnNames) + Environment.NewLine
+                        + "Values: " + String.Join(", ", lstStringRowValues) + Environment.NewLine);
                 }   else {
                     if (MainClass.bDebug)
                     {
