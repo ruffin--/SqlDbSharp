@@ -82,7 +82,8 @@ namespace org.rufwork.mooresDb.infrastructure.serializers
 
             // TODO: Handle escaped single quotes.
             byte[] abytVal = null;
-            abytVal = Encoding.ASCII.GetBytes(strNoQuotes);
+            //abytVal = Encoding.ASCII.GetBytes(strNoQuotes);
+            abytVal = Encoding.UTF8.GetBytes(strNoQuotes);
 
             byte[] abytColContents = new byte[this.colRelated.intColLength];   // we'll put the value into this "full length" array
             if (abytVal.Length <= this.colRelated.intColLength)
@@ -120,7 +121,8 @@ namespace org.rufwork.mooresDb.infrastructure.serializers
                     break;
                 }
             }
-            return System.Text.Encoding.ASCII.GetString(abytValue);
+            //return System.Text.Encoding.ASCII.GetString(abytValue);
+            return System.Text.Encoding.UTF8.GetString(abytValue);
         }
     }
 }
