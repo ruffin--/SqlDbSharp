@@ -75,7 +75,13 @@ namespace org.rufwork.mooresDb.infrastructure.serializers
             }
 
             long lngTicks = dteTemp.Ticks;
-            abytToReturn = Utils.LongToByteArray(lngTicks);
+            byte[] abytSerialized = Utils.LongToByteArray(lngTicks);
+
+            // because some datetimes might be fewer bytes that are required, we may have to pad
+            // things out a bit so we don't confuse INSERT's if (abytVal.Length != colFound.intColLength)
+            // check.
+            abytToReturn = new byte[8];
+            Buffer.BlockCopy(abytSerialized, 0, abytToReturn, 8 - abytSerialized.Length, abytSerialized.Length);
 
             return abytToReturn;
         }
