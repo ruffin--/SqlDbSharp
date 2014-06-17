@@ -75,10 +75,12 @@ SqlDbSharp.config, placed in this folder:
                     while (!strInput.Equals("."))
                     {
                         strInput = Console.ReadLine();
-                        if (!strInput.StartsWith("--"))
+
+                        if (strInput.Contains("--"))
                         {
-                            strCmd += strInput + " ";
+                            strInput = strInput.Substring(0, strInput.IndexOf("--"));
                         }
+                        strCmd += strInput + " ";
                     }
 
                     if (!strCmd.Trim().Equals("."))
@@ -87,8 +89,7 @@ SqlDbSharp.config, placed in this folder:
 
                         foreach (string strSingleCommand in qCmds)
                         {
-                            strCmd = strSingleCommand.Substring(0, strSingleCommand.IndexOf(";") + 1).Trim();    // kinda kludging to reuse code for now.
-                            strCmd = Utils.RemoveNewlines(strCmd, " ");
+                            strCmd = strSingleCommand.Substring(0, strSingleCommand.LastIndexOf(";") + 1).Trim();    // kinda kludging to reuse code for now.
 
                             // I'm going to cheat and set up some test strings,
                             // just to save some typing.
