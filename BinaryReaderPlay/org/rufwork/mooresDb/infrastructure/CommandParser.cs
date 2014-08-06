@@ -7,11 +7,13 @@
 using System;
 
 using System.Collections.Generic;
-using org.rufwork.mooresDb.infrastructure.commands;
 using System.Text.RegularExpressions;
+using System.Data;
+
+using org.rufwork.mooresDb.infrastructure.commands;
 using org.rufwork.mooresDb.infrastructure.contexts;
 using org.rufwork.mooresDb.exceptions;
-using System.Data;
+using org.rufwork.extensions;
 
 namespace org.rufwork.mooresDb.infrastructure
 {
@@ -52,9 +54,7 @@ namespace org.rufwork.mooresDb.infrastructure
         {
             object objReturn = null;
 
-            // TODO: Are these better as extension methods?
-            strSql = Utils.RemoveNewlines(strSql, " ");
-            strSql = Utils.BacktickQuotes(strSql); // TODO: WHOA!  Super kludge for single quote escapes.  See "Grave accent" in idiosyncracies.
+            strSql = strSql.RemoveNewlines(" ").BacktickQuotes(); // TODO: WHOA!  Super kludge for single quote escapes.  See "Grave accent" in idiosyncracies.
 
             // TODO: This is assuming a single command.  Add splits by semi-colon.
             if (!strSql.Trim().EndsWith(";"))
@@ -64,7 +64,7 @@ namespace org.rufwork.mooresDb.infrastructure
 
             strSql = strSql.TrimEnd(';');
 
-            string[] astrCmdTokens = Utils.StringToNonWhitespaceTokens2(strSql);    // TODO: We're almost always immediately doing this again in the executeStatements.
+            string[] astrCmdTokens = strSql.StringToNonWhitespaceTokens2();    // TODO: We're almost always immediately doing this again in the executeStatements.
 
             // TODO: Want to ISqlCommand this stuff -- we need to have execute
             // methods that don't take strings but "command tokens".

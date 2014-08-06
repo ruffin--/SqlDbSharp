@@ -11,5 +11,5 @@ using System.Text;
 
 namespace org.rufwork.utils
 {
-    public enum COMPARISON_TYPE { EQUALS, LESS_THAN, GREATER_THAN };
+    public enum COMPARISON_TYPE { EQUALS, LESS_THAN, GREATER_THAN, LIKE };
 }

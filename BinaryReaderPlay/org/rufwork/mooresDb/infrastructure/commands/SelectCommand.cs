@@ -19,6 +19,8 @@ using org.rufwork.mooresDb.infrastructure;
 using org.rufwork.mooresDb.infrastructure.commands.Processors;
 using org.rufwork.utils;
 
+using org.rufwork.extensions;
+
 namespace org.rufwork.mooresDb.infrastructure.commands
 {
     public class SelectCommand
@@ -207,7 +209,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                 // TODO: Handle col names prefixed by table names.
                 if (!string.IsNullOrWhiteSpace(strOrderBy))
                 {
-                    string[] astrOrderTokens = Utils.StringToNonWhitespaceTokens2(strOrderBy);
+                    string[] astrOrderTokens = strOrderBy.StringToNonWhitespaceTokens2();
                     for (int i = 2; i < astrOrderTokens.Length; i++)
                     {
                         string testString = astrOrderTokens[i].Trim(' ', ',');

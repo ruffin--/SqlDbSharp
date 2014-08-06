@@ -16,6 +16,8 @@ using org.rufwork.mooresDb.infrastructure.tableParts;
 using org.rufwork.mooresDb.infrastructure.contexts;
 using org.rufwork.mooresDb.exceptions;
 
+using org.rufwork.extensions;
+
 namespace org.rufwork.mooresDb.infrastructure.commands
 {
     class CreateTableCommand
@@ -83,7 +85,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                         }
                         else
                         {
-                            string[] astrColInfo = Utils.StringToNonWhitespaceTokens2(strNextColumnInfo);
+                            string[] astrColInfo = strNextColumnInfo.StringToNonWhitespaceTokens2();
 
                             if (astrColInfo.Length < 2) {
                                 strErr += "Illegal column defintion; table not created: " + string.Join(":",astrColInfo) + "#\n";

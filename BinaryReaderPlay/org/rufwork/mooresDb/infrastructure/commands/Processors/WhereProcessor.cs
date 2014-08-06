@@ -280,7 +280,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
             if (!string.IsNullOrWhiteSpace(strWhere))
             {
                 strWhere = strWhere.Substring(6);
-                string[] astrClauses = Utils.SplitSeeingQuotes(strWhere, "AND", false).ToArray();
+                string[] astrClauses = strWhere.SplitSeeingQuotes("AND", false).ToArray();
 
                 // TODO: Handle NOTs, duh.
                 for (int i = 0; i < astrClauses.Length; i++)
@@ -289,7 +289,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
                     string strClause = astrClauses[i].Trim();
                     if (MainClass.bDebug) Console.WriteLine("Where clause #" + i + " " + strClause);
 
-                    if (Utils.SplitSeeingQuotes(strClause, " IN ", false).Count > 1)
+                    if (strClause.SplitSeeingQuotes(" IN ", false).Count > 1)
                     {
                         CompoundComparison inClause = new CompoundComparison(GROUP_TYPE.OR);
                         if (MainClass.bDebug) Console.WriteLine("IN clause: " + strClause);
@@ -324,21 +324,32 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
 
         private static Comparison _CreateComparison(string strClause, TableContext table)
         {
-            char[] achrOperator = {'='};
+            string strOperator = "=";
             if (strClause.Contains('<'))
             {
-                achrOperator[0] = '<';
+                strOperator = "<";
             }
             else if (strClause.Contains('>'))
             {
-                achrOperator[0] = '>';
+                strOperator = ">";
+            }
+            else if (strClause.ContainsOutsideOfQuotes("LIKE", '\'', '`'))
+            {
+                strOperator = "LIKE";
+            }
+            else if (strClause.ContainsOutsideOfQuotes("like", '\'', '`'))
+            {
+                // kludge until I get case sensitivity into ContainsOutsideOfQuotes.
+                // Too bad, lIkE.
+                strOperator = "like";
             }
             else if (!strClause.Contains('='))
             {
                 throw new Exception("Illegal comparison type in SelectCommand: " + strClause);
             }
 
-            string[] astrComparisonParts = strClause.Split(achrOperator, 2);
+            string[] astrComparisonParts = strClause.SplitSeeingQuotes(strOperator, false).Take(2).ToArray();
+
             Column colToConstrain = table.getColumnByName(astrComparisonParts[0].Trim());
             if (null == colToConstrain)
             {
@@ -348,7 +359,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
             BaseSerializer serializer = Router.routeMe(colToConstrain);
             byte[] abytComparisonVal = serializer.toByteArray(astrComparisonParts[1].Trim());
 
-            return new Comparison(achrOperator[0], colToConstrain, abytComparisonVal);
+            return new Comparison(strOperator, colToConstrain, abytComparisonVal);
         }
 #endregion whereToComparisons
     }

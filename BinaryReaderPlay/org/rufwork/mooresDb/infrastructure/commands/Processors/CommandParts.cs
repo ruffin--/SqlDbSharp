@@ -1,9 +1,11 @@
-﻿using org.rufwork.mooresDb.infrastructure.contexts;
-using org.rufwork.mooresDb.infrastructure.tableParts;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+
+using org.rufwork.mooresDb.infrastructure.contexts;
+using org.rufwork.mooresDb.infrastructure.tableParts;
+using org.rufwork.extensions;
 
 namespace org.rufwork.mooresDb.infrastructure.commands.Processors
 {
@@ -154,7 +156,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
         public void _getColumnsToReturn()
         {
             Queue<Column> qCols = new Queue<Column>();
-            string[] astrCmdTokens = Utils.StringToNonWhitespaceTokens2(this.strSelect).Skip(1).ToArray();   // Skip 1 to ignore SELECT.
+            string[] astrCmdTokens = this.strSelect.StringToNonWhitespaceTokens2().Skip(1).ToArray();   // Skip 1 to ignore SELECT.
 
             // kludge check for all columns/asterisk selector.
             if (this.strSelect.Contains("*"))

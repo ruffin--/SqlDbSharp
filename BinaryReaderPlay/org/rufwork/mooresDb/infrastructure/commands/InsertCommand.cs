@@ -13,6 +13,8 @@ using org.rufwork.mooresDb.infrastructure.tableParts;
 using org.rufwork.mooresDb.infrastructure.serializers;
 using org.rufwork.mooresDb.infrastructure.contexts;
 
+using org.rufwork.extensions;
+
 namespace org.rufwork.mooresDb.infrastructure.commands
 {
     public class InsertCommand
@@ -35,7 +37,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands
         {
             int intNewlyInsertedRowId = -1;
             byte[] abytFullRow = null;
-            string[] astrCmdTokens = Utils.SqlToTokens(strSql);
+            string[] astrCmdTokens = strSql.SqlToTokens();
 
             // TODO: Add a check for more than one row in the INSERT, which we don't support right now.
             // Less than 6 means we can't pull off an insert

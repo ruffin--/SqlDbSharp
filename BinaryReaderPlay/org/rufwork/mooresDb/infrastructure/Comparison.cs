@@ -44,26 +44,30 @@ namespace org.rufwork.mooresDb.infrastructure
         {
         }
 
-        public Comparison(char chrOperator, Column relatedColumn, byte[] abytValue)
+        public Comparison(string strOperator, Column relatedColumn, byte[] abytValue)
         {
             COMPARISON_TYPE type = COMPARISON_TYPE.EQUALS;
 
-            switch (chrOperator)
+            switch (strOperator)
             {
-                case '=':
+                case "=":
                     type = COMPARISON_TYPE.EQUALS;
                     break;
 
-                case '<':
+                case "<":
                     type = COMPARISON_TYPE.LESS_THAN;
                     break;
 
-                case '>':
+                case ">":
                     type = COMPARISON_TYPE.GREATER_THAN;
                     break;
 
+                case "like":
+                case "LIKE":
+                    throw new NotImplementedException("LIKE comparison not yet implemented.");
+
                 default:
-                    throw new Exception("Illegal comparison type: " + chrOperator);
+                    throw new Exception("Illegal comparison type: " + strOperator);
             }
 
             _init(type, relatedColumn, abytValue);

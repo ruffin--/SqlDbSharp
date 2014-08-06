@@ -8,10 +8,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using org.rufwork.mooresDb.infrastructure;
-using org.rufwork.mooresDb.infrastructure.contexts;
 using System.Data;
 using System.IO;
+
+using org.rufwork.extensions;
+using org.rufwork.mooresDb.infrastructure;
+using org.rufwork.mooresDb.infrastructure.contexts;
 
 namespace org.rufwork.mooresDb.clients
 {
@@ -85,7 +87,7 @@ SqlDbSharp.config, placed in this folder:
 
                     if (!strCmd.Trim().Equals("."))
                     {
-                        Queue<string> qCmds = Utils.SplitSeeingQuotes(strCmd.Trim(' ').Trim('.'), ";", true);
+                        Queue<string> qCmds = strCmd.Trim(' ').Trim('.').SplitSeeingQuotes(";", true);
 
                         foreach (string strSingleCommand in qCmds)
                         {
