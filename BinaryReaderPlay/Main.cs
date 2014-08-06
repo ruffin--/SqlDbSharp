@@ -18,7 +18,7 @@ using org.rufwork.mooresDb.infrastructure.serializers;
 public class MainClass
 {
     // Right now, on Windows, that's "C:\\Users\\YourUserName\\Documents\\MooresDbPlay"
-    public static readonly string cstrDbDir = Utils.cstrHomeDir + Path.DirectorySeparatorChar + "MooresDbPlay";
+    //public static readonly string cstrDbDir = Utils.cstrHomeDir + Path.DirectorySeparatorChar + "MooresDbPlay";
     public static bool bDebug = false;
     public static string buildData = "20140607";    // not always incremented with each build.
     public static string version = "0.0.3.2";
@@ -31,24 +31,14 @@ public class MainClass
         Console.Read();
     }
 
-    public static void TestBinWrites()    {
-        string strFileLoc = MainClass.cstrDbDir + Path.DirectorySeparatorChar + "test.db";
-        
-        Directory.CreateDirectory(MainClass.cstrDbDir);
-        
-        Console.WriteLine(strFileLoc);
-        WriteDefaultValues(strFileLoc);
-        DisplayValues(strFileLoc);
-
-    }
-
     public static void TestDb()  {
         try
         {
             string strTableName = DateTime.Now.Ticks.ToString();
             Console.WriteLine ("Testing with table named: " + strTableName);
 
-            DatabaseContext database = new DatabaseContext(MainClass.cstrDbDir);
+            string strDbDir = Utils.cstrHomeDir + Path.DirectorySeparatorChar + "MooresDbPlay";
+            DatabaseContext database = new DatabaseContext(strDbDir);
 
             //=======================================
             // Create

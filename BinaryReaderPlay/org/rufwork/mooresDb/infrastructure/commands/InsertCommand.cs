@@ -191,18 +191,5 @@ namespace org.rufwork.mooresDb.infrastructure.commands
 
             return intNewlyInsertedRowId;
         }
-
-        public static void Main(string[] args)
-        {
-            DatabaseContext database = new DatabaseContext(MainClass.cstrDbDir);
-            string strSql = @"INSERT INTO TableContextTest (ID, CITY, STATE, LAT_N, LONG_W,)
-                                VALUES (1, 'Chucktown', 'SC', 32.776, 79.931);";
-
-            InsertCommand _insertCommand = new InsertCommand(database);
-            _insertCommand.executeInsert(strSql);
-            
-            Console.WriteLine("Return to quit.");
-            Console.Read();
-        }
     }
 }

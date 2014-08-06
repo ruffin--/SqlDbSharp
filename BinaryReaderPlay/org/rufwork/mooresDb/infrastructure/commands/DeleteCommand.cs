@@ -259,18 +259,5 @@ namespace org.rufwork.mooresDb.infrastructure.commands  {
                 }
             }
         }
-
-        public static void Main(string[] args)
-        {
-            string strSql = "DELETE FROM jive WHERE city = 'CHUCKTOWN'";
-            DatabaseContext database = new DatabaseContext(MainClass.cstrDbDir);
-
-            DeleteCommand deleteCommand = new DeleteCommand(database);
-            deleteCommand.executeStatement(strSql);
-
-            Console.WriteLine("Return to quit.");
-            Console.Read();
-
-        }
     }
 }

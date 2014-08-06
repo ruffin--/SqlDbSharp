@@ -60,19 +60,5 @@ namespace org.rufwork.mooresDb.infrastructure.commands
 
             return wasSuccessful;
         }
-
-        public static void Main(string[] args)
-        {
-            string strSql = @"UPDATE jive SET city = 'Gotham', LAT_N = 45.987 WHERE ID = 8";
-
-            DatabaseContext database = new DatabaseContext(MainClass.cstrDbDir);
-
-            UpdateCommand updateCommand = new UpdateCommand(database);
-            updateCommand.executeStatement(strSql);
-
-            Console.WriteLine("Return to quit.");
-            Console.Read();
-
-        }
     }
 }

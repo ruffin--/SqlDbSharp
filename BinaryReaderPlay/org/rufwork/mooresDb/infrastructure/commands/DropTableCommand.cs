@@ -73,35 +73,5 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                 }
             }
         }
-
-        public static void Main(string[] args)
-        {
-
-            DatabaseContext database = new DatabaseContext(MainClass.cstrDbDir);
-
-            string strTableName = DateTime.Now.Ticks.ToString();
-
-            // TODO: I think I'm missing an AS, right?
-            string strSql = @"create TABLE " + strTableName + @"
-                (ID INTEGER (4) PRIMARY KEY,
-                CITY CHAR (35),
-                STATE CHAR (2),
-                LAT_N REAL (5),
-                LONG_W REAL (5));";
-
-            Console.WriteLine("Executing:" + System.Environment.NewLine + strSql);
-
-            CreateTableCommand createTableCommand = new CreateTableCommand(database);
-            createTableCommand.executeStatement(strSql);
-
-            //database = new DatabaseContext(MainClass.cstrDbDir);
-            strSql = @"DROP TABLE " + strTableName + ";";
-
-            DropTableCommand dropTableCommand = new DropTableCommand(database);
-            dropTableCommand.executeStatement(strSql);
-
-            Console.WriteLine("Return to quit.");
-            Console.Read();
-        }
     }
 }
