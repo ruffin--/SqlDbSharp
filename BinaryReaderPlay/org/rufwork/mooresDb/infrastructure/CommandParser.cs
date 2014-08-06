@@ -7,10 +7,13 @@
 using System;
 
 using System.Collections.Generic;
-using org.rufwork.mooresDb.infrastructure.commands;
 using System.Text.RegularExpressions;
+
+using org.rufwork.mooresDb.infrastructure.commands;
 using org.rufwork.mooresDb.infrastructure.contexts;
 using org.rufwork.mooresDb.exceptions;
+using org.rufwork.extensions;
+using org.rufwork.shims.data;
 
 namespace org.rufwork.mooresDb.infrastructure
 {
@@ -32,10 +35,26 @@ namespace org.rufwork.mooresDb.infrastructure
             _database = database;
         }
 
-        public object executeCommand(string strSql)    {
+        // TODO: Not any serious savings here; currently solely a convenience class.
+        public object executeScalar(string strSql)
+        {
             object objReturn = null;
 
-            strSql = strSql.Replace("''", "`"); // TODO: WHOA!  Super kludge for single quote escapes.  See "Grave accent" in idiosyncracies.
+            // Not sure if I want CommandParser to know about DataTable.  I think that's okay.
+            DataTable dtTemp = (DataTable)this.executeCommand(strSql);
+            if (dtTemp.Rows.Count > 0)
+            {
+                objReturn = dtTemp.Rows[0][0];
+            }
+
+            return objReturn;
+        }
+
+        public object executeCommand(string strSql)    
+        {
+            object objReturn = null;
+
+            strSql = strSql.RemoveNewlines(" ").BacktickQuotes(); // TODO: WHOA!  Super kludge for single quote escapes.  See "Grave accent" in idiosyncracies.
 
             // TODO: This is assuming a single command.  Add splits by semi-colon.
             if (!strSql.Trim().EndsWith(";"))
@@ -45,15 +64,14 @@ namespace org.rufwork.mooresDb.infrastructure
 
             strSql = strSql.TrimEnd(';');
 
-            string[] astrCmdTokens = Utils.stringToNonWhitespaceTokens2(strSql);
-                
+            string[] astrCmdTokens = strSql.StringToNonWhitespaceTokens2();    // TODO: We're almost always immediately doing this again in the executeStatements.
+
             // TODO: Want to ISqlCommand this stuff -- we need to have execute
             // methods that don't take strings but "command tokens".
             switch (astrCmdTokens[0].ToLower())    {
                 case "insert":
                     _insertCommand = new InsertCommand(_database); // TODO: This is too much repeat instantiation.  Rethink that.
-                    _insertCommand.executeInsert(strSql);
-                    objReturn = "INSERT executed.";
+                    objReturn = _insertCommand.executeInsert(strSql);
                     break;
                 
                 case "select":
@@ -82,7 +100,7 @@ namespace org.rufwork.mooresDb.infrastructure
                 case "drop":
                     DropTableCommand dropTableCommand = new DropTableCommand(_database);
                     dropTableCommand.executeStatement(strSql);
-                    objReturn = "Table dropped.";   // TODO: These are pretty sorry messages.  Have the executeStatement return something more informative.
+                    objReturn = @"Table dropped (or, if ""IF EXISTS"" was used, dropped iff found).";   // TODO: These are pretty sorry messages.  Have the executeStatement return something more informative.
                     break;
 
                 default:

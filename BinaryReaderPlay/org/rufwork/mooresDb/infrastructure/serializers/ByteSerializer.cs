@@ -4,6 +4,9 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 // ======================== EO LICENSE ===============================
 
+
+// DEPRECATED/UNUSED.  (Need to replace with a real BitSerializer.)
+
 using System;
 using System.Collections.Generic;
 using System.Linq;

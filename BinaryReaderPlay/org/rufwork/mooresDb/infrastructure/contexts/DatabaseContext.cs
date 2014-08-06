@@ -13,7 +13,7 @@ namespace org.rufwork.mooresDb.infrastructure.contexts
 {
     public class DatabaseContext
     {
-        public StringComparison caseSetting = StringComparison.CurrentCultureIgnoreCase;
+        public StringComparison caseSetting = StringComparison.CurrentCultureIgnoreCase;    // TODO: Expose this more elegantly/deliberately.  Way too many local StringComparison.CurrentCultureIgnoreCase uses now.
         public string strDbLoc = "";
         private Dictionary<string, TableContext> _dictTables = new Dictionary<string, TableContext>();
 
@@ -36,11 +36,13 @@ namespace org.rufwork.mooresDb.infrastructure.contexts
         {
             TableContext table = null;
 
+            // Doing the weird foreach instead of ContainsKey so we can be case insensitive.
             foreach (string key in _dictTables.Keys)
             {
                 if (key.Equals(strTableName, this.caseSetting))
                 {
                     table = _dictTables[key];
+                    break;
                 }
             }
 

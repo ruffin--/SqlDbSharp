@@ -9,7 +9,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace org.rufwork.utils
+namespace org.rufwork.mooresDb.exceptions
 {
-    public enum COMPARISON_TYPE { EQUALS, LESS_THAN, GREATER_THAN, LIKE };
+    public class ColumnNotFoundException : System.Exception
+    {
+        public ColumnNotFoundException() : base() { }
+        public ColumnNotFoundException(string strAlert) : base(strAlert) { }
+        public ColumnNotFoundException(string strAlert, Exception e) : base(strAlert, e) { }
+    }
 }

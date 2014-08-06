@@ -96,7 +96,7 @@ namespace org.rufwork.mooresDb.infrastructure.serializers
             {
                 intWholeNumber *= -1;   // if it's negative, set to positive to get serialization bytes.  Else it'll be huge.
             }
-            abytWholeNumber = Utils.intToByteArray(intWholeNumber);
+            abytWholeNumber = Utils.IntToByteArray(intWholeNumber);
 
             // Note that we already checked to make sure !(length > 2) already.
             if (2 == astrSplitOnDecimal.Length)
@@ -106,7 +106,7 @@ namespace org.rufwork.mooresDb.infrastructure.serializers
                     throw new Exception("Illegal decimal value: " + strToSerialize);
                 }
             }
-            abytDecimalVal = Utils.intToByteArray(intDecimalVal);
+            abytDecimalVal = Utils.IntToByteArray(intDecimalVal);
             bytSignAndPlaces += (byte)abytDecimalVal.Length;    // I think it's easier to count the spaces for the decimal (than the whole number), 
             // then count from the right when reconstituting.  Means we're limited to 127 places 
             // *after* the decimal, which isn't too bad, right?
@@ -176,8 +176,8 @@ namespace org.rufwork.mooresDb.infrastructure.serializers
             Array.Copy(abytValue, intCutOffPoint + 1, abytDecimal, 0, intSignAndPlaces);
 
             // Make sure you get this (from Skeet): The decimal type doesn't normalize itself - it remembers how many decimal digits it has (by maintaining the exponent where possible) and on formatting, zero may be counted as a significant decimal digit.
-            int intWholeNumber = Utils.byteArrayToInt(abytWholeNumber);
-            int intDecimalVal = Utils.byteArrayToInt(abytDecimal);
+            int intWholeNumber = Utils.ByteArrayToInt(abytWholeNumber, true);
+            int intDecimalVal = Utils.ByteArrayToInt(abytDecimal, true);
 
             // There got to be a smarter way to do this.  I'm being lazy right now
             // by pretending to be clever.

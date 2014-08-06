@@ -3,12 +3,14 @@ using org.rufwork.mooresDb.infrastructure.contexts;
 using org.rufwork.mooresDb.infrastructure.serializers;
 using org.rufwork.mooresDb.infrastructure.tableParts;
 using org.rufwork.utils;
+using org.rufwork.extensions;
 using System;
 using System.Collections.Generic;
 using org.rufwork.shims.data;
 using System.IO;
 using System.Linq;
 using System.Text;
+using org.rufwork.mooresDb.exceptions;
 
 namespace org.rufwork.mooresDb.infrastructure.commands.Processors
 {
@@ -16,14 +18,43 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
     {
         public delegate object RowProcessor(byte[] abytRow, Column[] acolsInSelect, Dictionary<string, string> dictColNameMapping, TableContext table, ref DataTable dt);
 
+        private static bool _colsAreCompatible(Column colToUpdate, Column colSource)
+        {
+            bool bCompatible = false;
+
+            if (colToUpdate.colType.Equals(COLUMN_TYPES.AUTOINCREMENT))
+            {
+                bCompatible = false;    // hard stop.  Can't update autoincrement fields.
+            }
+            else if (colToUpdate.colType.Equals(colSource.colType))
+            {
+                bCompatible = true;
+            }
+            else
+            {
+                // TODO: Are there other sets we want to consider equivalent?
+                Queue<COLUMN_TYPES[]> qLinkedTypes = new Queue<COLUMN_TYPES[]>();
+                COLUMN_TYPES[] sharedIntTypes = { COLUMN_TYPES.INT, COLUMN_TYPES.AUTOINCREMENT, COLUMN_TYPES.TINYINT };
+                qLinkedTypes.Enqueue(sharedIntTypes);
+
+                foreach (COLUMN_TYPES[] relatedColTypes in qLinkedTypes)
+                {
+                    if (sharedIntTypes.Contains(colToUpdate.colType) && sharedIntTypes.Contains(colSource.colType))
+                    {
+                        bCompatible = true;
+                        break;
+                    }
+                }
+            }
+            return bCompatible && colToUpdate.intColLength >= colSource.intColLength;
+        }
+
         public static void ProcessRows(ref DataTable dtWithCols,
             TableContext table,
             CommandParts commandParts
         )
         {
-            //Column[] acolsInSelect = commandParts.acolInSelect;
             string strWhere = commandParts.strWhere;
-            Dictionary<string, string> dictColNameMapping = commandParts.dictColToSelectMapping;
 
             List<Comparison> lstWhereConditions = _CreateWhereConditions(strWhere, table);
 
@@ -88,6 +119,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
                         switch (commandParts.commandType)
                         {
                             case CommandParts.COMMAND_TYPES.SELECT:
+                                Dictionary<string, string> dictFuzzyToColName = new Dictionary<string,string>(commandParts.dictFuzzyToColNameMappings); // resets with each row.
                                 DataRow row = dtWithCols.NewRow();
                                 foreach (Column mCol in commandParts.acolInSelect)
                                 {
@@ -96,7 +128,23 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
                                     //Console.WriteLine(System.Text.Encoding.Default.GetString(abytCol));
 
                                     // now translate/cast the value to the column in the row.
-                                    row[OperativeName(mCol.strColName, dictColNameMapping)] = Router.routeMe(mCol).toNative(abytCol);
+                                    // OLD:  row[OperativeName(mCol.strColName, dictColNameMapping)] = Router.routeMe(mCol).toNative(abytCol);
+                                    // foreach b/c we're supporting multiple calls to the same col in a SELECT now.
+                                    foreach (DataColumn dc in dtWithCols.Columns)
+                                    {
+                                        // See if we should use this column's (mCol's) value with this DataColumn.
+                                        if (dictFuzzyToColName.ContainsValue(mCol.strColName) || mCol.strColName.Equals(dc.ColumnName))
+                                        {
+                                            // If so, see if there's a fuzzy name mapped for this column.
+                                            string strColName = GetFuzzyNameIfExists(mCol.strColName, dictFuzzyToColName);
+                                            row[strColName] = Router.routeMe(mCol).toNative(abytCol);
+                                            // If we had a fuzzy name, remove from the dictionary so we don't dupe it.
+                                            if (dictFuzzyToColName.ContainsKey(strColName))
+                                            {
+                                                dictFuzzyToColName.Remove(strColName);
+                                            }
+                                        }
+                                    }
                                 }
                                 dtWithCols.Rows.Add(row);
                                 break;
@@ -118,10 +166,28 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
                                     if (dictLaunderedUpdateVals.ContainsKey(mCol.strColName))
                                     {
                                         // Column needs updating; take values from update
-                                        byte[] abytVal = null; // "raw" value.  Might not be the full column length.
+                                        byte[] abytVal = null; // Will hold "raw" value.  Might not be the full column length.
 
-                                        BaseSerializer serializer = Router.routeMe(mCol);
-                                        abytVal = serializer.toByteArray(dictLaunderedUpdateVals[mCol.strColName]);
+                                        // Check to see if we're updating using another column from the same row or a value.
+                                        // TODO: Performance here should be crappy.  Create a mapping of col names & Cols for
+                                        // in-statement column value transfers.  ie, "UPDATE table1 SET col1 = col2 WHERE col1 = 'update me';"
+                                        string valueAsString = dictLaunderedUpdateVals[mCol.strColName];
+                                        Column colToPullValueFrom = table.getColumnByName(valueAsString);
+
+                                        if (null != colToPullValueFrom)
+                                        {
+                                            if (mCol.intColLength < colToPullValueFrom.intColLength || !_colsAreCompatible(mCol, colToPullValueFrom))
+                                            {
+                                                throw new Exception("UPDATE attempted to update with a value that was potentially too large or with columns of incompatible types.");
+                                            }
+                                            abytVal = new byte[colToPullValueFrom.intColLength];
+                                            Array.Copy(abytRow, colToPullValueFrom.intColStart, abytVal, 0, colToPullValueFrom.intColLength);
+                                        }
+                                        else
+                                        {
+                                            BaseSerializer serializer = Router.routeMe(mCol);
+                                            abytVal = serializer.toByteArray(dictLaunderedUpdateVals[mCol.strColName]);
+                                        }
 
                                         // double check that the serializer at least
                                         // gave you a value that's the right length so
@@ -171,12 +237,16 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
         // This subs in the name used in the SELECT if it's a fuzzy matched column.
         // TODO: Seems like this might belong on the TableContext?
         // TODO: Looking it up with every row is pretty danged inefficient.
-        public static string OperativeName(string strColname, Dictionary<string, string> dictNameMapping)
+        // Flipping the key/value here b/c the fuzzy name is unique, not the strict name,
+        // now that we're supporting the same column multiple times with different [fuzzy, for now]
+        // names.
+        // TODO: Allow column name aliases.
+        public static string GetFuzzyNameIfExists(string strStrictColName, Dictionary<string, string> dictNameMapping)
         {
-            string strReturn = strColname;
-            if (dictNameMapping.ContainsKey(strColname))
+            string strReturn = strStrictColName;
+            if (dictNameMapping.ContainsValue(strStrictColName))
             {
-                strReturn = dictNameMapping[strColname];
+                strReturn = dictNameMapping.XGetFirstKeyByValue<string>(strStrictColName);
             }
             return strReturn;
         }
@@ -210,15 +280,16 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
             if (!string.IsNullOrWhiteSpace(strWhere))
             {
                 strWhere = strWhere.Substring(6);
-                string[] astrClauses = strWhere.Split(new string[] { "AND", "and" }, StringSplitOptions.None);  // TODO: Fix this. Overly naive.
+                string[] astrClauses = strWhere.SplitSeeingQuotes("AND", false).ToArray();
 
+                // TODO: Handle NOTs, duh.
                 for (int i = 0; i < astrClauses.Length; i++)
                 {
                     Comparison comparison = null;
                     string strClause = astrClauses[i].Trim();
                     if (MainClass.bDebug) Console.WriteLine("Where clause #" + i + " " + strClause);
 
-                    if (strClause.ToUpper().Contains(" IN "))   // TODO: Fix this.  Overly naive
+                    if (strClause.SplitSeeingQuotes(" IN ", false).Count > 1)
                     {
                         CompoundComparison inClause = new CompoundComparison(GROUP_TYPE.OR);
                         if (MainClass.bDebug) Console.WriteLine("IN clause: " + strClause);
@@ -253,31 +324,42 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
 
         private static Comparison _CreateComparison(string strClause, TableContext table)
         {
-            char[] achrOperator = {'='};
+            string strOperator = "=";
             if (strClause.Contains('<'))
             {
-                achrOperator[0] = '<';
+                strOperator = "<";
             }
             else if (strClause.Contains('>'))
             {
-                achrOperator[0] = '>';
+                strOperator = ">";
+            }
+            else if (strClause.ContainsOutsideOfQuotes("LIKE", '\'', '`'))
+            {
+                strOperator = "LIKE";
+            }
+            else if (strClause.ContainsOutsideOfQuotes("like", '\'', '`'))
+            {
+                // kludge until I get case sensitivity into ContainsOutsideOfQuotes.
+                // Too bad, lIkE.
+                strOperator = "like";
             }
             else if (!strClause.Contains('='))
             {
                 throw new Exception("Illegal comparison type in SelectCommand: " + strClause);
             }
 
-            string[] astrComparisonParts = strClause.Split(achrOperator, 2);
+            string[] astrComparisonParts = strClause.SplitSeeingQuotes(strOperator, false).Take(2).ToArray();
+
             Column colToConstrain = table.getColumnByName(astrComparisonParts[0].Trim());
             if (null == colToConstrain)
             {
-                throw new Exception("Column not found in SELECT statement: " + astrComparisonParts[0]);
+                throw new ColumnNotFoundException("Column not found in SELECT statement: " + astrComparisonParts[0]);
             }
 
             BaseSerializer serializer = Router.routeMe(colToConstrain);
             byte[] abytComparisonVal = serializer.toByteArray(astrComparisonParts[1].Trim());
 
-            return new Comparison(achrOperator[0], colToConstrain, abytComparisonVal);
+            return new Comparison(strOperator, colToConstrain, abytComparisonVal);
         }
 #endregion whereToComparisons
     }

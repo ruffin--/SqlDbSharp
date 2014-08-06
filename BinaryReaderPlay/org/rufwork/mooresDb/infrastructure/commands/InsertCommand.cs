@@ -13,6 +13,8 @@ using org.rufwork.mooresDb.infrastructure.tableParts;
 using org.rufwork.mooresDb.infrastructure.serializers;
 using org.rufwork.mooresDb.infrastructure.contexts;
 
+using org.rufwork.extensions;
+
 namespace org.rufwork.mooresDb.infrastructure.commands
 {
     public class InsertCommand
@@ -31,10 +33,11 @@ namespace org.rufwork.mooresDb.infrastructure.commands
         /// </summary>
         /// <param name="astrCmdTokens">string[] of tokens from the SQL, split on whitespace</param>
         /// <returns></returns>
-        public bool executeInsert (string strSql)
+        public int executeInsert (string strSql)
         {
+            int intNewlyInsertedRowId = -1;
             byte[] abytFullRow = null;
-            string[] astrCmdTokens = Utils.SqlToTokens(strSql);
+            string[] astrCmdTokens = strSql.SqlToTokens();
 
             // TODO: Add a check for more than one row in the INSERT, which we don't support right now.
             // Less than 6 means we can't pull off an insert
@@ -75,7 +78,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                 else
                 {
                     // okay, odd place for an else, I know, since the Exception would kill the if block anyhow.
-                    while (strTemp.IndexOf(";") == -1 && i < astrCmdTokens.Length-1)
+                    while (strTemp.IndexOf(";") != strTemp.Length-1 && i < astrCmdTokens.Length-1)
                     {
                         strTemp = astrCmdTokens[++i].Trim();
                         lstStringRowValues.Add(strTemp);  // I don't think we care where the ")" appears, do we?  Maybe I should split on parens first.  But INSERT doesn't have something after the ), right?
@@ -85,7 +88,9 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                 // can't tell if I'd rather keep this all in the else or pretend like these are
                 // separate bits of logic.
                 if (lstStringRowValues.Count != lstColumnNames.Count)    {
-                    throw new Exception("Number of insert command columns and number of values are different; cannot insert row.");
+                    throw new Exception("Number of insert command columns and number of values are different; cannot insert row: " + Environment.NewLine
+                        + "Names: " + String.Join(", ", lstColumnNames) + Environment.NewLine
+                        + "Values: " + String.Join(", ", lstStringRowValues) + Environment.NewLine);
                 }   else {
                     if (MainClass.bDebug)
                     {
@@ -164,7 +169,8 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                             throw new Exception("Autoincrement overflow.  Congratulations.  Column: " + column.strColName);
                         }
                         column.intAutoIncrementCount++;
-                        byte[] abytAutoIncrementValue = Utils.intToByteArray(column.intAutoIncrementCount, 4);  // NOTE: Changing from hard-coded 4 for AUTOINCREMENT length borks this
+                        intNewlyInsertedRowId = column.intAutoIncrementCount;   // the return value for the function.
+                        byte[] abytAutoIncrementValue = Utils.IntToByteArray(column.intAutoIncrementCount, 4);  // NOTE: Changing from hard-coded 4 for AUTOINCREMENT length borks this
                         // This is the nasty bit.  We need to increase the spot where we keep
                         // the greatest autoincrement value so that, in case we delete, we can
                         // still pick up where we left off.  That is, because we increased the 
@@ -183,7 +189,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands
             abytFullRow[abytFullRow.Length - 1] = 0x11; // insert final 0x11 to end the row
             _table.writeRow(abytFullRow);
 
-            return true;
+            return intNewlyInsertedRowId;
         }
     }
 }

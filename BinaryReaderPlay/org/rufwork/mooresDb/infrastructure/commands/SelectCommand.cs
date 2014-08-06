@@ -19,6 +19,8 @@ using org.rufwork.mooresDb.infrastructure;
 using org.rufwork.mooresDb.infrastructure.commands.Processors;
 using org.rufwork.utils;
 
+using org.rufwork.extensions;
+
 namespace org.rufwork.mooresDb.infrastructure.commands
 {
     public class SelectCommand
@@ -54,6 +56,8 @@ namespace org.rufwork.mooresDb.infrastructure.commands
             }
 
             _table = _database.getTableByName(selectParts.strTableName);
+            Queue<TableContext> qAllTables = new Queue<TableContext>();
+            qAllTables.Enqueue(_table);
             dtReturn = _initDataTable(selectParts);
 
             WhereProcessor.ProcessRows(ref dtReturn, _table, selectParts);
@@ -65,19 +69,60 @@ namespace org.rufwork.mooresDb.infrastructure.commands
             // just selected and then send those values down to a new _selectRows.
             if (selectParts.strInnerJoinKludge.Length > 0)
             {
-                dtReturn = _processInnerJoin(dtReturn, selectParts.strInnerJoinKludge, selectParts.strTableName);
+                
+                dtReturn = _processInnerJoin(qAllTables, dtReturn, selectParts.strInnerJoinKludge, selectParts.strTableName, selectParts.strOrderBy);
             }
 
             if (null != selectParts.strOrderBy && selectParts.strOrderBy.Length > 9)
             {
-                dtReturn.DefaultView.Sort = selectParts.strOrderBy.Substring(9);
+                // ORDER BY needs to make sure it's not sorting on a fuzzy named column
+                // that may not have been explicitly selected in the SELECT.
+                string[] astrOrderByFields = selectParts.strOrderBy.Substring(9).Split(',');    // Substring(9) to get rid of "ORDER BY "
+                string strCleanedOrderBy = string.Empty;
+
+                foreach (string orderByClause in astrOrderByFields)
+                {
+                    bool ascNotDesc = true;
+
+                    string strOrderByClause = orderByClause.Trim();
+                    string strField = orderByClause.Trim();
+
+                    if (strField.Split().Length > 1)
+                    {
+                        strField = strOrderByClause.Substring(0, strOrderByClause.IndexOf(' ')).Trim();
+                        string strAscDesc = strOrderByClause.Substring(strOrderByClause.IndexOf(' ')).Trim();
+                        ascNotDesc = (-1 == strAscDesc.IndexOf("DESC", StringComparison.CurrentCultureIgnoreCase));
+                    }
+
+                    strOrderByClause += ",";    // This is the default value if there's no fuzziness, and it needs the comma put back.
+
+                    // TODO: Integrate fields prefixed by specific table names.
+                    if (!dtReturn.Columns.Contains(strField))
+                    {
+                        // Check for fuzziness.
+                        foreach (TableContext table in qAllTables)
+                        {
+                            if (!table.containsColumn(strField, false) && table.containsColumn(strField, true))
+                            {
+                                strOrderByClause = table.getRawColName(strField)
+                                    + (ascNotDesc ? " ASC" : " DESC")
+                                    + ",";
+                                break;
+                            }
+                        }
+                    }
+
+                    strCleanedOrderBy += " " + strOrderByClause;
+                }
+
+                dtReturn.DefaultView.Sort = strCleanedOrderBy.Trim(',');
                 dtReturn = dtReturn.DefaultView.ToTable();
             }
 
             return dtReturn;
         }
 
-        private DataTable _processInnerJoin(DataTable dtReturn, string strJoinText, string strParentTable)
+        private DataTable _processInnerJoin(Queue<TableContext> qAllTables, DataTable dtReturn, string strJoinText, string strParentTable, string strOrderBy)
         {
             Console.WriteLine("Note that WHERE clauses are not yet applied to JOINed tables.");
 
@@ -102,6 +147,16 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                     throw new Exception("We're only supporting inner equi joins right now: " + strInnerJoin);
                 }
 
+                // Kludge alert -- must have table prefixes for now.
+                if (!astrTokens[2].Contains(".") || !astrTokens[4].Contains("."))
+                {
+                    throw new Exception(string.Format(
+                        "For now, joined fields must include table prefixes: {0} {1}",
+                        astrTokens[2],
+                        astrTokens[2])
+                    );
+                }
+
                 string field1Parent = astrTokens[2].Substring(0, astrTokens[2].IndexOf("."));
                 string field2Parent = astrTokens[4].Substring(0, astrTokens[4].IndexOf("."));
                 string field1 = astrTokens[2].Substring(astrTokens[2].IndexOf(".")+1);
@@ -122,18 +177,67 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                     strOldField = field2;
                 }
 
-                string strInClause = "";
+                string strInClause = string.Empty;
+                string strFuzzyJoinFields = string.Empty;
+
+                TableContext tableOld = _database.getTableByName(strOldTable);
+                TableContext tableNew = _database.getTableByName(strNewTable);
+                qAllTables.Enqueue(tableNew);   // we need this to figure out column parents later.
+
+                //==========================================================================
+                // ADD COLUMNS TO TABLE WITH GIVEN NAMES
+                //==========================================================================
+                // Because this isn't convoluted enough, we've got to check and see if
+                // the way the join field for the new table was written in the JOIN is
+                // fuzzy or not, and if it is, we've got to add it to the stock subSELECT.
+                // There are good ways to do this.  We're going for straightforward, but 
+                // cache/efficiency-less.
+                try
+                {
+                    if (!tableNew.containsColumn(strNewField, false))
+                    {
+                        strFuzzyJoinFields += "," + strNewField;
+                    }
+                }
+                catch (Exception)
+                {
+                    throw new Exception("Inner join column name lookup didn't work: " + strNewTable + " :: " + strNewField);
+                }
+
+                // Now let's do something similar for fields in the ORDER BY clause, if
+                // there are any, so that we can sort on fuzzy names.
+                // TODO: Handle col names prefixed by table names.
+                if (!string.IsNullOrWhiteSpace(strOrderBy))
+                {
+                    string[] astrOrderTokens = strOrderBy.StringToNonWhitespaceTokens2();
+                    for (int i = 2; i < astrOrderTokens.Length; i++)
+                    {
+                        string testString = astrOrderTokens[i].Trim(' ', ',');
+                        if (!tableNew.containsColumn(testString, false) && tableNew.containsColumn(testString, true))
+                        {
+                            strFuzzyJoinFields += "," + testString;
+                        }
+                    }
+                }
+                //==========================================================================
+                //==========================================================================
 
                 dictTables[strOldTable].CaseSensitive = false;  // TODO: If we keep this, do it in a smarter place.
                 // Right now, strOldField has the name that's in the DataTable from the previous select.
+
+                string strCanonicalOldField = tableOld.getRawColName(strOldField);    // allow fuzzy names in join, if not the DataTable -- yet.
                 foreach (DataRow row in dictTables[strOldTable].Rows)
                 {
-                    strInClause += row[strOldField].ToString() + ",";
+                    strInClause += row[strCanonicalOldField].ToString() + ",";
                 }
                 strInClause = strInClause.Trim (',');
 
-                string strInnerSelect = "SELECT * FROM " + strNewTable + " WHERE "
-                    + strNewField + " IN (" + strInClause + ");";
+                string strInnerSelect = string.Format("SELECT *{0} FROM {1} WHERE {2} IN ({3});",
+                    strFuzzyJoinFields,
+                    strNewTable,
+                    strNewField,
+                    strInClause
+                );
 
                 // TODO: Figure out the best time to handle the portion of the WHERE 
                 // that impacts the tables mentioned in the join portion of the SQL.
@@ -149,7 +253,12 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                 if (objReturn is DataTable)
                 {
                     DataTable dtInnerJoinResult = (DataTable)objReturn;
-                    dtReturn = InfrastructureUtils.equijoinTables(dtReturn, dtInnerJoinResult, strOldField, strNewField);
+                    dtReturn = InfrastructureUtils.equijoinTables(
+                        dtReturn,
+                        dtInnerJoinResult,
+                        tableOld.getRawColName(strOldField),
+                        tableNew.getRawColName(strNewField)
+                    );
                 }
                 else
                 {
@@ -160,20 +269,26 @@ namespace org.rufwork.mooresDb.infrastructure.commands
             return dtReturn;
         }
 
+        // TODO: Remove concept of mainTable, and pass in an IEnumerable of all table
+        // contexts so that we can figure out which owns each SELECTed column.
         private DataTable _initDataTable(CommandParts selectParts)
         {
             DataTable dtReturn = new DataTable();
             dtReturn.TableName = selectParts.strTableName;
+            // So that I can have columns appear more than once in a single table,
+            // I'm going to make a dupe of dictColToSelectMapping.  We'd have to go a
+            // touch more complicated to keep the order from the original SELECT accurate.
+            Dictionary<string, string> dictColMappingCopy = new Dictionary<string, string>(selectParts.dictFuzzyToColNameMappings);
 
             // info on creating a datatable by hand here: 
             // http://msdn.microsoft.com/en-us/library/system.data.datacolumn.datatype.aspx
             foreach (Column colTemp in selectParts.acolInSelect)
             {
-                string strColNameForDT = WhereProcessor.OperativeName(colTemp.strColName, selectParts.dictColToSelectMapping);
-                // In case we fuzzy matched a name, take what was in the SELECT statement, if it was explicitly named.
-                if (selectParts.dictColToSelectMapping.ContainsKey(colTemp.strColName))
+                // "Translate" the SqlDBSharp column name to the name used in the SELECT statement.
+                string strColNameForDT = WhereProcessor.GetFuzzyNameIfExists(colTemp.strColName, dictColMappingCopy);
+                if (dictColMappingCopy.ContainsKey(strColNameForDT)) // these col names are from the SELECT statement, so they could be "fuzzy"
                 {
-                    strColNameForDT = selectParts.dictColToSelectMapping[colTemp.strColName];
+                    dictColMappingCopy.Remove(strColNameForDT);  // This is the kludge that allows us to have the same col with different names.
                 }
                 DataColumn colForDt = new DataColumn(strColNameForDT);
                 //colForDt.MaxLength = colTemp.intColLength;    // MaxLength is only useful for string columns, strangely enough.
@@ -189,9 +304,10 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                         colForDt.MaxLength = colTemp.intColLength;
                         break;
 
-                    case COLUMN_TYPES.BYTE:
-                    case COLUMN_TYPES.INT:
                     case COLUMN_TYPES.AUTOINCREMENT:
+                    case COLUMN_TYPES.TINYINT:
+                    case COLUMN_TYPES.BIT:              // TODO: This will "work", but non 0/1 values can be inserted, obviously.  So it's a kludge for now.
+                    case COLUMN_TYPES.INT:
                         colForDt.DataType = System.Type.GetType("System.Int32");
                         break;
 

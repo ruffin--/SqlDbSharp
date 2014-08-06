@@ -38,7 +38,7 @@ namespace org.rufwork.mooresDb.infrastructure.serializers
             long lngComparison = dteTemp.Ticks;
 
             // Handle raw value from table.
-            long lngFromRow = Utils.byteArrayToLong(abytValFromRow);
+            long lngFromRow = Utils.ByteArrayToLong(abytValFromRow);
 
             if (lngFromRow > lngComparison)
             {
@@ -75,7 +75,13 @@ namespace org.rufwork.mooresDb.infrastructure.serializers
             }
 
             long lngTicks = dteTemp.Ticks;
-            abytToReturn = Utils.longToByteArray(lngTicks);
+            byte[] abytSerialized = Utils.LongToByteArray(lngTicks);
+
+            // because some datetimes might be fewer bytes that are required, we may have to pad
+            // things out a bit so we don't confuse INSERT's if (abytVal.Length != colFound.intColLength)
+            // check.
+            abytToReturn = new byte[8];
+            Buffer.BlockCopy(abytSerialized, 0, abytToReturn, 8 - abytSerialized.Length, abytSerialized.Length);
 
             return abytToReturn;
         }
@@ -87,7 +93,7 @@ namespace org.rufwork.mooresDb.infrastructure.serializers
 
         public override object toNative(byte[] abytValue)
         {
-            long lngTicks = Utils.byteArrayToLong(abytValue);
+            long lngTicks = Utils.ByteArrayToLong(abytValue);
             DateTime dteReturn = new DateTime(lngTicks);
 
             return dteReturn;

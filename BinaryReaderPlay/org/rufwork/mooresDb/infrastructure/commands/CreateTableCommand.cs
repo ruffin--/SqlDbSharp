@@ -16,11 +16,12 @@ using org.rufwork.mooresDb.infrastructure.tableParts;
 using org.rufwork.mooresDb.infrastructure.contexts;
 using org.rufwork.mooresDb.exceptions;
 
+using org.rufwork.extensions;
+
 namespace org.rufwork.mooresDb.infrastructure.commands
 {
     class CreateTableCommand
     {
-        const int cintDefaultColumnLength = 20;   // should at least be larger than one
         private DatabaseContext _database;
         private TableContext _table;
         private string _strDbLoc;
@@ -42,13 +43,13 @@ namespace org.rufwork.mooresDb.infrastructure.commands
         {
             string strErr = "";
 
-            Match createTableMatch = Regex.Match(strSql, @"^CREATE\s*TABLE\s*\w*\s*\(", RegexOptions.IgnoreCase);
+            Match createTableMatch = Regex.Match(strSql, @"^CREATE\s*TABLE\s*`?\w*`?\s*\(", RegexOptions.IgnoreCase);
 
             if (createTableMatch.Success)
             {
                 string strTableName = Regex.Replace(createTableMatch.Groups[0].Value, @"\r\n?|\n", ""); // remove newlines with http://stackoverflow.com/a/8196219/1028230
                 strTableName = strTableName.Substring(0, strTableName.ToLower().IndexOf("("));
-                strTableName = strTableName.Substring(strTableName.ToLower().IndexOf("table") + 5).Trim();
+                strTableName = strTableName.Substring(strTableName.ToLower().IndexOf("table") + 5).Trim().Trim('`');
 
                 if (null != _database.getTableByName(strTableName)) {
                     strErr += "Table " + strTableName + " already exists.\n";
@@ -72,59 +73,86 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                     {
                         COLUMN_TYPES? colType = null;  // This really should never be null after running through the code.  It'll throw an exception first.
                         string strColName = "";
-                        int intFieldLength = cintDefaultColumnLength;
+                        int intFieldLength = -1;
 
                         string strNextColumnInfo = astrSections[i].Trim();
-                        string[] astrColInfo = Utils.stringToNonWhitespaceTokens2(strNextColumnInfo);
 
-                        if (astrColInfo.Length < 2) {
-                            strErr += "Illegal column defintion; table not created: " + string.Join(":",astrColInfo) + "#\n";
-                        }   else    {
-                            //=====================
-                            //======= DEBUG =======
-                            //=====================
-                            if (MainClass.bDebug)
-                            {
-                                for (int j = 0; j < astrColInfo.Length; j++)
-                                {
-                                    Console.WriteLine(j + " :: " + astrColInfo[j]);
-                                }
-                            }
-                            //======================
-                            //======================
-                            if (3 <= astrColInfo.Length)
-                            {
-                                int intLength;
-                                if (int.TryParse(astrColInfo[2], out intLength))
-                                {
-                                    if (4369 == intLength)
-                                    {
-                                        throw new Exception("idiosyncratically, column lengths of [exactly] 4369 are not allowed. " + astrColInfo[1]);
-                                    }
-                                    intFieldLength = intLength;
-                                }
-                            }
-
-                            // every column declaration has already been checked to ensure it has at least two entries (checked above)
-                            strColName = astrColInfo[0];
-                            string strModifier = astrColInfo.Length > 3 ? astrColInfo[3] : null;
-                            colType = InfrastructureUtils.colTypeFromString(astrColInfo[1], 1 == intFieldLength, strModifier);
-
-                            if (null == colType)
-                            {
-                                strErr += "Illegal/Supported column type: " + astrColInfo[1] + "\n";
-                            }
-                            else
-                            {
-                                COLUMN_TYPES colTypeCleaned = (COLUMN_TYPES)colType;    // got to be a better way to launder a nullable.
-                                _createColumn(strColName, colTypeCleaned, intFieldLength);
-                            }
-
-                            if (!strErr.Equals(""))
-                            {
-                                break;
-                            }
+                        // If we're defining a primary key, which we don't support (yet, if ever), skip the line.
+                        // Else do the normal thing.
+                        if (strNextColumnInfo.StartsWith("PRIMARY", StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            Console.WriteLine("Primary key creation is currently ignored: " + strNextColumnInfo);
                         }
+                        else
+                        {
+                            string[] astrColInfo = strNextColumnInfo.StringToNonWhitespaceTokens2();
+
+                            if (astrColInfo.Length < 2) {
+                                strErr += "Illegal column defintion; table not created: " + string.Join(":",astrColInfo) + "#\n";
+                            }   else    {
+                                //=====================
+                                //======= DEBUG =======
+                                //=====================
+                                if (MainClass.bDebug)
+                                {
+                                    for (int j = 0; j < astrColInfo.Length; j++)
+                                    {
+                                        Console.WriteLine(j + " :: " + astrColInfo[j]);
+                                    }
+                                }
+                                //======================
+                                //======================
+                                if (3 <= astrColInfo.Length)
+                                {
+                                    int intLength;
+                                    if (int.TryParse(astrColInfo[2], out intLength))
+                                    {
+                                        if (4369 == intLength)
+                                        {
+                                            throw new Exception("Idiosyncratically, column lengths of [exactly] 4369 are not allowed. " + astrColInfo[1]);
+                                        }
+                                        intFieldLength = intLength;
+                                    }
+                                    else
+                                    {
+                                        // We're going to step up from defaulting to a length of 20 in each case to
+                                        // defining a default length for each column data type.
+                                        intFieldLength = -1;
+                                    }
+                                }
+
+                                // every column declaration has already been checked to ensure it has at least two entries (checked above)
+                                // TODO: Check for statements expecting the default length but with modifiers, like
+                                // `id` INT NOT NULL AUTO_INCREMENT DEFAULT NULL,
+                                // This is handled with AUTO_INCREMENT because NOT NULL is thrown out as if it had the length.
+                                // Which is to say, NOT NULL isn't passed along as part of the modifier string.
+                                strColName = astrColInfo[0].Trim('`');
+                                string strModifier = null;
+                                if (astrColInfo.Length > 3)
+                                    strModifier = string.Join(" ", astrColInfo, 3, astrColInfo.Length - 3);
+
+                                colType = InfrastructureUtils.colTypeFromString(astrColInfo[1], intFieldLength, strModifier);
+
+                                if (null == colType)
+                                {
+                                    strErr += "Illegal/Supported column type: " + astrColInfo[1] + "\n";
+                                }
+                                else
+                                {
+                                    COLUMN_TYPES colTypeCleaned = (COLUMN_TYPES)colType;    // got to be a better way to launder a nullable.
+                                    if (intFieldLength < 0)
+                                    {
+                                        intFieldLength = _getDefaultLengthForType(colTypeCleaned);
+                                    }
+                                    _createColumn(strColName, colTypeCleaned, intFieldLength);
+                                }
+
+                                if (!strErr.Equals(""))
+                                {
+                                    break;
+                                }
+                            }
+                        }   // end check for unsupported directives (like defining a primary key)
                     }   // eo table column creation for loop
 
                     if (MainClass.bDebug)
@@ -149,7 +177,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                     // bytes and specific implmentations.
                     _table.writeMetadataRowsAndPrepareNewTable(_lstByteDataTypeRow,_lstByteColNames, strTableName, _database.strDbLoc);
                     _database.addNewTable(_table);
-                    
+
                 }   // eo table exists check.
             }   // eo createTableMatch.Success regex check
             else
@@ -166,17 +194,65 @@ namespace org.rufwork.mooresDb.infrastructure.commands
             }
         }
 
+        // A very tedious function.
+        private int _getDefaultLengthForType(COLUMN_TYPES colType)
+        {
+            int intReturn = -1;
+            switch (colType)
+            {
+                case COLUMN_TYPES.AUTOINCREMENT:
+                    intReturn = 4;
+                    break;
+
+                case COLUMN_TYPES.BIT:
+                    intReturn = 1;
+                    break;
+
+                case COLUMN_TYPES.CHAR:
+                    intReturn = 20;
+                    break;
+
+                case COLUMN_TYPES.DATETIME:
+                    intReturn = 8;
+                    break;
+
+                // currently treated the same.
+                case COLUMN_TYPES.DECIMAL:
+                case COLUMN_TYPES.FLOAT:
+                    intReturn = 10;
+                    break;
+
+                case COLUMN_TYPES.INT:
+                    intReturn = 4;  // 4*8 = Int32
+                    break;
+
+                case COLUMN_TYPES.TINYINT:
+                    intReturn = 1;
+                    break;
+
+                case COLUMN_TYPES.SINGLE_CHAR:
+                    intReturn = 1;
+                    break;
+
+                default:
+                    throw new Exception("Column Type has no default length; please declare one: " + colType.ToString());
+
+            }
+            return intReturn;
+        }
+
         private void _createColumn(string strName, COLUMN_TYPES colType, int intLength)
         {
             List<byte> lstBytToAdd = new List<byte>();
             lstBytToAdd.Add((byte)colType);
 
-            if (colType == COLUMN_TYPES.SINGLE_CHAR || colType == COLUMN_TYPES.BYTE)
+            if (Column.IsSingleByteType(colType))
             {
                 if (intLength != 1)
                 {
-                    throw new Exception("Bytes and single character columns must have length of 1");    // TODO: Consider string prefixes for all exceptions in each class.
+                    throw new Exception("cannot create column. Single byte column type with length greater than 1: " + strName + " :: " + intLength);    // TODO: Consider string prefixes for all exceptions in each class.
                 }
+                lstBytToAdd.Add(0x11);  // bookend with 11s
                 // Otherwise, that's it.  We've got the length implicitly in the colType we wrote, above.
                 // (and there's no space to add a length; the column only has one byte of metadata that 
                 // we wrote in with .Add((byte)colType), above.
@@ -199,7 +275,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                 else
                 {
                     // Else determine and write the column's metadata.
-                    byte[] abyteIntLength = Utils.intToByteArray(intLength);
+                    byte[] abyteIntLength = Utils.IntToByteArray(intLength);
                     int i = 0;
 
                     int intPaddingLength = intLength - ((abyteIntLength.Length - i) + 1);
@@ -224,38 +300,38 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                     }
                     lstBytToAdd.Add(0x11);  // bookend with 11s
                 }
-
-                _lstByteDataTypeRow = _lstByteDataTypeRow.Concat(lstBytToAdd).ToList();
-
-
-                //================================================================
-                // Column names row
-                //================================================================
-                // Write out row of column names.  Watch out for insane kludges.
-                // TODO: Look out for duplicate column names and for masking longer 
-                // names when shortened.
-                if (intLength > strName.Length)
-                {
-                    foreach (byte bytTemp in strName.ToCharArray())
-                    {
-                        _lstByteColNames.Add(bytTemp);
-                    }
-                    for (int j = strName.Length; j < intLength; j++)
-                    {
-                        _lstByteColNames.Add(0x00);
-                    }
-                }
-                else
-                {
-                    string strShortenedName = strName.Substring(0, intLength);
-                    Console.WriteLine("TODO: Write out a file with shortened name mappings just to make things easier.");
-                    foreach (byte bytTemp in strShortenedName.ToCharArray())
-                    {
-                        _lstByteColNames.Add(bytTemp);
-                    }
-                }
-                _lstByteColNames.Add(0x11);
             }
+
+            _lstByteDataTypeRow = _lstByteDataTypeRow.Concat(lstBytToAdd).ToList();
+
+
+            //================================================================
+            // Column names row
+            //================================================================
+            // Write out row of column names.  Watch out for insane kludges.
+            // TODO: Look out for duplicate column names and for masking longer 
+            // names when shortened.
+            if (intLength > strName.Length)
+            {
+                foreach (byte bytTemp in strName.ToCharArray())
+                {
+                    _lstByteColNames.Add(bytTemp);
+                }
+                for (int j = strName.Length; j < intLength; j++)
+                {
+                    _lstByteColNames.Add(0x00);
+                }
+            }
+            else
+            {
+                string strShortenedName = strName.Substring(0, intLength);
+                Console.WriteLine("TODO: Write out a file with shortened name mappings just to make things easier.");
+                foreach (byte bytTemp in strShortenedName.ToCharArray())
+                {
+                    _lstByteColNames.Add(bytTemp);
+                }
+            }
+            _lstByteColNames.Add(0x11);
         }
     }
 }

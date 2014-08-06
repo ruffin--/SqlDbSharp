@@ -68,30 +68,24 @@ namespace org.rufwork.mooresDb.infrastructure
         // I could do this with DataSets and DataRelations, but this 
         // is more straightfoward for now, I think.
         static public DataTable equijoinTables(DataTable dt1, DataTable dt2, 
-            string strDt1JoinColName, string strDt2JoinColName
+            string strDt1JoinColName_Raw, string strDt2JoinColName_Raw
         )
         {
             DataTable dtReturn = new DataTable();
             Dictionary<string, string> dictTable2ColAliases = new Dictionary<string,string>();
 
-            // We could count on the programmer having already done this conversion
-            // from menumonic to raw column name, but it's non-destructive to, at worst,
-            // do it again here.
-            //strDt1JoinColName = tblContext1.getRawColName(strDt1JoinColName);
-            //strDt2JoinColName = tblContext2.getRawColName(strDt2JoinColName);
-
-            if (null == strDt1JoinColName || null == strDt2JoinColName)
+            if (null == strDt1JoinColName_Raw || null == strDt2JoinColName_Raw)
             {
                 throw new Exception("Column name not found in join: " + dt1.TableName + " :: " + dt2.TableName);
             }
 
             // Make sure the two join columns are of the same type before starting.
-            if (!dt1.Columns[strDt1JoinColName].DataType.Equals(dt2.Columns[strDt2JoinColName].DataType))
+            if (!dt1.Columns[strDt1JoinColName_Raw].DataType.Equals(dt2.Columns[strDt2JoinColName_Raw].DataType))
             {
                 throw new Exception("DataTable join column data types do not match: "
-                    + dt1.TableName + "." + strDt1JoinColName
+                    + dt1.TableName + "." + strDt1JoinColName_Raw
                     + " :: "
-                    + dt2.TableName + "." + strDt2JoinColName);
+                    + dt2.TableName + "." + strDt2JoinColName_Raw);
             }
 
             foreach (DataColumn dc in dt1.Columns)
@@ -124,7 +118,7 @@ namespace org.rufwork.mooresDb.infrastructure
             {
                 foreach (DataRow dr2 in dt2.Rows)
                 {
-                    if (dr[strDt1JoinColName].Equals(dr2[strDt2JoinColName]))
+                    if (dr[strDt1JoinColName_Raw].Equals(dr2[strDt2JoinColName_Raw]))
                     {
                         DataRow rowNew = dtReturn.NewRow();
                         // Copy the values from both rows into dtReturn.
@@ -151,15 +145,12 @@ namespace org.rufwork.mooresDb.infrastructure
             return dtReturn;
         }
 
-        /// <summary>
-        /// Returns which COLUMN_TYPES enum value matches this type name.
-        /// Eg, translates CHAR or VARCHAR into COLUMN_TYPES.SINGLE_CHAR 
-        /// or COLUMN_TYPES.CHAR.
-        /// </summary>
-        /// <param name="strTypeName">The column type from the SQL</param>
-        /// <param name="isSingleByteLength">True if it's a byte or SINGLE_CHAR, etc.</param>
-        /// <returns></returns>
-        static public COLUMN_TYPES? colTypeFromString(string strTypeName, bool isSingleByteLength, string strModifier)
+        // <summary>
+        // Returns which COLUMN_TYPES enum value matches this type name.
+        // Eg, translates CHAR or VARCHAR into COLUMN_TYPES.SINGLE_CHAR 
+        // or COLUMN_TYPES.CHAR.
+        // </summary>
+        static public COLUMN_TYPES? colTypeFromString(string strTypeName, int intByteLength, string strModifier)
         {
             COLUMN_TYPES? colType = null;
 
@@ -169,7 +160,7 @@ namespace org.rufwork.mooresDb.infrastructure
             {
                 case "CHAR":
                 case "VARCHAR":
-                    if (isSingleByteLength)
+                    if (1 == intByteLength)
                     {
                         colType = COLUMN_TYPES.SINGLE_CHAR;
                     }
@@ -179,28 +170,38 @@ namespace org.rufwork.mooresDb.infrastructure
                     }
                     break;
 
+                // TODO: True BIT column type.
+                // Check BIT here: http://dev.mysql.com/doc/refman/5.1/en/bit-type.html
+                case "TINYINT":
+                case "BIT":
+                    // If == 1, great.  If < 1, then probably nothing explicitly said.
+                    // Will take default length of 1, below, so let it continue.
+                    if (1 < intByteLength)
+                    {
+                        throw new Exception("TINYINT columns must have a length of 1.");
+                    }
+                    colType = COLUMN_TYPES.TINYINT;
+                    break;
+
                 case "INT":
                 case "INTEGER":
-                    if ("AUTO_INCREMENT".Equals(strModifier, InfrastructureUtils.caseSetting) 
-                        || "AUTOINCREMENT".Equals(strModifier, InfrastructureUtils.caseSetting))
+                    if (null != strModifier 
+                        && (
+                            strModifier.IndexOf("AUTO_INCREMENT", InfrastructureUtils.caseSetting) > -1
+                            || strModifier.IndexOf("AUTOINCREMENT", InfrastructureUtils.caseSetting) > -1
+                           )
+                        )
                     {
                         colType = COLUMN_TYPES.AUTOINCREMENT;
                     }
-                    else if (isSingleByteLength)
+                    else if (1 == intByteLength)
                     {
-                        colType = COLUMN_TYPES.BYTE;
+                        colType = COLUMN_TYPES.TINYINT;
                     }
                     else
                     {
                         colType = COLUMN_TYPES.INT;
                     }
-                    break;
-
-                case "BYTE":
-                    if (isSingleByteLength)
-                        colType = COLUMN_TYPES.BYTE;
-                    else
-                        throw new Exception("Byte columns must have a length of one.");
                     break;
 
                 case "FLOAT":

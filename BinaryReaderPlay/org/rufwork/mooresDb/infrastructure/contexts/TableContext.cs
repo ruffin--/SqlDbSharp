@@ -235,24 +235,33 @@ namespace org.rufwork.mooresDb.infrastructure.contexts
                             }
                             column.isFuzzyName = 0x00 != abytSecondLine[k]; // if we were forced to end early (0x11 "end of col", not 0x00 "end of name"), we've got a fuzzy name.  See above.
 
-                            column.intColStart = j; // start is at the first byte of the entry; this col starts on the jth bit of each row.s
+                            column.intColStart = j; // start is at the first byte of the entry; this col starts on the jth bit of each row.
                             column.colType = (COLUMN_TYPES)abytFirstLine[j++];
-                            Stack<byte> stackLength = new Stack<byte>();
-                            while (abytFirstLine[j] != 0x00 && abytSecondLine[j] != 0x11)
-                            {
-                                stackLength.Push(abytFirstLine[j++]);
-                            }
 
-                            if (COLUMN_TYPES.AUTOINCREMENT == column.colType)
+                            if (Column.IsSingleByteType(column.colType))
                             {
-                                // We're using the intColLength to store the last autoincrement
-                                // value in this column type.
-                                column.intColLength = 4;    // NOTE: Changing from INT(4) will bork things.
-                                column.intAutoIncrementCount = Utils.byteArrayToInt(stackLength.ToArray());
+                                // handle one byte col types
+                                column.intColLength = 1;
                             }
                             else
                             {
-                                column.intColLength = Utils.byteArrayToInt(stackLength.ToArray());
+                                Stack<byte> stackLength = new Stack<byte>();
+                                while (abytFirstLine[j] != 0x00 && abytSecondLine[j] != 0x11)
+                                {
+                                    stackLength.Push(abytFirstLine[j++]);
+                                }
+
+                                if (COLUMN_TYPES.AUTOINCREMENT == column.colType)
+                                {
+                                    // We're using the intColLength to store the last autoincrement
+                                    // value in this column type.
+                                    column.intColLength = 4;    // NOTE: Changing from INT(4) will bork things.
+                                    column.intAutoIncrementCount = Utils.ByteArrayToInt(stackLength.ToArray());
+                                }
+                                else
+                                {
+                                    column.intColLength = Utils.ByteArrayToInt(stackLength.ToArray());
+                                }
                             }
 
                             // Roll to the end of the column's space.
@@ -312,18 +321,28 @@ namespace org.rufwork.mooresDb.infrastructure.contexts
         /// <summary>
         /// Returns null if no name found.
         /// </summary>
-        /// <param name="strColName">Column name to find; checks fuzzy matches as well.</param>
+        /// <param name="strColName">Column name to find.</param>
+        /// <param name="bIncludeFuzzy">If true (the default value), getColumnByName will include Fuzzy matches with strColName.</param>
         /// <returns>null if column name isn't found</returns>
-        public Column getColumnByName(string strColName)
+        public Column getColumnByName(string strColName, bool bIncludeFuzzy = true)
         {
             Column colReturn = null;
 
-            foreach (Column colTemp in _columns)
+            StringComparison caseSensitive = StringComparison.CurrentCultureIgnoreCase;
+            if (!this.bIgnoreColNameCase)
             {
+                caseSensitive = StringComparison.CurrentCulture;
+            }
+
+            // TODO: Handle casing more deliberately.  This is hacky.
+            foreach (Column colTemp in _columns)    {
                 // TODO: Figure out StringComparison a little better.
                 // http://msdn.microsoft.com/en-us/library/system.stringcomparison.aspx
-                if (colTemp.strColName.Equals(strColName, StringComparison.InvariantCultureIgnoreCase) 
-                    || (colTemp.isFuzzyName && strColName.ToLower().StartsWith(colTemp.strColName.ToLower())))
+                // TODO: Aren't we doing case at a global level?
+                if ( colTemp.strColName.Equals(strColName, caseSensitive)
+                    || (bIncludeFuzzy && colTemp.isFuzzyName && strColName.StartsWith(colTemp.strColName))
+                    || (bIncludeFuzzy && this.bIgnoreColNameCase && colTemp.isFuzzyName && strColName.ToLower().StartsWith(colTemp.strColName.ToLower()))
+                )
                 {
                     colReturn = colTemp;
                     break;
@@ -333,32 +352,19 @@ namespace org.rufwork.mooresDb.infrastructure.contexts
             return colReturn;
         }
 
-        public bool containsColumn(string strColName)
+        public bool containsColumn(string strColName, bool bIncludeFuzzy = true)
         {
-            return this.getRawColName(strColName) != null;
+            return this.getRawColName(strColName, bIncludeFuzzy) != null;
         }
 
-        public string getRawColName(string strColName)
+        public string getRawColName(string strColName, bool bIncludeFuzzy = true)
         {
             string strReturn = null;
-            StringComparison caseSensitive = StringComparison.CurrentCultureIgnoreCase;
-            if (!this.bIgnoreColNameCase)
+            Column colTemp = this.getColumnByName(strColName, bIncludeFuzzy);
+            if (null != colTemp)
             {
-                caseSensitive = StringComparison.CurrentCulture;
+                strReturn = colTemp.strColName;
             }
-
-            // TODO: Handle casing more deliberately.  This is hacky.
-            foreach (Column colTemp in _columns)    {
-                if ( colTemp.strColName.Equals(strColName, caseSensitive)
-                    || (colTemp.isFuzzyName && strColName.StartsWith(colTemp.strColName))
-                    || (this.bIgnoreColNameCase && colTemp.isFuzzyName && strColName.ToLower().StartsWith(colTemp.strColName.ToLower()))
-                )
-                {
-                    strReturn = colTemp.strColName;
-                    break;
-                }
-            }
-
             return strReturn;
         }
 
@@ -433,7 +439,7 @@ namespace org.rufwork.mooresDb.infrastructure.contexts
                 throw new Exception("Autoincrement overflow (2).  Congratulations.  Column: " + strColName);
             }
 
-            byte[] abytLength = Utils.intToByteArray(intNewCount);
+            byte[] abytLength = Utils.IntToByteArray(intNewCount);
             using (BinaryWriter b = new BinaryWriter(File.Open(this.strTableFileLoc, FileMode.Open)))
             {
                 b.Seek(colAutoInc.intColStart+1, SeekOrigin.Begin);     // +1 to move past the colType marker.

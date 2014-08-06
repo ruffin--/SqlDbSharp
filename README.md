@@ -13,19 +13,23 @@
 
 ### VERSION 0.0.1: Nothing is guaranteed to work.  NOTHING.  Use at your own risk.
 
+### TODONEs:
+1. UPDATE statements..
+2. Port to Windows Phone 8 -- download [here](https://github.com/ruffin--/SqlDbSharp/blob/master/bin/SqlDbSharpWP8.dll?raw=true).
+3. Better support for [wwwsqldesigner](http://code.google.com/p/wwwsqldesigner/) generated SQL.
+
+
 ### Major TODOs:
-1. <del>UPDATE statements</del>. **Done**.
-2. <del>Port to Windows Phone 8</del>. **Done, download [here](https://github.com/ruffin--/SqlDbSharp/blob/master/bin/SqlDbSharpWP8.dll?raw=true)**.
-3. Tests.
-4. Docs.
-5. Code review.
-6. ORs in WHERE clauses.
+1. Tests.
+2. Docs.
+3. Code review.
+4. ORs in WHERE clauses.
 
 ###Usage
 
 **Simple Usage**
 
-Step 1. Build the dll using the master branch, build from the WP8 branch or download the Windows Phone class library [here](https://github.com/ruffin--/SqlDbSharp/blob/master/bin/SqlDbSharpWP8.dll?raw=true) for WP8.
+Step 1. Build the dll using the master branch for Mono or conventional .NET.  Build from the WP8 branch or download the Windows Phone class library [here](https://github.com/ruffin--/SqlDbSharp/blob/master/bin/SqlDbSharpWP8.dll?raw=true) for WP8.
 
 Step 2: Use the code below *at your own risk*.
 
@@ -53,7 +57,9 @@ Step 2: Use the code below *at your own risk*.
 
 SqlDb#'s goal is to be a simplest-case, embeddable, crossplaform, YesSQL datastore written in C#. Its ongoing emphasis is on a laconic, yet easy to understand and maintain, codebase that enables the serialization of data to files using a select subset of ANSI SQL.
 
-Using SQL has many benefits over using a custom-rolled text file as an application's datastore, facilitating both initial coding as well as changing to another, more fully-featured database when a project requires it.  **At this early stage, SqlDb# is best used for crossplatform application prototyping.**  It has been tested on .NET 4.0, Windows Phone 8, and Xamarin's Mono.  The [master branch](https://github.com/ruffin--/SqlDbSharp/tree/master) should compile without edit for Mono and conventional .NET.  A quick and dirty port to Windows Phone 8 can be found in the [WP8 branch](https://github.com/ruffin--/SqlDbSharp/tree/WP8), and a prebuilt dll for WP8 can be downloaded [here](https://github.com/ruffin--/SqlDbSharp/blob/master/bin/SqlDbSharpWP8.dll?raw=true). Note that the WP8 branch should work fine on the other target branches with a single line change currently, the major difference being the use of a [shim for the dbms' System.Data usage](https://github.com/ruffin--/DataTableWP8).
+Using SQL has many benefits over using a custom-rolled text file as an application's datastore, facilitating both initial coding as well as changing to another, more fully-featured database when a project requires it.  **At this early stage, SqlDb# is best used for crossplatform application prototyping.**  It has been tested on .NET 4.0, Windows Phone 8, and Xamarin's Mono.  
+
+The [master branch](https://github.com/ruffin--/SqlDbSharp/tree/master) should compile without edit for Mono and conventional .NET.  A quick and dirty port to Windows Phone 8 can be found in the [WP8 branch](https://github.com/ruffin--/SqlDbSharp/tree/WP8), and a prebuilt dll for WP8 can be downloaded [here](https://github.com/ruffin--/SqlDbSharp/blob/master/bin/SqlDbSharpWP8.dll?raw=true). Note that the WP8 branch should work fine on the other target branches with a single line change currently, the major difference being the use of a [shim for the dbms' System.Data usage](https://github.com/ruffin--/DataTableWP8).
 
 
 ### Warnings!

@@ -136,7 +136,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands  {
 
                         if (null == colToConstrain)
                         {
-                            throw new Exception("Column not found in SELECT statement: " + astrEqualsParts[0]);
+                            throw new Exception("Column not found in DELETE statement (0): " + astrEqualsParts[0]);
                         }
 
                         BaseSerializer serializer = Router.routeMe(colToConstrain);
@@ -158,7 +158,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands  {
 
                             if (null == colToConstrain)
                             {
-                                throw new Exception("Column not found in SELECT statement: " + astrLtParts[0]);
+                                throw new Exception("Column not found in DELETE statement (1): " + astrLtParts[0]);
                             }
 
                             BaseSerializer serializer = Router.routeMe(colToConstrain);
@@ -180,7 +180,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands  {
 
                                 if (null == colToConstrain)
                                 {
-                                    throw new Exception("Column not found in SELECT statement: " + astrGtParts[0]);
+                                    throw new Exception("Column not found in DELETE statement (3): " + astrGtParts[0]);
                                 }
 
                                 BaseSerializer serializer = Router.routeMe(colToConstrain);
