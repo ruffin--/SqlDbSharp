@@ -325,11 +325,11 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
         private static Comparison _CreateComparison(string strClause, TableContext table)
         {
             string strOperator = "=";
-            if (strClause.Contains('<'))
+            if (strClause.ContainsOutsideOfQuotes("<"))
             {
                 strOperator = "<";
             }
-            else if (strClause.Contains('>'))
+            else if (strClause.ContainsOutsideOfQuotes(">"))
             {
                 strOperator = ">";
             }
@@ -343,7 +343,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
                 // Too bad, lIkE.
                 strOperator = "like";
             }
-            else if (!strClause.Contains('='))
+            else if (!strClause.ContainsOutsideOfQuotes("="))
             {
                 throw new Exception("Illegal comparison type in SelectCommand: " + strClause);
             }
