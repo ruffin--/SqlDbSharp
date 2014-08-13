@@ -204,6 +204,10 @@ SqlDbSharp.config, placed in this folder:
                                     {
                                         Console.WriteLine("Row ID for new row is: " + objResult);
                                     }
+                                    else if (strCmd.Trim().ToUpper().StartsWith("SELECT MAX("))
+                                    {
+                                        Console.WriteLine(objResult.ToString());
+                                    }
                                     else
                                     {
                                         Console.WriteLine("Uncaptured return value.");

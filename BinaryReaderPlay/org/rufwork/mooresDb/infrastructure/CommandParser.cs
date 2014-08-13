@@ -50,7 +50,7 @@ namespace org.rufwork.mooresDb.infrastructure
             return objReturn;
         }
 
-        public object executeCommand(string strSql)    
+        public object executeCommand(string strSql)
         {
             object objReturn = null;
 
@@ -75,8 +75,16 @@ namespace org.rufwork.mooresDb.infrastructure
                     break;
                 
                 case "select":
-                    _selectCommand = new SelectCommand(_database);
-                    objReturn = _selectCommand.executeStatement(strSql);
+                    if (strSql.ToLower().StartsWith("select max("))
+                    {
+                        SelectMaxCommand selectMaxCmd = new SelectMaxCommand(_database);
+                        objReturn = selectMaxCmd.executeStatement(strSql);
+                    }
+                    else
+                    {
+                        _selectCommand = new SelectCommand(_database);
+                        objReturn = _selectCommand.executeStatement(strSql);
+                    }
                     break;
                 
                 case "delete":
