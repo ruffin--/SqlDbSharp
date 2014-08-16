@@ -20,6 +20,32 @@ namespace org.rufwork.extensions
             return str.ContainsOutsideOfQuotes(strToFind, StringComparison.CurrentCultureIgnoreCase, '\'');
         }
 
+        public static string ExtractBetweenFirstInstanceofDelimiters(this string str, string delimiterStartAfter, string delimiterEndBefore)
+        {
+            string strRun = string.Empty;
+
+            if (-1 < str.IndexOf(delimiterStartAfter))
+            {
+                strRun = str.Substring(str.IndexOf(delimiterStartAfter) + delimiterStartAfter.Length);
+                if (-1 < strRun.IndexOf(delimiterEndBefore))
+                {
+                    strRun = strRun.Substring(0, strRun.IndexOf(delimiterEndBefore));
+                }
+                else
+                {
+                    strRun = string.Empty;  // No luck, Ending not after Start; go back to nothing.
+                }
+            }
+
+            return strRun;
+        }
+
+        public static bool ContainsWhitespace(this string str)
+        {
+            Regex regexp = new Regex(@"\s");
+            return regexp.IsMatch(str);
+        }
+
         /// <summary>
         /// Will call ContainsOutsideOfQuotes with ignore case.
         ///
@@ -97,9 +123,12 @@ namespace org.rufwork.extensions
 
         // Another cheesy regular expression end run.  Don't overcomplicate jive.
         // This should split up strings with multiple commands into, well, multiple commands.
-        // Tokens within backticks are ignored.
-        // TODO: Consider making this smarter/not depend on the s/'/` kludge.
-        public static Queue<String> SplitSeeingQuotes(this string strToSplit, string strSplittingToken, bool bIncludeToken, bool bTrimResults = true)
+        // Tokens within backticks are ignored to support MySQL style backtick quotes in 
+        // statements like CREATE TABLE `DbVersion`...
+        //
+        // Note that the single quote is prioritized.  If you're in a single-quoted string, all
+        // backticks are ignored until you're back out of that string literal.
+        public static Queue<String> SplitSeeingSingleQuotesAndBackticks(this string strToSplit, string strSplittingToken, bool bIncludeToken, bool bTrimResults = true)
         {
             Queue<string> qReturn = new Queue<string>();
             StringBuilder stringBuilder = new StringBuilder();
@@ -153,6 +182,13 @@ namespace org.rufwork.extensions
             }
 
             return qReturn;
+        }
+
+        public static bool IsNumeric(this string str)
+        {
+            double dblDummy;
+            return double.TryParse(str, out dblDummy);
+            //return str.All(c => char.IsDigit(c) || c == '.'); // <<< Advantage is no issue with overflows, which might be a problem with double.TryParse.  I'll ignore that for now (I could wrap for an overflow exception and then fallback to this).
         }
 
         // Only replace double single quotes inside of single quotes.

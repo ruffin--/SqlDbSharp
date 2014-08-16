@@ -11,43 +11,13 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using org.rufwork.mooresDb.exceptions;
+using org.rufwork.mooresDb.infrastructure.commands.Modifiers;
 
 namespace org.rufwork.mooresDb.infrastructure.commands.Processors
 {
     public class WhereProcessor
     {
         public delegate object RowProcessor(byte[] abytRow, Column[] acolsInSelect, Dictionary<string, string> dictColNameMapping, TableContext table, ref DataTable dt);
-
-        private static bool _colsAreCompatible(Column colToUpdate, Column colSource)
-        {
-            bool bCompatible = false;
-
-            if (colToUpdate.colType.Equals(COLUMN_TYPES.AUTOINCREMENT))
-            {
-                bCompatible = false;    // hard stop.  Can't update autoincrement fields.
-            }
-            else if (colToUpdate.colType.Equals(colSource.colType))
-            {
-                bCompatible = true;
-            }
-            else
-            {
-                // TODO: Are there other sets we want to consider equivalent?
-                Queue<COLUMN_TYPES[]> qLinkedTypes = new Queue<COLUMN_TYPES[]>();
-                COLUMN_TYPES[] sharedIntTypes = { COLUMN_TYPES.INT, COLUMN_TYPES.AUTOINCREMENT, COLUMN_TYPES.TINYINT };
-                qLinkedTypes.Enqueue(sharedIntTypes);
-
-                foreach (COLUMN_TYPES[] relatedColTypes in qLinkedTypes)
-                {
-                    if (sharedIntTypes.Contains(colToUpdate.colType) && sharedIntTypes.Contains(colSource.colType))
-                    {
-                        bCompatible = true;
-                        break;
-                    }
-                }
-            }
-            return bCompatible && colToUpdate.intColLength >= colSource.intColLength;
-        }
 
         public static void ProcessRows(ref DataTable dtWithCols,
             TableContext table,
@@ -163,37 +133,63 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
                                 
                                 foreach (Column mCol in table.getColumns())
                                 {
+                                    Column colToPullValueFrom = null;
+                                    string strUpdateValueModifier = string.Empty;
+
                                     if (dictLaunderedUpdateVals.ContainsKey(mCol.strColName))
                                     {
                                         // Column needs updating; take values from update
-                                        byte[] abytVal = null; // Will hold "raw" value.  Might not be the full column length.
+                                        byte[] abytNewColVal = null; // Will hold "raw" value.  Might not be the full column length.
 
                                         // Check to see if we're updating using another column from the same row or a value.
                                         // TODO: Performance here should be crappy.  Create a mapping of col names & Cols for
                                         // in-statement column value transfers.  ie, "UPDATE table1 SET col1 = col2 WHERE col1 = 'update me';"
                                         string valueAsString = dictLaunderedUpdateVals[mCol.strColName];
-                                        Column colToPullValueFrom = table.getColumnByName(valueAsString);
 
-                                        if (null != colToPullValueFrom)
+                                        // Check for operators inside of update values.
+                                        // TODO: Handle strings with operators, but then that's what CONCAT is for.
+                                        // See PIPES_AS_CONCAT in MySQL for more fun. (Note that SQL Server does
+                                        // allow string concat via `+`.)
+                                        //
+                                        // TODO: Note that tabs in the phrase (though strange) should be legit.
+                                        // The current state of the code will choke on them, however.
+                                        //
+                                        // NOTE: I'm going to slowly refactor to ConstructValue as I add the operation
+                                        // functions to the serializers.  So right now I've only got IntSerializer ready.
+                                        // (... but I want to check this in instead of stash).
+                                        COLUMN_TYPES[] validValueModiferTypes = new COLUMN_TYPES[] { COLUMN_TYPES.INT };
+                                        if (validValueModiferTypes.Contains(mCol.colType))
                                         {
-                                            if (mCol.intColLength < colToPullValueFrom.intColLength || !_colsAreCompatible(mCol, colToPullValueFrom))
-                                            {
-                                                throw new Exception("UPDATE attempted to update with a value that was potentially too large or with columns of incompatible types.");
-                                            }
-                                            abytVal = new byte[colToPullValueFrom.intColLength];
-                                            Array.Copy(abytRow, colToPullValueFrom.intColStart, abytVal, 0, colToPullValueFrom.intColLength);
+                                            // New method that allows composition update clauses (eg, `col1 + 4 - col2`)
+                                            abytNewColVal = CompositeColumnValueModifier.ConstructValue(mCol, valueAsString, abytRow, table);
                                         }
                                         else
                                         {
-                                            BaseSerializer serializer = Router.routeMe(mCol);
-                                            abytVal = serializer.toByteArray(dictLaunderedUpdateVals[mCol.strColName]);
+                                            // Old method to update value (no composite clauses).
+                                            colToPullValueFrom = table.getColumnByName(valueAsString);
+
+                                            if (null != colToPullValueFrom)
+                                            {
+                                                if (mCol.intColLength < colToPullValueFrom.intColLength || !CompositeColumnValueModifier.ColsAreCompatible(mCol, colToPullValueFrom))
+                                                {
+                                                    throw new Exception("UPDATE attempted to update with a value that was potentially too large or with columns of incompatible types.");
+                                                }
+                                                abytNewColVal = new byte[colToPullValueFrom.intColLength];
+                                                Array.Copy(abytRow, colToPullValueFrom.intColStart, abytNewColVal, 0, colToPullValueFrom.intColLength);
+                                            }
+                                            else
+                                            {
+                                                BaseSerializer serializer = Router.routeMe(mCol);
+                                                abytNewColVal = serializer.toByteArray(dictLaunderedUpdateVals[mCol.strColName]);
+                                            }
+
                                         }
 
                                         // double check that the serializer at least
                                         // gave you a value that's the right length so
                                         // that everything doesn't go to heck (moved where 
                                         // that was previously checked into the serializers)
-                                        if (abytVal.Length != mCol.intColLength)
+                                        if (abytNewColVal.Length != mCol.intColLength)
                                         {
                                             throw new Exception("Improperly lengthed field from serializer (UPDATE): " + mCol.strColName);
                                         }
@@ -201,12 +197,12 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
                                         // keep in mind that column.intColLength should always match abytColValue.Length.  While I'm
                                         // testing, I'm going to put in this check, but at some point, you should be confident enough
                                         // to consider removing this check.
-                                        if (abytVal.Length != mCol.intColLength)
+                                        if (abytNewColVal.Length != mCol.intColLength)
                                         {
                                             throw new Exception("Surprising value and column length mismatch");
                                         }
 
-                                        Buffer.BlockCopy(abytVal, 0, abytRow, mCol.intColStart, abytVal.Length);
+                                        Buffer.BlockCopy(abytNewColVal, 0, abytRow, mCol.intColStart, abytNewColVal.Length);
                                     }   // else don't touch what's in the row; it's not an updated colum
                                 }
   
@@ -280,7 +276,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
             if (!string.IsNullOrWhiteSpace(strWhere))
             {
                 strWhere = strWhere.Substring(6);
-                string[] astrClauses = strWhere.SplitSeeingQuotes("AND", false).ToArray();
+                string[] astrClauses = strWhere.SplitSeeingSingleQuotesAndBackticks("AND", false).ToArray();
 
                 // TODO: Handle NOTs, duh.
                 for (int i = 0; i < astrClauses.Length; i++)
@@ -289,7 +285,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
                     string strClause = astrClauses[i].Trim();
                     if (MainClass.bDebug) Console.WriteLine("Where clause #" + i + " " + strClause);
 
-                    if (strClause.SplitSeeingQuotes(" IN ", false).Count > 1)
+                    if (strClause.SplitSeeingSingleQuotesAndBackticks(" IN ", false).Count > 1)
                     {
                         CompoundComparison inClause = new CompoundComparison(GROUP_TYPE.OR);
                         if (MainClass.bDebug) Console.WriteLine("IN clause: " + strClause);
@@ -348,7 +344,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
                 throw new Exception("Illegal comparison type in SelectCommand: " + strClause);
             }
 
-            string[] astrComparisonParts = strClause.SplitSeeingQuotes(strOperator, false).Take(2).ToArray();
+            string[] astrComparisonParts = strClause.SplitSeeingSingleQuotesAndBackticks(strOperator, false).Take(2).ToArray();
 
             Column colToConstrain = table.getColumnByName(astrComparisonParts[0].Trim());
             if (null == colToConstrain)

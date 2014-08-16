@@ -87,7 +87,7 @@ SqlDbSharp.config, placed in this folder:
 
                     if (!strCmd.Trim().Equals("."))
                     {
-                        Queue<string> qCmds = strCmd.Trim(' ').Trim('.').SplitSeeingQuotes(";", true);
+                        Queue<string> qCmds = strCmd.Trim(' ').Trim('.').SplitSeeingSingleQuotesAndBackticks(";", true);
 
                         foreach (string strSingleCommand in qCmds)
                         {
