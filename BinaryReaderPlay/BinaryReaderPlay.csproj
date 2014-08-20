@@ -40,6 +40,10 @@
     </StartupObject>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="RufworkExtensions, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\RSSEngine\lib\RufworkExtensions.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
@@ -47,8 +51,6 @@
   <ItemGroup>
     <Compile Include="Main.cs" />
     <Compile Include="AssemblyInfo.cs" />
-    <Compile Include="org\rufwork\extensions\DictionaryOfStringsExtensions.cs" />
-    <Compile Include="org\rufwork\extensions\StringExtensions.cs" />
     <Compile Include="org\rufwork\mooresDb\exceptions\ColumnNotFoundException.cs" />
     <Compile Include="org\rufwork\mooresDb\exceptions\ImproperDatabaseFileException.cs" />
     <Compile Include="org\rufwork\mooresDb\exceptions\SyntaxException.cs" />
@@ -79,7 +81,6 @@
     <Compile Include="org\rufwork\mooresDb\infrastructure\contexts\TableContext.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
-  <ItemGroup />
   <ItemGroup />
   <ProjectExtensions>
     <MonoDevelop>
