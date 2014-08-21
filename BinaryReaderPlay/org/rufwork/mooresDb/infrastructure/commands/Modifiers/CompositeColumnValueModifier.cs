@@ -79,7 +79,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Modifiers
             {
                 if (modifier.isValueNotColumn)
                 {
-                    abytResult = outputSerializer.addRawToStringRepresentation(abytResult, modifier.strValue);
+                    abytResult = outputSerializer.addRawToStringRepresentation(abytResult, modifier.strValue, !modifier.isAdditionModifierNotSubtraction);
                 }
                 else
                 {
