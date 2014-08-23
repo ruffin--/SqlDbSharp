@@ -11,12 +11,18 @@
     // ======================== EO LICENSE ===============================
 
 
-### VERSION 0.0.1: Nothing is guaranteed to work.  NOTHING.  Use at your own risk.
+### VERSION 0.0.3.4: Nothing is guaranteed to work.  NOTHING.  Use at your own risk.
 
 ### TODONEs:
-1. UPDATE statements..
+1. UPDATE statements.
 2. Port to Windows Phone 8 -- download [here](https://github.com/ruffin--/SqlDbSharp/blob/master/bin/SqlDbSharpWP8.dll?raw=true).
 3. Better support for [wwwsqldesigner](http://code.google.com/p/wwwsqldesigner/) generated SQL.
+4. Extended character set support/UTF-8 encoding.
+
+Smaller updates:
+
+1. UPDATEs using other columns for values.
+2. SELECT MAX trivially supported.
 
 
 ### Major TODOs:
@@ -24,6 +30,7 @@
 2. Docs.
 3. Code review.
 4. ORs in WHERE clauses.
+5. Select subset of columns from second table of INNER JOINs.
 
 ###Usage
 
@@ -68,9 +75,9 @@ SqlDb# is a minimally viable product.  It does not currently support the creatio
 
 Though its internal structure is designed to make it easy to visualize tables as raw hexadecimal values, the same structure makes column naming, well, strange.  Please read the documentation about "fuzzy" naming closely.  Additionally, some seemingly legitimate column lengths are not allowed.  **The previous paragraph may have undersold the project's [idiosyncrasies](https://github.com/ruffin--/SqlDbSharp/blob/master/docs/idiosyncrasies.md).**
 
-This project was developed under the code name "Moore's Database", which should help explain what else is missing from SqlDb#: Speed.  Too slow?  SqlDb# should [become approximately twice as fast every two years](http://en.wikipedia.org/wiki/Moore's_law), though that law is apparently losing steam.  Though indices will be added later, such a package would not necessarily be a part of the core project. 
+This project was developed under the code name "Moore's Database", which should help explain what else is missing from SqlDb#: Speed.  Too slow?  SqlDb# should [become approximately twice as fast every two years](http://en.wikipedia.org/wiki/Moore's_law), though that law is apparently losing steam.  Indices could be added later, but such a package would not necessarily be a part of the core project. 
 
-To help ensure crossplatform usability, It has been written on both Visual Studio on Windows and MonoDevelop on Mac OS X, and ported and tested on Windows Phone 8.
+To help ensure crossplatform usability, it has been written on both Visual Studio on Windows and MonoDevelop on Mac OS X, and ported and tested on Windows Phone 8.
 
 
 ### Why? 
@@ -89,9 +96,13 @@ This package is offered under the [Mozilla Public License (MPL)](http://mozilla.
 
 ### Utilities?
 
-As stated before, SqlDb#'s internal structure is designed to make it easy to visualize tables as raw hexadecimal values.  A very simple reader/visualizer is included in the SqlDb# repository or can be downloaded separately ([Windows](http://rufwork.com/code/SqlDbSharp/HexReader.zip)).
+As stated before, SqlDb#'s internal structure is designed to make it easy to visualize tables as raw hexadecimal values.  A very simple reader/visualizer is included in the SqlDb# repository or can be downloaded separately for [Windows](http://rufwork.com/code/SqlDbSharp/HexReader.zip) or <a style="color:orange" href="http://rufwork.com/code/SqlDbSharp/HexReaderMac.zip">Mac</a>. Mac version requires Mono, run the following from the command line: `mono HexReader.exe`
 
-![HexReader screenshot](http://rufwork.com/code/mved/HexReaderScreenshot.png)
+<img src="http://rufwork.com/code/SqlDbSharp/HexReaderScreenshot.png"><br>
+
+And the nasty Windows.Forms compile to OS X:
+
+<center><img src="http://rufwork.com/code/SqlDbSharp/HexReaderScreenshotMac.png"></center><br>
 
 Note the border around each column, made with 0x11's.  The first row starts with column type (index value from 0-255) followed by the column length, except in the case of autoincrement columns.  The second row includes as many characters of the column's name as can fit in the length of the column.  In the third column of the screenshot, there is a CHAR column named "STATE" with a length of 2, and only "ST" is displayed.  The final column is DATETIME, which is a decimal value of Ticks serialized, taking eight bytes of length.  Its name is "TIMESTAMP", but only the first eight characters are displayed -- "TIMESTAM".  Deleted lines are written over with 88s, currently not cleaned.
 
