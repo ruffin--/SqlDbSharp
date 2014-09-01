@@ -37,7 +37,7 @@
   <ItemGroup>
     <Reference Include="RufworkExtensions, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\RSSEngine\lib\RufworkExtensions.dll</HintPath>
+      <HintPath>..\lib\RufworkExtensions.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

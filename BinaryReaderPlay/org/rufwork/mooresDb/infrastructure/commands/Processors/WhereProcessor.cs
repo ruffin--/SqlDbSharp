@@ -12,6 +12,7 @@ using System.Linq;
 using System.Text;
 using org.rufwork.mooresDb.exceptions;
 using org.rufwork.mooresDb.infrastructure.commands.Modifiers;
+using System.Threading;
 
 namespace org.rufwork.mooresDb.infrastructure.commands.Processors
 {
@@ -28,203 +29,223 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
 
             List<Comparison> lstWhereConditions = _CreateWhereConditions(strWhere, table);
 
-            using (BinaryReader b = new BinaryReader(File.Open(table.strTableFileLoc, FileMode.Open)))
+            // TODO: Really need to design a legitimate table locking system.
+            bool bDone = false;
+            int delayFactor = 1;
+            while (!bDone)
             {
-                int intRowCount = table.intFileLength / table.intRowLength;
-                b.BaseStream.Seek(2 * table.intRowLength, SeekOrigin.Begin);  // TODO: Code more defensively in case it's somehow not the right/minimum length
-
-                for (int i = 2; i < intRowCount; i++)
+                try
                 {
-                    byte[] abytRow = b.ReadBytes(table.intRowLength);
-                    bool bMatchingRow = true;
-
-                    // Check and make sure this is an active row, and has 
-                    // the standard row lead byte, 0x11.  If not, the row
-                    // should not be read.
-                    // I'm going to switch this to make it more defensive 
-                    // and a little easier to follow.
-                    switch (abytRow[0])
+                    using (BinaryReader b = new BinaryReader(File.Open(table.strTableFileLoc, FileMode.Open)))
                     {
-                        case 0x88:
-                            // DELETED
-                            bMatchingRow = false;
-                            break;
+                        int intRowCount = table.intFileLength / table.intRowLength;
+                        b.BaseStream.Seek(2 * table.intRowLength, SeekOrigin.Begin);  // TODO: Code more defensively in case it's somehow not the right/minimum length
 
-                        case 0x11:
-                            // ACTIVE
-                            // Find if the WHERE clause says to exclude this row.
-                            foreach (Comparison comparison in lstWhereConditions)
-                            {
-                                // For now, we're (somewhat clumsily) processing INs as lots of small ORs.
-                                // And no, we're not actually supporting the OR statement in a regular WHERE yet.
-                                if (comparison is CompoundComparison)
-                                {
-                                    bool bInKeeper = false;
-                                    // Could use a lot more indexed logic here, but that'll need to be
-                                    // an extension to this package to keep the logic simple.
-                                    // This is a painful, bullheaded Moore's comparison.
-                                    foreach (Comparison compInner in ((CompoundComparison)comparison).lstComparisons)
-                                    {
-                                        if (_ComparisonEngine(compInner, abytRow))
-                                        {
-                                            bInKeeper = true;
-                                            break;
-                                        }
-                                    }
-                                    bMatchingRow = bMatchingRow && bInKeeper;
-                                }
-                                else
-                                {
-                                    bMatchingRow = bMatchingRow && _ComparisonEngine(comparison, abytRow);
-                                }
-                            }
-                            break;
-
-                        default:
-                            throw new Exception("Unexpected row state in SELECT: " + abytRow[0]);
-                    }
-
-                    if (bMatchingRow)
-                    {
-                        switch (commandParts.commandType)
+                        for (int i = 2; i < intRowCount; i++)
                         {
-                            case CommandParts.COMMAND_TYPES.SELECT:
-                                Dictionary<string, string> dictFuzzyToColName = new Dictionary<string,string>(commandParts.dictFuzzyToColNameMappings); // resets with each row.
-                                DataRow row = dtWithCols.NewRow();
-                                foreach (Column mCol in commandParts.acolInSelect)
-                                {
-                                    byte[] abytCol = new byte[mCol.intColLength];
-                                    Array.Copy(abytRow, mCol.intColStart, abytCol, 0, mCol.intColLength);
-                                    //Console.WriteLine(System.Text.Encoding.Default.GetString(abytCol));
+                            byte[] abytRow = b.ReadBytes(table.intRowLength);
+                            bool bMatchingRow = true;
 
-                                    // now translate/cast the value to the column in the row.
-                                    // OLD:  row[OperativeName(mCol.strColName, dictColNameMapping)] = Router.routeMe(mCol).toNative(abytCol);
-                                    // foreach b/c we're supporting multiple calls to the same col in a SELECT now.
-                                    foreach (DataColumn dc in dtWithCols.Columns)
+                            // Check and make sure this is an active row, and has 
+                            // the standard row lead byte, 0x11.  If not, the row
+                            // should not be read.
+                            // I'm going to switch this to make it more defensive 
+                            // and a little easier to follow.
+                            switch (abytRow[0])
+                            {
+                                case 0x88:
+                                    // DELETED
+                                    bMatchingRow = false;
+                                    break;
+
+                                case 0x11:
+                                    // ACTIVE
+                                    // Find if the WHERE clause says to exclude this row.
+                                    foreach (Comparison comparison in lstWhereConditions)
                                     {
-                                        // See if we should use this column's (mCol's) value with this DataColumn.
-                                        if (dictFuzzyToColName.ContainsValue(mCol.strColName) || mCol.strColName.Equals(dc.ColumnName))
+                                        // For now, we're (somewhat clumsily) processing INs as lots of small ORs.
+                                        // And no, we're not actually supporting the OR statement in a regular WHERE yet.
+                                        if (comparison is CompoundComparison)
                                         {
-                                            // If so, see if there's a fuzzy name mapped for this column.
-                                            string strColName = GetFuzzyNameIfExists(mCol.strColName, dictFuzzyToColName);
-                                            row[strColName] = Router.routeMe(mCol).toNative(abytCol);
-                                            // If we had a fuzzy name, remove from the dictionary so we don't dupe it.
-                                            if (dictFuzzyToColName.ContainsKey(strColName))
+                                            bool bInKeeper = false;
+                                            // Could use a lot more indexed logic here, but that'll need to be
+                                            // an extension to this package to keep the logic simple.
+                                            // This is a painful, bullheaded Moore's comparison.
+                                            foreach (Comparison compInner in ((CompoundComparison)comparison).lstComparisons)
                                             {
-                                                dictFuzzyToColName.Remove(strColName);
+                                                if (_ComparisonEngine(compInner, abytRow))
+                                                {
+                                                    bInKeeper = true;
+                                                    break;
+                                                }
                                             }
-                                        }
-                                    }
-                                }
-                                dtWithCols.Rows.Add(row);
-                                break;
-
-                            case CommandParts.COMMAND_TYPES.UPDATE:
-                                // kludge for fuzzy names:
-                                // (This should be a one-way process, so I don't think having the logic
-                                // in this cruddy a place is a huge problem that'll cause wasted 
-                                // resources; it's just having me rethink fuzzy names in general.)
-                                Dictionary<string, string> dictLaunderedUpdateVals = new Dictionary<string,string>();
-
-                                foreach (string key in commandParts.dictUpdateColVals.Keys)
-                                {
-                                    dictLaunderedUpdateVals.Add(table.getRawColName(key), commandParts.dictUpdateColVals[key]);
-                                }
-                                
-                                foreach (Column mCol in table.getColumns())
-                                {
-                                    Column colToPullValueFrom = null;
-                                    string strUpdateValueModifier = string.Empty;
-
-                                    if (dictLaunderedUpdateVals.ContainsKey(mCol.strColName))
-                                    {
-                                        // Column needs updating; take values from update
-                                        byte[] abytNewColVal = null; // Will hold "raw" value.  Might not be the full column length.
-
-                                        // Check to see if we're updating using another column from the same row or a value.
-                                        // TODO: Performance here should be crappy.  Create a mapping of col names & Cols for
-                                        // in-statement column value transfers.  ie, "UPDATE table1 SET col1 = col2 WHERE col1 = 'update me';"
-                                        string valueAsString = dictLaunderedUpdateVals[mCol.strColName];
-
-                                        // Check for operators inside of update values.
-                                        // TODO: Handle strings with operators, but then that's what CONCAT is for.
-                                        // See PIPES_AS_CONCAT in MySQL for more fun. (Note that SQL Server does
-                                        // allow string concat via `+`.)
-                                        //
-                                        // TODO: Note that tabs in the phrase (though strange) should be legit.
-                                        // The current state of the code will choke on them, however.
-                                        //
-                                        // NOTE: I'm going to slowly refactor to ConstructValue as I add the operation
-                                        // functions to the serializers.  So right now I've only got IntSerializer ready.
-                                        // (... but I want to check this in instead of stash).
-                                        COLUMN_TYPES[] validValueModiferTypes = new COLUMN_TYPES[] { COLUMN_TYPES.INT };
-                                        if (validValueModiferTypes.Contains(mCol.colType))
-                                        {
-                                            // New method that allows composition update clauses (eg, `col1 + 4 - col2`)
-                                            abytNewColVal = CompositeColumnValueModifier.ConstructValue(mCol, valueAsString, abytRow, table);
+                                            bMatchingRow = bMatchingRow && bInKeeper;
                                         }
                                         else
                                         {
-                                            // Old method to update value (no composite clauses).
-                                            colToPullValueFrom = table.getColumnByName(valueAsString);
+                                            bMatchingRow = bMatchingRow && _ComparisonEngine(comparison, abytRow);
+                                        }
+                                    }
+                                    break;
 
-                                            if (null != colToPullValueFrom)
+                                default:
+                                    throw new Exception("Unexpected row state in SELECT: " + abytRow[0]);
+                            }
+
+                            if (bMatchingRow)
+                            {
+                                switch (commandParts.commandType)
+                                {
+                                    case CommandParts.COMMAND_TYPES.SELECT:
+                                        Dictionary<string, string> dictFuzzyToColName = new Dictionary<string,string>(commandParts.dictFuzzyToColNameMappings); // resets with each row.
+                                        DataRow row = dtWithCols.NewRow();
+                                        foreach (Column mCol in commandParts.acolInSelect)
+                                        {
+                                            byte[] abytCol = new byte[mCol.intColLength];
+                                            Array.Copy(abytRow, mCol.intColStart, abytCol, 0, mCol.intColLength);
+                                            //Console.WriteLine(System.Text.Encoding.Default.GetString(abytCol));
+
+                                            // now translate/cast the value to the column in the row.
+                                            // OLD:  row[OperativeName(mCol.strColName, dictColNameMapping)] = Router.routeMe(mCol).toNative(abytCol);
+                                            // foreach b/c we're supporting multiple calls to the same col in a SELECT now.
+                                            foreach (DataColumn dc in dtWithCols.Columns)
                                             {
-                                                if (mCol.intColLength < colToPullValueFrom.intColLength || !CompositeColumnValueModifier.ColsAreCompatible(mCol, colToPullValueFrom))
+                                                // See if we should use this column's (mCol's) value with this DataColumn.
+                                                if (dictFuzzyToColName.ContainsValue(mCol.strColName) || mCol.strColName.Equals(dc.ColumnName))
                                                 {
-                                                    throw new Exception("UPDATE attempted to update with a value that was potentially too large or with columns of incompatible types.");
+                                                    // If so, see if there's a fuzzy name mapped for this column.
+                                                    string strColName = GetFuzzyNameIfExists(mCol.strColName, dictFuzzyToColName);
+                                                    row[strColName] = Router.routeMe(mCol).toNative(abytCol);
+                                                    // If we had a fuzzy name, remove from the dictionary so we don't dupe it.
+                                                    if (dictFuzzyToColName.ContainsKey(strColName))
+                                                    {
+                                                        dictFuzzyToColName.Remove(strColName);
+                                                    }
                                                 }
-                                                abytNewColVal = new byte[colToPullValueFrom.intColLength];
-                                                Array.Copy(abytRow, colToPullValueFrom.intColStart, abytNewColVal, 0, colToPullValueFrom.intColLength);
                                             }
-                                            else
+                                        }
+                                        dtWithCols.Rows.Add(row);
+                                        break;
+
+                                    case CommandParts.COMMAND_TYPES.UPDATE:
+                                        // kludge for fuzzy names:
+                                        // (This should be a one-way process, so I don't think having the logic
+                                        // in this cruddy a place is a huge problem that'll cause wasted 
+                                        // resources; it's just having me rethink fuzzy names in general.)
+                                        Dictionary<string, string> dictLaunderedUpdateVals = new Dictionary<string,string>();
+
+                                        foreach (string key in commandParts.dictUpdateColVals.Keys)
+                                        {
+                                            dictLaunderedUpdateVals.Add(table.getRawColName(key), commandParts.dictUpdateColVals[key]);
+                                        }
+                                    
+                                        foreach (Column mCol in table.getColumns())
+                                        {
+                                            Column colToPullValueFrom = null;
+                                            string strUpdateValueModifier = string.Empty;
+
+                                            if (dictLaunderedUpdateVals.ContainsKey(mCol.strColName))
                                             {
-                                                BaseSerializer serializer = Router.routeMe(mCol);
-                                                abytNewColVal = serializer.toByteArray(dictLaunderedUpdateVals[mCol.strColName]);
-                                            }
+                                                // Column needs updating; take values from update
+                                                byte[] abytNewColVal = null; // Will hold "raw" value.  Might not be the full column length.
 
+                                                // Check to see if we're updating using another column from the same row or a value.
+                                                // TODO: Performance here should be crappy.  Create a mapping of col names & Cols for
+                                                // in-statement column value transfers.  ie, "UPDATE table1 SET col1 = col2 WHERE col1 = 'update me';"
+                                                string valueAsString = dictLaunderedUpdateVals[mCol.strColName];
+
+                                                // Check for operators inside of update values.
+                                                // TODO: Handle strings with operators, but then that's what CONCAT is for.
+                                                // See PIPES_AS_CONCAT in MySQL for more fun. (Note that SQL Server does
+                                                // allow string concat via `+`.)
+                                                //
+                                                // TODO: Note that tabs in the phrase (though strange) should be legit.
+                                                // The current state of the code will choke on them, however.
+                                                //
+                                                // NOTE: I'm going to slowly refactor to ConstructValue as I add the operation
+                                                // functions to the serializers.  So right now I've only got IntSerializer ready.
+                                                // (... but I want to check this in instead of stash).
+                                                COLUMN_TYPES[] validValueModiferTypes = new COLUMN_TYPES[] { COLUMN_TYPES.INT };
+                                                if (validValueModiferTypes.Contains(mCol.colType))
+                                                {
+                                                    // New method that allows composition update clauses (eg, `col1 + 4 - col2`)
+                                                    abytNewColVal = CompositeColumnValueModifier.ConstructValue(mCol, valueAsString, abytRow, table);
+                                                }
+                                                else
+                                                {
+                                                    // Old method to update value (no composite clauses).
+                                                    colToPullValueFrom = table.getColumnByName(valueAsString);
+
+                                                    if (null != colToPullValueFrom)
+                                                    {
+                                                        if (mCol.intColLength < colToPullValueFrom.intColLength || !CompositeColumnValueModifier.ColsAreCompatible(mCol, colToPullValueFrom))
+                                                        {
+                                                            throw new Exception("UPDATE attempted to update with a value that was potentially too large or with columns of incompatible types.");
+                                                        }
+                                                        abytNewColVal = new byte[colToPullValueFrom.intColLength];
+                                                        Array.Copy(abytRow, colToPullValueFrom.intColStart, abytNewColVal, 0, colToPullValueFrom.intColLength);
+                                                    }
+                                                    else
+                                                    {
+                                                        BaseSerializer serializer = Router.routeMe(mCol);
+                                                        abytNewColVal = serializer.toByteArray(dictLaunderedUpdateVals[mCol.strColName]);
+                                                    }
+
+                                                }
+
+                                                // double check that the serializer at least
+                                                // gave you a value that's the right length so
+                                                // that everything doesn't go to heck (moved where 
+                                                // that was previously checked into the serializers)
+                                                if (abytNewColVal.Length != mCol.intColLength)
+                                                {
+                                                    throw new Exception("Improperly lengthed field from serializer (UPDATE): " + mCol.strColName);
+                                                }
+
+                                                // keep in mind that column.intColLength should always match abytColValue.Length.  While I'm
+                                                // testing, I'm going to put in this check, but at some point, you should be confident enough
+                                                // to consider removing this check.
+                                                if (abytNewColVal.Length != mCol.intColLength)
+                                                {
+                                                    throw new Exception("Surprising value and column length mismatch");
+                                                }
+
+                                                Buffer.BlockCopy(abytNewColVal, 0, abytRow, mCol.intColStart, abytNewColVal.Length);
+                                            }   // else don't touch what's in the row; it's not an updated colum
                                         }
+      
+                                        b.BaseStream.Seek(-1 * table.intRowLength, SeekOrigin.Current);
+                                        b.BaseStream.Write(abytRow, 0, abytRow.Length);
 
-                                        // double check that the serializer at least
-                                        // gave you a value that's the right length so
-                                        // that everything doesn't go to heck (moved where 
-                                        // that was previously checked into the serializers)
-                                        if (abytNewColVal.Length != mCol.intColLength)
-                                        {
-                                            throw new Exception("Improperly lengthed field from serializer (UPDATE): " + mCol.strColName);
-                                        }
+                                        break;
 
-                                        // keep in mind that column.intColLength should always match abytColValue.Length.  While I'm
-                                        // testing, I'm going to put in this check, but at some point, you should be confident enough
-                                        // to consider removing this check.
-                                        if (abytNewColVal.Length != mCol.intColLength)
-                                        {
-                                            throw new Exception("Surprising value and column length mismatch");
-                                        }
+                                    case CommandParts.COMMAND_TYPES.DELETE:
+                                        byte[] abytErase = new byte[table.intRowLength];   // should be initialized to zeroes.
+                                        // at least to test, I'm going to write it all over with 0x88s.
+                                        for (int j = 0; j < table.intRowLength; j++) { abytErase[j] = 0x88; }
 
-                                        Buffer.BlockCopy(abytNewColVal, 0, abytRow, mCol.intColStart, abytNewColVal.Length);
-                                    }   // else don't touch what's in the row; it's not an updated colum
+                                        // move pointer back to the first byte of this row.
+                                        b.BaseStream.Seek(-1 * table.intRowLength, SeekOrigin.Current);
+                                        b.BaseStream.Write(abytErase, 0, abytErase.Length);
+                                        break;
+
+                                    default:
+                                        throw new Exception("Unhandled command type in WhereProcessor: " + commandParts.commandType);
                                 }
-  
-                                b.BaseStream.Seek(-1 * table.intRowLength, SeekOrigin.Current);
-                                b.BaseStream.Write(abytRow, 0, abytRow.Length);
-
-                                break;
-
-                            case CommandParts.COMMAND_TYPES.DELETE:
-                                byte[] abytErase = new byte[table.intRowLength];   // should be initialized to zeroes.
-                                // at least to test, I'm going to write it all over with 0x88s.
-                                for (int j = 0; j < table.intRowLength; j++) { abytErase[j] = 0x88; }
-
-                                // move pointer back to the first byte of this row.
-                                b.BaseStream.Seek(-1 * table.intRowLength, SeekOrigin.Current);
-                                b.BaseStream.Write(abytErase, 0, abytErase.Length);
-                                break;
-
-                            default:
-                                throw new Exception("Unhandled command type in WhereProcessor: " + commandParts.commandType);
+                            }
                         }
                     }
+                    bDone = true;
+                }
+                catch (IOException)
+                {
+                    delayFactor = delayFactor * 2;
+                    if (delayFactor > (3 * 60 * 1000))
+                    {
+                        throw new Exception("Statement timeout: " + commandParts.strOriginal);
+                    }
+                    Thread.Sleep(delayFactor * 200);
+                    //org.rufwork.mooresDb.SqlDbSharpLogger.LogMessage(table.strTableName + ".mdbf is locked.  Waiting " + delayFactor + " millis to try again.", "WhereProcessor.ProcessRows");
                 }
             }
             // nothing to return -- dt was passed by ref.

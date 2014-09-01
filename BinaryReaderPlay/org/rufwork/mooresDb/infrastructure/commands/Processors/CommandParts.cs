@@ -13,6 +13,8 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
     // statement's text.
     public class CommandParts
     {
+        public string strOriginal;
+
         public string strSelect;
         public string strUpdate;
         public string strFrom;
@@ -38,6 +40,8 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
             _tableContext = table;
 
             this.commandType = commandType;
+            this.strOriginal = strSql;
+
             switch (commandType)
             {
                 case COMMAND_TYPES.SELECT:

@@ -368,12 +368,32 @@ namespace org.rufwork.mooresDb.infrastructure.contexts
             return strReturn;
         }
 
+        // TODO: Is the TableContext really where we want file write to occur?
         public void writeRow(byte[] abytRow)    {
-            FileStream stream = new FileStream(this.strTableFileLoc, FileMode.Append);
-            BinaryWriter writer = new BinaryWriter(stream);
-            writer.Write(abytRow);
-            writer.Flush();
-            writer.Close();
+            int delayFactor = 1;
+            bool bDone = false;
+
+            while (!bDone)
+            {
+                try
+                {
+                    FileStream stream = new FileStream(this.strTableFileLoc, FileMode.Append);
+                    BinaryWriter writer = new BinaryWriter(stream);
+                    writer.Write(abytRow);
+                    writer.Flush();
+                    writer.Close();
+                    bDone = true;
+                }
+                catch (IOException)
+                {
+                    delayFactor = delayFactor * 2;
+                    if (delayFactor > (3 * 60 * 1000))
+                    {
+                        throw new Exception("Table writeRow timeout: " + this.strTableName);
+                    }
+                    System.Threading.Thread.Sleep(delayFactor * 200);
+                }
+            }
         }
 
         public void writeMetadataRowsAndPrepareNewTable(List<byte> lstColMetadata, List<byte> lstColNames, string strTableName, string strDbLoc)
