@@ -25,9 +25,11 @@ namespace org.rufwork.mooresDb.clients
             string strParentDir = "";
             string strTestTableName = "jive";
 
+            int intWindowWidth = 160;
+
             try
             {
-                Console.SetWindowSize(160, 50);
+                Console.SetWindowSize(intWindowWidth, 50);
             }
             catch (Exception)
             {
@@ -194,7 +196,7 @@ SqlDbSharp.config, placed in this folder:
 
                                     if (objResult is DataTable)
                                     {
-                                        Console.WriteLine(InfrastructureUtils.dataTableToString((DataTable)objResult));
+                                        Console.WriteLine(InfrastructureUtils.dataTableToString((DataTable)objResult, intWindowWidth));
                                     }
                                     else if (objResult is string)
                                     {
