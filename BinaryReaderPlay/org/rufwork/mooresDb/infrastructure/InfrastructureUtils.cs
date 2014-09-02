@@ -58,7 +58,7 @@ namespace org.rufwork.mooresDb.infrastructure
                     int intUsedChars = 0;
                     for (int i = 0; i < aintColLength.Length; i++)
                     {
-                        if (aintColLength[i] < intEqualColSize)
+                        if (aintColLength[i] < intEqualColSize && i + 1 < aintColLength.Length)
                         {
                             intUsedChars += aintColLength[i];
                             int intColsLeft = aintColLength.Length - (i + 1);
