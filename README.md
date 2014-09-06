@@ -11,19 +11,7 @@
     // ======================== EO LICENSE ===============================
 
 
-### VERSION 0.0.3.4: Nothing is guaranteed to work.  NOTHING.  Use at your own risk.
-
-### TODONEs:
-1. UPDATE statements.
-2. Port to Windows Phone 8 -- download [here](https://github.com/ruffin--/SqlDbSharp/blob/master/bin/SqlDbSharpWP8.dll?raw=true).
-3. Better support for [wwwsqldesigner](http://code.google.com/p/wwwsqldesigner/) generated SQL.
-4. Extended character set support/UTF-8 encoding.
-
-Smaller updates:
-
-1. UPDATEs using other columns for values.
-2. SELECT MAX trivially supported.
-
+### VERSION 0.0.4.0: Nothing is guaranteed to work.  NOTHING.  Use at your own risk.
 
 ### Major TODOs:
 1. Tests.

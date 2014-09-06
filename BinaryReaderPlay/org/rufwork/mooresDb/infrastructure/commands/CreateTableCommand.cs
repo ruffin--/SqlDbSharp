@@ -81,7 +81,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                         // Else do the normal thing.
                         if (strNextColumnInfo.StartsWith("PRIMARY", StringComparison.CurrentCultureIgnoreCase))
                         {
-                            Console.WriteLine("Primary key creation is currently ignored: " + strNextColumnInfo);
+                            SqlDbSharpLogger.LogMessage("Primary key creation is currently ignored: " + strNextColumnInfo, "CreateTable executeStatement");
                         }
                         else
                         {
@@ -97,7 +97,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                                 {
                                     for (int j = 0; j < astrColInfo.Length; j++)
                                     {
-                                        Console.WriteLine(j + " :: " + astrColInfo[j]);
+                                        SqlDbSharpLogger.LogMessage(j + " :: " + astrColInfo[j], "Create table execute statement");
                                     }
                                 }
                                 //======================
@@ -157,19 +157,21 @@ namespace org.rufwork.mooresDb.infrastructure.commands
 
                     if (MainClass.bDebug)
                     {
+                        string strDebug = string.Empty;
                         for (int j = 0; j < _lstByteDataTypeRow.Count; j++)
                         {
-                            Console.Write("0x" + _lstByteDataTypeRow[j].ToString("X2") + ", ");
+                            strDebug += "0x" + _lstByteDataTypeRow[j].ToString("X2") + ", \n";
                         }
-                        Console.WriteLine();
-                        Console.WriteLine();
+                        strDebug += "\n\n";
+
                         for (int j = 0; j < _lstByteColNames.Count; j++)
                         {
-                            Console.Write("0x" + _lstByteColNames[j].ToString("X2") + ", ");
+                            strDebug += "0x" + _lstByteColNames[j].ToString("X2") + ", \n";
                         }
-                        Console.WriteLine();
+                        strDebug += "\n";
+                        strDebug += _table.strTableFileLoc + "\n";
 
-                        Console.WriteLine(_table.strTableFileLoc);
+                        SqlDbSharpLogger.LogMessage(strDebug, "Create table execute statement");
                     }
 
                     // TODO: Instead of writing bytes here, I should probably create a list of column objects,

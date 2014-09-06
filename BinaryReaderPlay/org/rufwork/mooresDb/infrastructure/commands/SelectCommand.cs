@@ -45,14 +45,16 @@ namespace org.rufwork.mooresDb.infrastructure.commands
 
             if (MainClass.bDebug)
             {
-                Console.WriteLine("SELECT: " + selectParts.strSelect);
-                Console.WriteLine("FROM: " + selectParts.strFrom);
+                string strDebug = "SELECT: " + selectParts.strSelect + "\n";
+                strDebug += "FROM: " + selectParts.strFrom + "\n";
                 if (!string.IsNullOrEmpty(selectParts.strInnerJoinKludge))
                 {
-                    Console.WriteLine("INNER JOIN: " + selectParts.strInnerJoinKludge);
+                    strDebug += "INNER JOIN: " + selectParts.strInnerJoinKludge + "\n";
                 }
-                Console.WriteLine("WHERE: " + selectParts.strWhere);    // Note that WHEREs aren't applied to inner joined tables right now.
-                Console.WriteLine("ORDER BY: " + selectParts.strOrderBy);
+                strDebug += "WHERE: " + selectParts.strWhere + "\n";    // Note that WHEREs aren't applied to inner joined tables right now.
+                strDebug += "ORDER BY: " + selectParts.strOrderBy + "\n";
+
+                SqlDbSharpLogger.LogMessage(strDebug, "SelectCommand executeStatement");
             }
 
             _table = _database.getTableByName(selectParts.strTableName);
@@ -69,8 +71,13 @@ namespace org.rufwork.mooresDb.infrastructure.commands
             // just selected and then send those values down to a new _selectRows.
             if (selectParts.strInnerJoinKludge.Length > 0)
             {
-                
-                dtReturn = _processInnerJoin(qAllTables, dtReturn, selectParts.strInnerJoinKludge, selectParts.strTableName, selectParts.strOrderBy);
+                if (selectParts.strSelect.Trim().ToUpper().Equals("SELECT *"))
+                {
+                    selectParts.qInnerJoinFields.EnqueueIfNotContains("*");  // Quick kludge for "SELECT * FROM Table1 INNER JOIN..."
+                }
+
+                // TODO: Why aren't we just throwing in the whole selectParts again?
+                dtReturn = _processInnerJoin(qAllTables, dtReturn, selectParts.strInnerJoinKludge, selectParts.strTableName, selectParts.strOrderBy, selectParts.qInnerJoinFields);
             }
 
             if (null != selectParts.strOrderBy && selectParts.strOrderBy.Length > 9)
@@ -122,14 +129,17 @@ namespace org.rufwork.mooresDb.infrastructure.commands
             return dtReturn;
         }
 
-        private DataTable _processInnerJoin(Queue<TableContext> qAllTables, DataTable dtReturn, string strJoinText, string strParentTable, string strOrderBy)
+        private DataTable _processInnerJoin(Queue<TableContext> qAllTables, DataTable dtReturn, string strJoinText, 
+            string strParentTable, string strOrderBy, Queue<string> qInnerJoinFields)
         {
-            Console.WriteLine("Note that WHERE clauses are not yet applied to JOINed tables.");
+            SqlDbSharpLogger.LogMessage("Note that WHERE clauses are not yet applied to JOINed tables.", "SelectCommnd _processInnerJoin");
 
             string strNewTable = null;
             string strNewField = null;
             string strOldField = null;
             string strOldTable = null;
+
+            Queue<string> qColsToSelectInNewTable = new Queue<string>();
 
             strJoinText = System.Text.RegularExpressions.Regex.Replace(strJoinText, @"\s+", " ");
             string[] astrInnerJoins = strJoinText.ToLower().Split(new string[] {"inner join"}, StringSplitOptions.RemoveEmptyEntries);
@@ -178,62 +188,86 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                 }
 
                 string strInClause = string.Empty;
-                string strFuzzyJoinFields = string.Empty;
 
                 TableContext tableOld = _database.getTableByName(strOldTable);
                 TableContext tableNew = _database.getTableByName(strNewTable);
                 qAllTables.Enqueue(tableNew);   // we need this to figure out column parents later.
 
-                //==========================================================================
-                // ADD COLUMNS TO TABLE WITH GIVEN NAMES
-                //==========================================================================
-                // Because this isn't convoluted enough, we've got to check and see if
-                // the way the join field for the new table was written in the JOIN is
-                // fuzzy or not, and if it is, we've got to add it to the stock subSELECT.
-                // There are good ways to do this.  We're going for straightforward, but 
-                // cache/efficiency-less.
-                try
-                {
-                    if (!tableNew.containsColumn(strNewField, false))
-                    {
-                        strFuzzyJoinFields += "," + strNewField;
-                    }
-                }
-                catch (Exception)
-                {
-                    throw new Exception("Inner join column name lookup didn't work: " + strNewTable + " :: " + strNewField);
-                }
+                // Now that we know the new table to add, we need to get a list of columns
+                // to select from it.
+                // Sources for these fields could be...
+                // 1.) The joining field.
+                // 2.) ORDER BY fields for the entire statement
+                // 3.) conventional SELECT fields.
+                //
+                // To prevent column name collision, let's go ahead and prefix them
+                // all with the table name.  A little unexpected, but a decent shortcut
+                // for now, I think.
 
-                // Now let's do something similar for fields in the ORDER BY clause, if
-                // there are any, so that we can sort on fuzzy names.
-                // TODO: Handle col names prefixed by table names.
+                // 1.) Add the joining field.
+                qColsToSelectInNewTable.EnqueueIfNotContains(strNewField);
+
+                // 2.) ORDER BY fields that belong to this table.
                 if (!string.IsNullOrWhiteSpace(strOrderBy))
                 {
                     string[] astrOrderTokens = strOrderBy.StringToNonWhitespaceTokens2();
                     for (int i = 2; i < astrOrderTokens.Length; i++)
                     {
-                        string testString = astrOrderTokens[i].Trim(' ', ',');
-                        if (!tableNew.containsColumn(testString, false) && tableNew.containsColumn(testString, true))
+                        string strOrderField = astrOrderTokens[i].Trim(' ', ',');
+                        string strOrderTable = strNewTable; // just to pretend. We'll skip it if the field doesn't exist here.  Course this means we might dupe some non-table prefixed fields.
+
+                        if (strOrderField.Contains("."))
                         {
-                            strFuzzyJoinFields += "," + testString;
+                            strOrderTable = strOrderField.Substring(0, strOrderField.IndexOf("."));
+                            strOrderField = strOrderField.Substring(strOrderField.IndexOf(".") + 1);
+                        }
+
+                        if (strNewTable.Equals(strOrderTable) && !tableNew.containsColumn(strOrderField, false) && tableNew.containsColumn(strOrderField, true))
+                        {
+                            qColsToSelectInNewTable.EnqueueIfNotContains(strNewTable + "." + strOrderField);
                         }
                     }
                 }
-                //==========================================================================
-                //==========================================================================
+
+                // 3.) Conventional SELECT fields
+                if (qInnerJoinFields.Count > 0)
+                {
+                    if (qInnerJoinFields.Any(fld => fld.Equals(strNewTable + ".*") || fld.Equals("*")))
+                    {
+                        qColsToSelectInNewTable.EnqueueIfNotContains("*");
+                    }
+                    else
+                    {
+                        foreach (string strTableDotCol in qInnerJoinFields)
+                        {
+                            string[] astrTableDotCol = strTableDotCol.Split('.');
+                            if (strNewTable.Equals(astrTableDotCol[0]) && !qColsToSelectInNewTable.Contains(astrTableDotCol[1].ScrubValue()))
+                            {
+                                qColsToSelectInNewTable.Enqueue(astrTableDotCol[1].ScrubValue()); // again, offensive parsing is the rule.
+                            }
+                        }
+                    }
+                }
+
+                // TODO: Consider grabbing every column up front, perhaps, and
+                // then cutting out those columns that we didn't select -- but
+                // do SELECT fields as a post-processing task, rather than this
+                // inline parsing.
 
                 dictTables[strOldTable].CaseSensitive = false;  // TODO: If we keep this, do it in a smarter place.
                 // Right now, strOldField has the name that's in the DataTable from the previous select.
 
+                // Now construct the `WHERE joinedField IN (X,Y,Z)` portion of the inner select
+                // we're about to fire off.
                 string strCanonicalOldField = tableOld.getRawColName(strOldField);    // allow fuzzy names in join, if not the DataTable -- yet.
                 foreach (DataRow row in dictTables[strOldTable].Rows)
                 {
                     strInClause += row[strCanonicalOldField].ToString() + ",";
                 }
-                strInClause = strInClause.Trim (',');
+                strInClause = strInClause.Trim(',');
 
-                string strInnerSelect = string.Format("SELECT *{0} FROM {1} WHERE {2} IN ({3});",
-                    strFuzzyJoinFields,
+                string strInnerSelect = string.Format("SELECT {0} FROM {1} WHERE {2} IN ({3});",
+                    string.Join(",", qColsToSelectInNewTable.ToArray()),
                     strNewTable,
                     strNewField,
                     strInClause
@@ -241,10 +275,13 @@ namespace org.rufwork.mooresDb.infrastructure.commands
 
                 // TODO: Figure out the best time to handle the portion of the WHERE 
                 // that impacts the tables mentioned in the join portion of the SQL.
+                // Note: I think now we treat it just like the ORDER BY.  Not that
+                // complicated to pull out table-specific WHERE fields and send along
+                // with the reconsitituted "inner" SQL statement.
 
                 if (MainClass.bDebug)
                 {
-                    Console.WriteLine("Inner join: " + strInnerSelect + "\n\n");
+                    SqlDbSharpLogger.LogMessage("Inner join: " + strInnerSelect + "\n\n", "select command _processInnerJoin");
                 }
 
                 SelectCommand selectCommand = new SelectCommand(_database);
@@ -256,8 +293,8 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                     dtReturn = InfrastructureUtils.equijoinTables(
                         dtReturn,
                         dtInnerJoinResult,
-                        tableOld.getRawColName(strOldField),
-                        tableNew.getRawColName(strNewField)
+                        strOldField,
+                        strNewField
                     );
                 }
                 else

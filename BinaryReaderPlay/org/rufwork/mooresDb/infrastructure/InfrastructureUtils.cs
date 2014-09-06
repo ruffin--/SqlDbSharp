@@ -97,24 +97,24 @@ namespace org.rufwork.mooresDb.infrastructure
         // I could do this with DataSets and DataRelations, but this 
         // is more straightfoward for now, I think.
         static public DataTable equijoinTables(DataTable dt1, DataTable dt2, 
-            string strDt1JoinColName_Raw, string strDt2JoinColName_Raw
+            string strDt1JoinColName, string strDt2JoinColName
         )
         {
             DataTable dtReturn = new DataTable();
             Dictionary<string, string> dictTable2ColAliases = new Dictionary<string,string>();
 
-            if (null == strDt1JoinColName_Raw || null == strDt2JoinColName_Raw)
+            if (null == strDt1JoinColName || null == strDt2JoinColName)
             {
                 throw new Exception("Column name not found in join: " + dt1.TableName + " :: " + dt2.TableName);
             }
 
             // Make sure the two join columns are of the same type before starting.
-            if (!dt1.Columns[strDt1JoinColName_Raw].DataType.Equals(dt2.Columns[strDt2JoinColName_Raw].DataType))
+            if (!dt1.Columns[strDt1JoinColName].DataType.Equals(dt2.Columns[strDt2JoinColName].DataType))
             {
                 throw new Exception("DataTable join column data types do not match: "
-                    + dt1.TableName + "." + strDt1JoinColName_Raw
+                    + dt1.TableName + "." + strDt1JoinColName
                     + " :: "
-                    + dt2.TableName + "." + strDt2JoinColName_Raw);
+                    + dt2.TableName + "." + strDt2JoinColName);
             }
 
             foreach (DataColumn dc in dt1.Columns)
@@ -147,7 +147,7 @@ namespace org.rufwork.mooresDb.infrastructure
             {
                 foreach (DataRow dr2 in dt2.Rows)
                 {
-                    if (dr[strDt1JoinColName_Raw].Equals(dr2[strDt2JoinColName_Raw]))
+                    if (dr[strDt1JoinColName].Equals(dr2[strDt2JoinColName]))
                     {
                         DataRow rowNew = dtReturn.NewRow();
                         // Copy the values from both rows into dtReturn.
