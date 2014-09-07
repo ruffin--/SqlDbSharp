@@ -11,14 +11,13 @@
     // ======================== EO LICENSE ===============================
 
 
-### VERSION 0.0.4.0: Nothing is guaranteed to work.  NOTHING.  Use at your own risk.
+### VERSION 0.0.4.1: Nothing is guaranteed to work.  NOTHING.  Use at your own risk.
 
 ### Major TODOs:
 1. Tests.
 2. Docs.
 3. Code review.
 4. ORs in WHERE clauses.
-5. Select subset of columns from second table of INNER JOINs.
 
 ###Usage
 

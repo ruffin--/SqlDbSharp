@@ -287,6 +287,14 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                 SelectCommand selectCommand = new SelectCommand(_database);
                 object objReturn = selectCommand.executeStatement(strInnerSelect);
 
+                // I think I only need to do this for the old table as a double check
+                // against the "outer"/original SQL not "laundering" the join field
+                // that we perform here, above, in 1.).
+                if (null == tableOld.getColumnByName(strOldField, false))
+                {
+                    strOldField = tableOld.getRawColName(strOldField);
+                }
+
                 if (objReturn is DataTable)
                 {
                     DataTable dtInnerJoinResult = (DataTable)objReturn;

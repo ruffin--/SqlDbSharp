@@ -1,6 +1,11 @@
 #Release notes:
 <br>
 
+##0.0.4.1 - 20140906:
+
+* Fixed bug for `SELECT * FROM Table1 INNER JOIN Table2 ON Table1.LongFuzzyName = Table2.JoinField` -- Long fuzzy wouldn't be in the primary table's DataTable.
+* Fixed the name of this file.  Brilliant.
+
 ##0.0.4 - 20140906:
 
 * Started compiling release notes.

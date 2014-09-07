@@ -21,5 +21,5 @@ public class MainClass
     //public static readonly string cstrDbDir = Utils.cstrHomeDir + Path.DirectorySeparatorChar + "MooresDbPlay";
     public static bool bDebug = false;
     public static string buildData = "20140906";    // not always incremented with each build.
-    public static string version = "0.0.4.0";
+    public static string version = "0.0.4.1";
 }
