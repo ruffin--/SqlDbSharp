@@ -222,7 +222,9 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                             strOrderField = strOrderField.Substring(strOrderField.IndexOf(".") + 1);
                         }
 
-                        if (strNewTable.Equals(strOrderTable) && !tableNew.containsColumn(strOrderField, false) && tableNew.containsColumn(strOrderField, true))
+                        if (strNewTable.Equals(strOrderTable, StringComparison.CurrentCultureIgnoreCase) 
+                            && !tableNew.containsColumn(strOrderField, false) 
+                            && tableNew.containsColumn(strOrderField, true))
                         {
                             qColsToSelectInNewTable.EnqueueIfNotContains(strNewTable + "." + strOrderField);
                         }
@@ -252,7 +254,9 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                 // TODO: Consider grabbing every column up front, perhaps, and
                 // then cutting out those columns that we didn't select -- but
                 // do SELECT fields as a post-processing task, rather than this
-                // inline parsing.
+                // inline parsing. Also allows us to bork on fields that aren't
+                // in tables a little easier; right now you could include bogus
+                // joined fields without error.
 
                 dictTables[strOldTable].CaseSensitive = false;  // TODO: If we keep this, do it in a smarter place.
                 // Right now, strOldField has the name that's in the DataTable from the previous select.
