@@ -8,6 +8,8 @@ namespace org.rufwork.mooresDb
 {
     public static class SqlDbSharpLogger
     {
+        public static bool SuppressLogging = false;
+
         // TODO: Set up with a delegate so we can pipe this stuff wherever we want.
         public static void LogMessage(string strMessage, string strSource)
         {
@@ -18,7 +20,8 @@ namespace org.rufwork.mooresDb
                 + Environment.NewLine
                 + Environment.NewLine;
 
-            Console.WriteLine(strPayload);
+            if (!SqlDbSharpLogger.SuppressLogging)
+                Console.WriteLine(strPayload);
         }
 
     }
