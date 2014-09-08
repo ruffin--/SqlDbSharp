@@ -234,7 +234,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                 // 3.) Conventional SELECT fields
                 if (qInnerJoinFields.Count > 0)
                 {
-                    if (qInnerJoinFields.Any(fld => fld.Equals(strNewTable + ".*") || fld.Equals("*")))
+                    if (qInnerJoinFields.Any(fld => fld.Equals(strNewTable + ".*", StringComparison.CurrentCultureIgnoreCase) || fld.Equals("*")))
                     {
                         qColsToSelectInNewTable.EnqueueIfNotContains("*");
                     }
@@ -243,9 +243,9 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                         foreach (string strTableDotCol in qInnerJoinFields)
                         {
                             string[] astrTableDotCol = strTableDotCol.Split('.');
-                            if (strNewTable.Equals(astrTableDotCol[0]) && !qColsToSelectInNewTable.Contains(astrTableDotCol[1].ScrubValue()))
+                            if (strNewTable.Equals(astrTableDotCol[0], StringComparison.CurrentCultureIgnoreCase))
                             {
-                                qColsToSelectInNewTable.Enqueue(astrTableDotCol[1].ScrubValue()); // again, offensive parsing is the rule.
+                                qColsToSelectInNewTable.EnqueueIfNotContains(astrTableDotCol[1].ScrubValue()); // again, offensive parsing is the rule.
                             }
                         }
                     }
