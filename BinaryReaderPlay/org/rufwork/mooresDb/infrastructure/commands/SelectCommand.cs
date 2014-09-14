@@ -142,7 +142,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands
             Queue<string> qColsToSelectInNewTable = new Queue<string>();
 
             strJoinText = System.Text.RegularExpressions.Regex.Replace(strJoinText, @"\s+", " ");
-            string[] astrInnerJoins = strJoinText.ToLower().Split(new string[] {"inner join"}, StringSplitOptions.RemoveEmptyEntries);
+            string[] astrInnerJoins = strJoinText.ToLower().Split(new string[] { "inner join" }, StringSplitOptions.RemoveEmptyEntries);
             Dictionary<string, DataTable> dictTables = new Dictionary<string, DataTable>();
             dictTables.Add(strParentTable.ToLower(), dtReturn);
 
@@ -169,9 +169,9 @@ namespace org.rufwork.mooresDb.infrastructure.commands
 
                 string field1Parent = astrTokens[2].Substring(0, astrTokens[2].IndexOf("."));
                 string field2Parent = astrTokens[4].Substring(0, astrTokens[4].IndexOf("."));
-                string field1 = astrTokens[2].Substring(astrTokens[2].IndexOf(".")+1);
-                string field2 = astrTokens[4].Substring(astrTokens[4].IndexOf(".")+1);
-                
+                string field1 = astrTokens[2].Substring(astrTokens[2].IndexOf(".") + 1);
+                string field2 = astrTokens[4].Substring(astrTokens[4].IndexOf(".") + 1);
+
                 if (dictTables.ContainsKey(field1Parent))   // TODO: Should probably check to see if they're both known and at least bork.
                 {
                     strNewTable = field2Parent;
@@ -222,8 +222,8 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                             strOrderField = strOrderField.Substring(strOrderField.IndexOf(".") + 1);
                         }
 
-                        if (strNewTable.Equals(strOrderTable, StringComparison.CurrentCultureIgnoreCase) 
-                            && !tableNew.containsColumn(strOrderField, false) 
+                        if (strNewTable.Equals(strOrderTable, StringComparison.CurrentCultureIgnoreCase)
+                            && !tableNew.containsColumn(strOrderField, false)
                             && tableNew.containsColumn(strOrderField, true))
                         {
                             qColsToSelectInNewTable.EnqueueIfNotContains(strNewTable + "." + strOrderField);
@@ -270,51 +270,57 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                 }
                 strInClause = strInClause.Trim(',');
 
-                string strInnerSelect = string.Format("SELECT {0} FROM {1} WHERE {2} IN ({3});",
-                    string.Join(",", qColsToSelectInNewTable.ToArray()),
-                    strNewTable,
-                    strNewField,
-                    strInClause
-                );
-
-                // TODO: Figure out the best time to handle the portion of the WHERE 
-                // that impacts the tables mentioned in the join portion of the SQL.
-                // Note: I think now we treat it just like the ORDER BY.  Not that
-                // complicated to pull out table-specific WHERE fields and send along
-                // with the reconsitituted "inner" SQL statement.
-
-                if (MainClass.bDebug)
+                if (string.IsNullOrEmpty(strInClause))
                 {
-                    SqlDbSharpLogger.LogMessage("Inner join: " + strInnerSelect + "\n\n", "select command _processInnerJoin");
-                }
-
-                SelectCommand selectCommand = new SelectCommand(_database);
-                object objReturn = selectCommand.executeStatement(strInnerSelect);
-
-                // I think I only need to do this for the old table as a double check
-                // against the "outer"/original SQL not "laundering" the join field
-                // that we perform here, above, in 1.).
-                if (null == tableOld.getColumnByName(strOldField, false))
-                {
-                    strOldField = tableOld.getRawColName(strOldField);
-                }
-
-                if (objReturn is DataTable)
-                {
-                    DataTable dtInnerJoinResult = (DataTable)objReturn;
-                    dtReturn = InfrastructureUtils.equijoinTables(
-                        dtReturn,
-                        dtInnerJoinResult,
-                        strOldField,
-                        strNewField
-                    );
+                    dtReturn = new DataTable();
                 }
                 else
                 {
-                    throw new Exception("Illegal inner select: " + strInnerSelect);
+                    string strInnerSelect = string.Format("SELECT {0} FROM {1} WHERE {2} IN ({3});",
+                        string.Join(",", qColsToSelectInNewTable.ToArray()),
+                        strNewTable,
+                        strNewField,
+                        strInClause
+                    );
+
+                    // TODO: Figure out the best time to handle the portion of the WHERE 
+                    // that impacts the tables mentioned in the join portion of the SQL.
+                    // Note: I think now we treat it just like the ORDER BY.  Not that
+                    // complicated to pull out table-specific WHERE fields and send along
+                    // with the reconsitituted "inner" SQL statement.
+
+                    if (MainClass.bDebug)
+                    {
+                        SqlDbSharpLogger.LogMessage("Inner join: " + strInnerSelect + "\n\n", "select command _processInnerJoin");
+                    }
+
+                    SelectCommand selectCommand = new SelectCommand(_database);
+                    object objReturn = selectCommand.executeStatement(strInnerSelect);
+
+                    // I think I only need to do this for the old table as a double check
+                    // against the "outer"/original SQL not "laundering" the join field
+                    // that we perform here, above, in 1.).
+                    if (null == tableOld.getColumnByName(strOldField, false))
+                    {
+                        strOldField = tableOld.getRawColName(strOldField);
+                    }
+
+                    if (objReturn is DataTable)
+                    {
+                        DataTable dtInnerJoinResult = (DataTable)objReturn;
+                        dtReturn = InfrastructureUtils.equijoinTables(
+                            dtReturn,
+                            dtInnerJoinResult,
+                            strOldField,
+                            strNewField
+                        );
+                    }
+                    else
+                    {
+                        throw new Exception("Illegal inner select: " + strInnerSelect);
+                    }
                 }
             }
-            
             return dtReturn;
         }
 
