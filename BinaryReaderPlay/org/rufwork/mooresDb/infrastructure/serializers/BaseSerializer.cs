@@ -43,5 +43,14 @@ namespace org.rufwork.mooresDb.infrastructure.serializers
         {
             throw new Exception("override toNative please");
         }
+        // TODO: Should allow and route any operation through here.
+        public virtual byte[] addRawToStringRepresentation(byte[] abytRaw, string strValToAdd, bool useNegative = false)
+        {
+            throw new Exception("override addRawToStringRepresentation please");
+        }
+        public virtual byte[] addRawToRaw(byte[] abytRaw, byte[] abytToAdd, bool useNegative = false)
+        {
+            throw new Exception("override addRawToRaw please");
+        }
     }
 }

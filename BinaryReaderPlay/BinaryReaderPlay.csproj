@@ -83,25 +83,29 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="MainClass.cs" />
+    <Compile Include="Globals.cs" />
     <Compile Include="org\rufwork\collections\DictionaryBackedSet.cs" />
+    <Compile Include="org\rufwork\extensions\DateTimeNullableExtensions.cs" />
     <Compile Include="org\rufwork\extensions\DictionaryOfStringsExtensions.cs" />
+    <Compile Include="org\rufwork\extensions\IEnumerableExtensions.cs" />
+    <Compile Include="org\rufwork\extensions\ListExtensions.cs" />
+    <Compile Include="org\rufwork\extensions\ObjectExtensions.cs" />
+    <Compile Include="org\rufwork\extensions\QueueExtensions.cs" />
     <Compile Include="org\rufwork\extensions\StringExtensions.cs" />
+    <Compile Include="org\rufwork\extensions\XElementExtensions.cs" />
     <Compile Include="org\rufwork\mooresDb\exceptions\ColumnNotFoundException.cs" />
     <Compile Include="org\rufwork\mooresDb\exceptions\ImproperDatabaseFileException.cs" />
     <Compile Include="org\rufwork\mooresDb\exceptions\SyntaxException.cs" />
-    <Compile Include="org\rufwork\mooresDb\infrastructure\CommandParser.cs" />
     <Compile Include="org\rufwork\mooresDb\infrastructure\commands\CreateTableCommand.cs" />
     <Compile Include="org\rufwork\mooresDb\infrastructure\commands\DeleteCommand.cs" />
     <Compile Include="org\rufwork\mooresDb\infrastructure\commands\DropTableCommand.cs" />
-    <Compile Include="org\rufwork\mooresDb\infrastructure\commands\InsertCommand.cs" />
+    <Compile Include="org\rufwork\mooresDb\infrastructure\commands\Modifiers\CompositeColumnValueModifier.cs" />
     <Compile Include="org\rufwork\mooresDb\infrastructure\commands\Processors\CommandParts.cs" />
     <Compile Include="org\rufwork\mooresDb\infrastructure\commands\Processors\WhereProcessor.cs" />
     <Compile Include="org\rufwork\mooresDb\infrastructure\commands\SelectCommand.cs" />
+    <Compile Include="org\rufwork\mooresDb\infrastructure\commands\SelectMaxCommand.cs" />
     <Compile Include="org\rufwork\mooresDb\infrastructure\commands\UpdateCommand.cs" />
     <Compile Include="org\rufwork\mooresDb\infrastructure\Comparison.cs" />
-    <Compile Include="org\rufwork\mooresDb\infrastructure\contexts\DatabaseContext.cs" />
-    <Compile Include="org\rufwork\mooresDb\infrastructure\contexts\TableContext.cs" />
     <Compile Include="org\rufwork\mooresDb\infrastructure\InfrastructureUtils.cs" />
     <Compile Include="org\rufwork\mooresDb\infrastructure\serializers\BaseSerializer.cs" />
     <Compile Include="org\rufwork\mooresDb\infrastructure\serializers\ByteSerializer.cs" />
@@ -110,7 +114,7 @@
     <Compile Include="org\rufwork\mooresDb\infrastructure\serializers\DecimalSerializer.cs" />
     <Compile Include="org\rufwork\mooresDb\infrastructure\serializers\IntSerializer.cs" />
     <Compile Include="org\rufwork\mooresDb\infrastructure\serializers\Router.cs" />
-    <Compile Include="org\rufwork\mooresDb\infrastructure\tableParts\Column.cs" />
+    <Compile Include="org\rufwork\mooresDb\SqlDbSharpLogger.cs" />
     <Compile Include="org\rufwork\shims\data\collections\DataColumnSet.cs" />
     <Compile Include="org\rufwork\shims\data\DataColumn.cs" />
     <Compile Include="org\rufwork\shims\data\DataRow.cs" />
@@ -118,10 +122,14 @@
     <Compile Include="org\rufwork\shims\data\DataView.cs" />
     <Compile Include="org\rufwork\utils\GlobalEnums.cs" />
     <Compile Include="org\rufwork\utils\Utils.cs" />
+    <Compile Include="org\rufwork\mooresDb\infrastructure\CommandParser.cs" />
+    <Compile Include="org\rufwork\mooresDb\infrastructure\commands\InsertCommand.cs" />
+    <Compile Include="org\rufwork\mooresDb\infrastructure\tableParts\Column.cs" />
+    <Compile Include="org\rufwork\mooresDb\infrastructure\contexts\DatabaseContext.cs" />
+    <Compile Include="org\rufwork\mooresDb\infrastructure\contexts\TableContext.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="org\rufwork\mooresDb\infrastructure\CommandParser.cs.orig" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\$(TargetFrameworkIdentifier)\$(TargetFrameworkVersion)\Microsoft.$(TargetFrameworkIdentifier).$(TargetFrameworkVersion).Overrides.targets" />
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\$(TargetFrameworkIdentifier)\$(TargetFrameworkVersion)\Microsoft.$(TargetFrameworkIdentifier).CSharp.targets" />

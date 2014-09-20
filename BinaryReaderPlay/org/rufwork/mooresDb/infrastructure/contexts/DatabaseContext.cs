@@ -122,12 +122,6 @@ namespace org.rufwork.mooresDb.infrastructure.contexts
                 throw new Exception("Unable to load database. NOTE: No current database context: (" + i + ") " + ex.Message);
             }
         }
-
-        static void Main(string[] args)
-        {
-            DatabaseContext database = new DatabaseContext(MainClass.cstrDbDir);
-            Console.WriteLine(database.tableCheck());
-        }
     }
 }
 

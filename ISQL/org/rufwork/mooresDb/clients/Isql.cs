@@ -25,9 +25,11 @@ namespace org.rufwork.mooresDb.clients
             string strParentDir = "";
             string strTestTableName = "jive";
 
+            int intWindowWidth = 160;
+
             try
             {
-                Console.SetWindowSize(160, 50);
+                Console.SetWindowSize(intWindowWidth, 50);
             }
             catch (Exception)
             {
@@ -87,7 +89,7 @@ SqlDbSharp.config, placed in this folder:
 
                     if (!strCmd.Trim().Equals("."))
                     {
-                        Queue<string> qCmds = strCmd.Trim(' ').Trim('.').SplitSeeingQuotes(";", true);
+                        Queue<string> qCmds = strCmd.Trim(' ').Trim('.').SplitSeeingSingleQuotesAndBackticks(";", true);
 
                         foreach (string strSingleCommand in qCmds)
                         {
@@ -194,7 +196,7 @@ SqlDbSharp.config, placed in this folder:
 
                                     if (objResult is DataTable)
                                     {
-                                        Console.WriteLine(InfrastructureUtils.dataTableToString((DataTable)objResult));
+                                        Console.WriteLine(InfrastructureUtils.dataTableToString((DataTable)objResult, intWindowWidth));
                                     }
                                     else if (objResult is string)
                                     {
@@ -203,6 +205,10 @@ SqlDbSharp.config, placed in this folder:
                                     else if (strCmd.Trim().ToUpper().StartsWith("INSERT"))
                                     {
                                         Console.WriteLine("Row ID for new row is: " + objResult);
+                                    }
+                                    else if (strCmd.Trim().ToUpper().StartsWith("SELECT MAX("))
+                                    {
+                                        Console.WriteLine(objResult.ToString());
                                     }
                                     else
                                     {

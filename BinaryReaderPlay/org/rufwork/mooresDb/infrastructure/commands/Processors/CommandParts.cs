@@ -13,12 +13,15 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
     // statement's text.
     public class CommandParts
     {
+        public string strOriginal;
+
         public string strSelect;
         public string strUpdate;
         public string strFrom;
         public string strWhere;
         public string strOrderBy;
         public string strInnerJoinKludge;
+        public Queue<string> qInnerJoinFields = new Queue<string>();
 
         public string strTableName; // TODO: Ob need to go to a collection of some sort
 
@@ -38,6 +41,8 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
             _tableContext = table;
 
             this.commandType = commandType;
+            this.strOriginal = strSql;
+
             switch (commandType)
             {
                 case COMMAND_TYPES.SELECT:
@@ -158,32 +163,61 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
             Queue<Column> qCols = new Queue<Column>();
             string[] astrCmdTokens = this.strSelect.StringToNonWhitespaceTokens2().Skip(1).ToArray();   // Skip 1 to ignore SELECT.
 
-            // kludge check for all columns/asterisk selector.
-            if (this.strSelect.Contains("*"))
-            {
-                qCols = new Queue<Column>(_tableContext.getColumns());
-            }
-
             for (int i = 0; i < astrCmdTokens.Length; i++)
             {
                 // TODO: Handle * check with regexp or something. .Equals (in place of .Contains) is legit here if trimmed in StringToNonWhitespaceTokens2, yes?
-                if (!astrCmdTokens[i].Contains("*"))
+                // TODO: Do this more intelligently, perhaps looking up likely tables for non-ambiguous column names, then treating every column as an explicit member
+                //      of a certain table.
+                if (!astrCmdTokens[i].EndsWith("*"))
                 {
-                    Column colTemp = _tableContext.getColumnByName(astrCmdTokens[i]);
-                    if (null != colTemp)
+                    if (astrCmdTokens[i].Contains('.'))
                     {
-                        qCols.Enqueue(colTemp);
-                        if (!colTemp.strColName.Equals(astrCmdTokens[i], StringComparison.CurrentCultureIgnoreCase))
+                        // again writing offensive parsing code.
+                        string[] astrTableAndColNames = astrCmdTokens[i].Split('.');
+                        if (astrTableAndColNames[0].Equals(_tableContext.strTableName) && !qCols.Any(col => col.strColName.Equals(astrCmdTokens[1])))
                         {
-                            this.dictFuzzyToColNameMappings.Add(astrCmdTokens[i], colTemp.strColName);
+                            qCols.Enqueue(_tableContext.getColumnByName(astrTableAndColNames[1]));
+                        }
+                        else
+                        {
+                            this.qInnerJoinFields.Enqueue(astrCmdTokens[i]);    // remember these for later when you're adding columns from secondary tables to the datatable for joins.
                         }
                     }
                     else
                     {
-                        Console.WriteLine("Did not find: " + astrCmdTokens[i]);
-                        // I guess that should throw an exception.  You asked for a col that doesn't seem to exist.
-                        throw new Exception("SELECT Column does not exist: " + astrCmdTokens[i]);
+                        // TODO: Not normalized.  Frankenstein code.
+                        Column colTemp = _tableContext.getColumnByName(astrCmdTokens[i]);
+                        if (null != colTemp)
+                        {
+                            qCols.Enqueue(colTemp);
+                            if (!colTemp.strColName.Equals(astrCmdTokens[i], StringComparison.CurrentCultureIgnoreCase))
+                            {
+                                this.dictFuzzyToColNameMappings.Add(astrCmdTokens[i], colTemp.strColName);
+                            }
+                        }
+                        else
+                        {
+                            throw new Exception("SELECT Column does not exist: " + astrCmdTokens[i] + "\n"
+                                + astrCmdTokens[i] + " :: " + colTemp.strColName + "\n"
+                                + "Active statement: " + this.strOriginal);
+                        }
                     }
+                }
+                else if (astrCmdTokens[i].Equals("*"))
+                {
+                    foreach (Column column in _tableContext.getColumns())
+                    {
+                        // For now, we're just not allowing duplicates, which I know stink0rz,
+                        // but is probably only horribly useful with real aliases.
+                        if (!qCols.Any(col => col.strColName.Equals(column.strColName)))
+                        {
+                            qCols.Enqueue(column);
+                        }
+                    }
+                }
+                else if (astrCmdTokens[i].Contains('.'))
+                {
+                    this.qInnerJoinFields.Enqueue(astrCmdTokens[i]);    // remember these for later when you're adding columns from secondary tables to the datatable for joins.
                 }
             }
 

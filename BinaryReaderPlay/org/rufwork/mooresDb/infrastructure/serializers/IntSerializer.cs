@@ -84,5 +84,31 @@ namespace org.rufwork.mooresDb.infrastructure.serializers
             return Utils.ByteArrayToInt(abytValue);
         }
 
+        public override byte[] addRawToStringRepresentation(byte[] abytRaw, string strValToAdd, bool useNegative = false)
+        {
+            int intRawAsInt = (int)this.toNative(abytRaw);
+            int intToAdd;
+            int intResult = 0;
+
+            int intSign = useNegative ? -1 : 1;
+
+            if (int.TryParse(strValToAdd, out intToAdd))
+                intResult = intRawAsInt + (intSign * intToAdd);
+            else
+                throw new Exception("Illegal integer value for operation: " + strValToAdd);
+
+            return Utils.IntToByteArray(intResult, this.colRelated.intColLength);
+        }
+
+        public override byte[] addRawToRaw(byte[] abytRaw, byte[] abytToAdd, bool useNegative = false)
+        {
+            int intRawAsInt = (int)this.toNative(abytRaw);
+            int intToAdd = (int)this.toNative(abytToAdd);
+
+            int intSign = useNegative ? -1 : 1;
+            int intResult = intToAdd + (intSign * intRawAsInt);
+            
+            return Utils.IntToByteArray(intResult, this.colRelated.intColLength);
+        }
     }
 }

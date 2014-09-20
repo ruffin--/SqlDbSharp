@@ -6,12 +6,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 
 using org.rufwork.mooresDb.infrastructure.tableParts;
 using org.rufwork.shims.data;
 using org.rufwork.mooresDb.infrastructure.contexts;
+using org.rufwork.extensions;
 
 namespace org.rufwork.mooresDb.infrastructure
 {
@@ -20,7 +22,7 @@ namespace org.rufwork.mooresDb.infrastructure
 
         public static StringComparison caseSetting = StringComparison.CurrentCultureIgnoreCase;
 
-        public static string dataTableToString(DataTable dtIn)
+        public static string dataTableToString(DataTable dtIn, int intLineLength = -1)
         {
             string strReturn = "";
             int[] aintColLength = new int[dtIn.Columns.Count];
@@ -32,7 +34,6 @@ namespace org.rufwork.mooresDb.infrastructure
 
                 // Figure out how many characters might be in this column
                 // for the current data.  I'm going to ignore performance for now.
-
                 foreach (DataRow dr in dtIn.Rows)
                 {
                     if (dr[dc].ToString().Length > aintColLength[i])
@@ -40,15 +41,44 @@ namespace org.rufwork.mooresDb.infrastructure
                         aintColLength[i] = dr[dc].ToString().Length;
                     }
                 }
+            }
 
-                if (dc.ColumnName.Length > aintColLength[i])
+            if (intLineLength > 0)
+            {
+                int intCurrentLength = aintColLength.Aggregate((runTotal, nextNum) => runTotal + nextNum + 3);  // +3 to account for the " | " separator we're throwing in there.
+                if (intCurrentLength > intLineLength)
                 {
-                    strReturn += dc.ColumnName.Substring(0, aintColLength[i]) + " | ";
+                    // TODO: [More] Intelligently shorten lengths only where needed.
+                    // quick fix with single pass quick resize.
+                    int intEqualColSize = (intLineLength - 3 * dtIn.Columns.Count) / dtIn.Columns.Count;
+                    if (intEqualColSize <= 0)
+                    {
+                        intEqualColSize = 1;
+                    }
+
+                    int intUsedChars = 0;
+                    for (int i = 0; i < aintColLength.Length; i++)
+                    {
+                        if (aintColLength[i] < intEqualColSize && i + 1 < aintColLength.Length)
+                        {
+                            intUsedChars += aintColLength[i];
+                            int intColsLeft = aintColLength.Length - (i + 1);
+                            intEqualColSize = (intLineLength - 3 * dtIn.Columns.Count - intUsedChars) / intColsLeft;
+                        }
+                        else
+                        {
+                            aintColLength[i] = intEqualColSize;
+                            intUsedChars += intEqualColSize;
+                        }
+                    }
                 }
-                else
-                {
-                    strReturn += dc.ColumnName.PadRight(aintColLength[i]) + " | ";
-                }
+            }
+
+            // Write out column names.
+            for (int i = 0; i < dtIn.Columns.Count; i++)
+            {
+                DataColumn dc = dtIn.Columns[i];
+                    strReturn += dc.ColumnName.PadLeftWithMax(aintColLength[i]) + " | ";
             }
             strReturn += System.Environment.NewLine;
 
@@ -57,7 +87,7 @@ namespace org.rufwork.mooresDb.infrastructure
                 // TODO: Is foreach Column order guaranteed?
                 for (int i = 0; i < dtIn.Columns.Count; i++)
                 {
-                    strReturn += dr[dtIn.Columns[i]].ToString().PadLeft(aintColLength[i]) + " # ";
+                    strReturn += dr[dtIn.Columns[i]].ToString().PadLeftWithMax(aintColLength[i]) + " # ";
                 }
                 strReturn += System.Environment.NewLine;
             }
@@ -68,24 +98,24 @@ namespace org.rufwork.mooresDb.infrastructure
         // I could do this with DataSets and DataRelations, but this 
         // is more straightfoward for now, I think.
         static public DataTable equijoinTables(DataTable dt1, DataTable dt2, 
-            string strDt1JoinColName_Raw, string strDt2JoinColName_Raw
+            string strDt1JoinColName, string strDt2JoinColName
         )
         {
             DataTable dtReturn = new DataTable();
             Dictionary<string, string> dictTable2ColAliases = new Dictionary<string,string>();
 
-            if (null == strDt1JoinColName_Raw || null == strDt2JoinColName_Raw)
+            if (null == strDt1JoinColName || null == strDt2JoinColName)
             {
                 throw new Exception("Column name not found in join: " + dt1.TableName + " :: " + dt2.TableName);
             }
 
             // Make sure the two join columns are of the same type before starting.
-            if (!dt1.Columns[strDt1JoinColName_Raw].DataType.Equals(dt2.Columns[strDt2JoinColName_Raw].DataType))
+            if (!dt1.Columns[strDt1JoinColName].DataType.Equals(dt2.Columns[strDt2JoinColName].DataType))
             {
                 throw new Exception("DataTable join column data types do not match: "
-                    + dt1.TableName + "." + strDt1JoinColName_Raw
+                    + dt1.TableName + "." + strDt1JoinColName
                     + " :: "
-                    + dt2.TableName + "." + strDt2JoinColName_Raw);
+                    + dt2.TableName + "." + strDt2JoinColName);
             }
 
             foreach (DataColumn dc in dt1.Columns)
@@ -118,7 +148,7 @@ namespace org.rufwork.mooresDb.infrastructure
             {
                 foreach (DataRow dr2 in dt2.Rows)
                 {
-                    if (dr[strDt1JoinColName_Raw].Equals(dr2[strDt2JoinColName_Raw]))
+                    if (dr[strDt1JoinColName].Equals(dr2[strDt2JoinColName]))
                     {
                         DataRow rowNew = dtReturn.NewRow();
                         // Copy the values from both rows into dtReturn.

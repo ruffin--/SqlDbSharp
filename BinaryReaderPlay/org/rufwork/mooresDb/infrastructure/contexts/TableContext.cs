@@ -130,7 +130,7 @@ namespace org.rufwork.mooresDb.infrastructure.contexts
                 // an absolute ceiling.  (Divided by 2 b/c there are always at least 
                 // two lines of metadata at the start of a mdbf file.)
                 long lngStopTryingAt = (info.Length / 2) + 1; // TODO: Laziness alert with the +1.
-                if (MainClass.bDebug) Console.WriteLine("Preparing table from: " + info.FullName);
+                if (Globals.bDebug) Console.WriteLine("Preparing table from: " + info.FullName);
 
                 int intPullSize = 500;
                 int intLineLength = -1;     // we can't know until we've actually found the first 0x11 0x11 combo.
@@ -368,12 +368,32 @@ namespace org.rufwork.mooresDb.infrastructure.contexts
             return strReturn;
         }
 
+        // TODO: Is the TableContext really where we want file write to occur?
         public void writeRow(byte[] abytRow)    {
-            FileStream stream = new FileStream(this.strTableFileLoc, FileMode.Append);
-            BinaryWriter writer = new BinaryWriter(stream);
-            writer.Write(abytRow);
-            writer.Flush();
-            writer.Close();
+            int delayFactor = 1;
+            bool bDone = false;
+
+            while (!bDone)
+            {
+                try
+                {
+                    FileStream stream = new FileStream(this.strTableFileLoc, FileMode.Append);
+                    BinaryWriter writer = new BinaryWriter(stream);
+                    writer.Write(abytRow);
+                    writer.Flush();
+                    writer.Close();
+                    bDone = true;
+                }
+                catch (IOException)
+                {
+                    delayFactor = delayFactor * 2;
+                    if (delayFactor > (3 * 60 * 1000))
+                    {
+                        throw new Exception("Table writeRow timeout: " + this.strTableName);
+                    }
+                    System.Threading.Thread.Sleep(delayFactor * 200);
+                }
+            }
         }
 
         public void writeMetadataRowsAndPrepareNewTable(List<byte> lstColMetadata, List<byte> lstColNames, string strTableName, string strDbLoc)

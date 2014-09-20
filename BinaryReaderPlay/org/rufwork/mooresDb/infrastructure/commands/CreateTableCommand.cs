@@ -81,7 +81,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                         // Else do the normal thing.
                         if (strNextColumnInfo.StartsWith("PRIMARY", StringComparison.CurrentCultureIgnoreCase))
                         {
-                            Console.WriteLine("Primary key creation is currently ignored: " + strNextColumnInfo);
+                            SqlDbSharpLogger.LogMessage("Primary key creation is currently ignored: " + strNextColumnInfo, "CreateTable executeStatement");
                         }
                         else
                         {
@@ -93,11 +93,11 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                                 //=====================
                                 //======= DEBUG =======
                                 //=====================
-                                if (MainClass.bDebug)
+                                if (Globals.bDebug)
                                 {
                                     for (int j = 0; j < astrColInfo.Length; j++)
                                     {
-                                        Console.WriteLine(j + " :: " + astrColInfo[j]);
+                                        SqlDbSharpLogger.LogMessage(j + " :: " + astrColInfo[j], "Create table execute statement");
                                     }
                                 }
                                 //======================
@@ -155,21 +155,23 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                         }   // end check for unsupported directives (like defining a primary key)
                     }   // eo table column creation for loop
 
-                    if (MainClass.bDebug)
+                    if (Globals.bDebug)
                     {
+                        string strDebug = string.Empty;
                         for (int j = 0; j < _lstByteDataTypeRow.Count; j++)
                         {
-                            Console.Write("0x" + _lstByteDataTypeRow[j].ToString("X2") + ", ");
+                            strDebug += "0x" + _lstByteDataTypeRow[j].ToString("X2") + ", \n";
                         }
-                        Console.WriteLine();
-                        Console.WriteLine();
+                        strDebug += "\n\n";
+
                         for (int j = 0; j < _lstByteColNames.Count; j++)
                         {
-                            Console.Write("0x" + _lstByteColNames[j].ToString("X2") + ", ");
+                            strDebug += "0x" + _lstByteColNames[j].ToString("X2") + ", \n";
                         }
-                        Console.WriteLine();
+                        strDebug += "\n";
+                        strDebug += _table.strTableFileLoc + "\n";
 
-                        Console.WriteLine(_table.strTableFileLoc);
+                        SqlDbSharpLogger.LogMessage(strDebug, "Create table execute statement");
                     }
 
                     // TODO: Instead of writing bytes here, I should probably create a list of column objects,
@@ -279,7 +281,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                     int i = 0;
 
                     int intPaddingLength = intLength - ((abyteIntLength.Length - i) + 1);
-                    if (MainClass.bDebug)
+                    if (Globals.bDebug)
                     {
                         Console.WriteLine("intLength: " + intLength + " i: " + i
                             + " bytes for length: " + (abyteIntLength.Length - i)

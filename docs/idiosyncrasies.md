@@ -33,7 +33,7 @@ Here are some major examples:
     * SELECT * FROM Table1 INNER JOIN Table2 ON Id = CityId;
     	* That line is no good.
 7. **INNER JOIN equivalents in WHERE clauses are not supported.**
-    * SELECT * FROM Table1, rest WHERE Table1.Id = Table2.CityId;
+    * SELECT * FROM Table1, Table2 WHERE Table1.Id = Table2.CityId;
     	* Doesn't work.
 8. **No aliases for fields in statements.**
 	* SELECT Name AS BirthName FROM Names; -- No good.
@@ -42,7 +42,7 @@ Here are some major examples:
 10. **AUTOINCREMENT columns must be four byte INTs**
     * ID INTEGER (4) AUTOINCREMENT
 11. **Columns of length 4369 aren't allowed**
-    * Totally my new favorite idiosyncratic behavior.
+    * Definitively my new favorite idiosyncratic behavior.
     * Initially, columns this length would cause strange, destructive (?) errors.
     * Now the error: "Idiosyncratically, column lengths of [exactly] 4369 are not allowed." is displayed if you try.
     * The end of the first table metadata row is marked with 0x11 0x11.  Guess what [4369 is in hex](http://lmgtfy.com/?q=4369+in+hexadecimal)?

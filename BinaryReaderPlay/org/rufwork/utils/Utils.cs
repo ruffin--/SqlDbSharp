@@ -37,19 +37,20 @@ namespace org.rufwork
         private static object _LogLock = 0;     // needs to be at the containing object's level
         // so, in this case, static object global
         
-        //public static readonly string cstrHomeDir = System.Environment.GetFolderPath (System.Environment.SpecialFolder.Personal);
-
+        // Need a WP8 friendly home dir.
         public static string cstrHomeDir
         {
             get
             {
+                // XPlat minus WP8.
+                //return System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal);
+
+                // WP8 version.
                 Windows.ApplicationModel.Package package = Windows.ApplicationModel.Package.Current;
                 Windows.Storage.StorageFolder installedLocation = package.InstalledLocation;
                 return installedLocation.Path;
             }
         }
-
-
         /// <summary>
         /// Logs an error to console and file, duh.
         /// </summary>
