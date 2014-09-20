@@ -329,7 +329,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands
         private DataTable _initDataTable(CommandParts selectParts)
         {
             DataTable dtReturn = new DataTable();
-            dtReturn.TableName = selectParts.strTableName;
+            dtReturn.TableName = selectParts.strTableName;  // TODO: This borks on JOINs, right?
             // So that I can have columns appear more than once in a single table,
             // I'm going to make a dupe of dictColToSelectMapping.  We'd have to go a
             // touch more complicated to keep the order from the original SELECT accurate.
