@@ -263,10 +263,15 @@ namespace org.rufwork.mooresDb.infrastructure.commands
 
                 // Now construct the `WHERE joinedField IN (X,Y,Z)` portion of the inner select
                 // we're about to fire off.
-                string strCanonicalOldField = tableOld.getRawColName(strOldField);    // allow fuzzy names in join, if not the DataTable -- yet.
+                string strOperativeOldField = strOldField;
+                if (!dictTables[strOldTable].Columns.Contains(strOldField))
+                {
+                    // Allow fuzzy names in join, if not the DataTable -- yet.
+                    strOperativeOldField = tableOld.getRawColName(strOldField);
+                }
                 foreach (DataRow row in dictTables[strOldTable].Rows)
                 {
-                    strInClause += row[strCanonicalOldField].ToString() + ",";
+                    strInClause += row[strOperativeOldField].ToString() + ",";
                 }
                 strInClause = strInClause.Trim(',');
 
@@ -297,21 +302,13 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                     SelectCommand selectCommand = new SelectCommand(_database);
                     object objReturn = selectCommand.executeStatement(strInnerSelect);
 
-                    // I think I only need to do this for the old table as a double check
-                    // against the "outer"/original SQL not "laundering" the join field
-                    // that we perform here, above, in 1.).
-                    if (null == tableOld.getColumnByName(strOldField, false))
-                    {
-                        strOldField = tableOld.getRawColName(strOldField);
-                    }
-
                     if (objReturn is DataTable)
                     {
                         DataTable dtInnerJoinResult = (DataTable)objReturn;
                         dtReturn = InfrastructureUtils.equijoinTables(
                             dtReturn,
                             dtInnerJoinResult,
-                            strOldField,
+                            strOperativeOldField,
                             strNewField
                         );
                     }
