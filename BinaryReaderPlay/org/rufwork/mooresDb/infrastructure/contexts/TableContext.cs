@@ -334,18 +334,26 @@ namespace org.rufwork.mooresDb.infrastructure.contexts
                 caseSensitive = StringComparison.CurrentCulture;
             }
 
-            // TODO: Handle casing more deliberately.  This is hacky.
-            foreach (Column colTemp in _columns)    {
-                // TODO: Figure out StringComparison a little better.
-                // http://msdn.microsoft.com/en-us/library/system.stringcomparison.aspx
-                // TODO: Aren't we doing case at a global level?
-                if ( colTemp.strColName.Equals(strColName, caseSensitive)
-                    || (bIncludeFuzzy && colTemp.isFuzzyName && strColName.StartsWith(colTemp.strColName))
-                    || (bIncludeFuzzy && this.bIgnoreColNameCase && colTemp.isFuzzyName && strColName.ToLower().StartsWith(colTemp.strColName.ToLower()))
-                )
+            IEnumerable<Column> exactMatches = _columns.Where(c => c.strColName.Equals(strColName, caseSensitive));
+            if (exactMatches.Count() > 0)
+            {
+                colReturn = exactMatches.First();
+            }
+            else
+            {
+                // TODO: Handle casing more deliberately.  This is hacky.
+                foreach (Column colTemp in _columns)
                 {
-                    colReturn = colTemp;
-                    break;
+                    // TODO: Figure out StringComparison a little better.
+                    // http://msdn.microsoft.com/en-us/library/system.stringcomparison.aspx
+                    // TODO: Aren't we doing case at a global level?
+                    if ((bIncludeFuzzy && colTemp.isFuzzyName && strColName.StartsWith(colTemp.strColName))
+                        || (bIncludeFuzzy && this.bIgnoreColNameCase && colTemp.isFuzzyName && strColName.ToLower().StartsWith(colTemp.strColName.ToLower()))
+                    )
+                    {
+                        colReturn = colTemp;
+                        break;
+                    }
                 }
             }
 
