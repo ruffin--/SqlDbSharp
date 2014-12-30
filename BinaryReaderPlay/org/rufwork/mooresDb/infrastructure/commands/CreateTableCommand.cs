@@ -44,6 +44,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands
             string strErr = "";
 
             Match createTableMatch = Regex.Match(strSql, @"^CREATE\s*TABLE\s*`?\w*`?\s*\(", RegexOptions.IgnoreCase);
+            List<string> lstRawNames = new List<string>();
 
             if (createTableMatch.Success)
             {
@@ -144,6 +145,14 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                                     {
                                         intFieldLength = _getDefaultLengthForType(colTypeCleaned);
                                     }
+                                    string strRawName = strColName.Length > intFieldLength ? strColName.Substring(0,intFieldLength) : strColName;
+                                    IEnumerable<string> coveredNames = lstRawNames.Where(name => name.StartsWith(strRawName, StringComparison.CurrentCultureIgnoreCase)
+                                        || strRawName.StartsWith(name, StringComparison.CurrentCultureIgnoreCase));
+                                    if (coveredNames.Count() > 0)
+                                    {
+                                        throw new Exception(string.Format(@"Field names would ""cover"" each other: `{0}` and `{1}`", strRawName, coveredNames.First()));
+                                    }
+                                    lstRawNames.Add(strRawName);
                                     _createColumn(strColName, colTypeCleaned, intFieldLength);
                                 }
 
