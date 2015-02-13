@@ -21,6 +21,8 @@ namespace org.rufwork.mooresDb.infrastructure
     {
         //string strDatabaseLoc = null;
         private DatabaseContext _database;
+        private bool _logSql = false;
+        private string _logLoc = string.Empty;
 
         // TODO: So, obviously, make a base ICommand or CommandBase that everything can implement/extend.
         // ????: What's the advantage of scoping these at object level, anyhow?  <<< What he said.  For now, lemming it up, boah.
@@ -30,15 +32,19 @@ namespace org.rufwork.mooresDb.infrastructure
         private DeleteCommand _deleteCommand;
         private UpdateCommand _updateCommand;   // Two lemmings don't make a wren.
 
-        public CommandParser (DatabaseContext database)
+        public CommandParser (DatabaseContext database, bool logStatements = false)
         {
             _database = database;
+            _logSql = logStatements;
         }
 
         // TODO: Not any serious savings here; currently solely a convenience class.
         public object executeScalar(string strSql)
         {
             object objReturn = null;
+
+            if (_logSql)
+                System.IO.File.AppendAllText (_database.strLogLoc, strSql + System.Environment.NewLine);
 
             // Not sure if I want CommandParser to know about DataTable.  I think that's okay.
             DataTable dtTemp = (DataTable)this.executeCommand(strSql);
@@ -53,6 +59,9 @@ namespace org.rufwork.mooresDb.infrastructure
         public object executeCommand(string strSql)
         {
             object objReturn = null;
+
+            if (_logSql)
+                System.IO.File.AppendAllText (_database.strLogLoc, strSql + System.Environment.NewLine);
 
             strSql = strSql.RemoveNewlines(" ").BacktickQuotes(); // TODO: WHOA!  Super kludge for single quote escapes.  See "Grave accent" in idiosyncracies.
 

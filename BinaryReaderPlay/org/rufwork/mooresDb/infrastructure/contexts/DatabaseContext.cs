@@ -17,6 +17,14 @@ namespace org.rufwork.mooresDb.infrastructure.contexts
         public string strDbLoc = "";
         private Dictionary<string, TableContext> _dictTables = new Dictionary<string, TableContext>();
 
+        public string strLogLoc
+        {
+            get
+            {
+                return Path.Combine (this.strDbLoc, "log.sql");
+            }
+        }
+
         public DatabaseContext (string strDbLoc)
         {
             try
