@@ -12,13 +12,14 @@ using System.Text;
 using System.Data;
 using System.IO;
 using System.Text.RegularExpressions;
+using org.rufwork.mooresDb.exceptions;
 using org.rufwork.mooresDb.infrastructure.tableParts;
 using org.rufwork.mooresDb.infrastructure.serializers;
 using org.rufwork.mooresDb.infrastructure.contexts;
 using org.rufwork.mooresDb.infrastructure;
 using org.rufwork.mooresDb.infrastructure.commands.Processors;
-using org.rufwork.utils;
 
+using org.rufwork.utils;
 using org.rufwork.extensions;
 
 namespace org.rufwork.mooresDb.infrastructure.commands
@@ -80,11 +81,12 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                 dtReturn = _processInnerJoin(qAllTables, dtReturn, selectParts.strInnerJoinKludge, selectParts.strTableName, selectParts.strOrderBy, selectParts.qInnerJoinFields);
             }
 
+            // strOrderBy has had all whitespace shortened to one space, so we can get away with the hardcoded 9.
             if (null != selectParts.strOrderBy && selectParts.strOrderBy.Length > 9)
             {
                 // ORDER BY needs to make sure it's not sorting on a fuzzy named column
                 // that may not have been explicitly selected in the SELECT.
-                string[] astrOrderByFields = selectParts.strOrderBy.Substring(9).Split(',');    // Substring(9) to get rid of "ORDER BY "
+                string[] astrOrderByFields = selectParts.strOrderBy.Substring(9).Split(',');    // Substring(9) to get rid of "ORDER BY " <<< But, ultimately, why not tokenize here too?
                 string strCleanedOrderBy = string.Empty;
 
                 foreach (string orderByClause in astrOrderByFields)
@@ -126,10 +128,26 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                 dtReturn = dtReturn.DefaultView.ToTable();
             }
 
+            if (selectParts.dictRawNamesToASNames.Count > 0)
+            {
+                try
+                {
+                    foreach (KeyValuePair<string, string> kvp in selectParts.dictRawNamesToASNames)
+                    {
+                        dtReturn.Columns[kvp.Key].ColumnName = kvp.Value;
+                    }
+                }
+                catch (Exception e)
+                {
+                    throw new SyntaxException("Illegal AS usage: " + e.ToString());
+                }
+                
+            }
+
             return dtReturn;
         }
 
-        private DataTable _processInnerJoin(Queue<TableContext> qAllTables, DataTable dtReturn, string strJoinText, 
+        private DataTable _processInnerJoin(Queue<TableContext> qAllTables, DataTable dtReturn, string strJoinText,
             string strParentTable, string strOrderBy, Queue<string> qInnerJoinFields)
         {
             SqlDbSharpLogger.LogMessage("Note that WHERE clauses are not yet applied to JOINed tables.", "SelectCommnd _processInnerJoin");
@@ -141,7 +159,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands
 
             Queue<string> qColsToSelectInNewTable = new Queue<string>();
 
-            strJoinText = System.Text.RegularExpressions.Regex.Replace(strJoinText, @"\s+", " ");
+            strJoinText = System.Text.RegularExpressions.Regex.Replace(strJoinText, @"\s\n+", " ");
             string[] astrInnerJoins = strJoinText.ToLower().Split(new string[] { "inner join" }, StringSplitOptions.RemoveEmptyEntries);
             Dictionary<string, DataTable> dictTables = new Dictionary<string, DataTable>();
             dictTables.Add(strParentTable.ToLower(), dtReturn);
@@ -326,7 +344,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands
         private DataTable _initDataTable(CommandParts selectParts)
         {
             DataTable dtReturn = new DataTable();
-            dtReturn.TableName = selectParts.strTableName;  // TODO: This borks on JOINs, right?
+            dtReturn.TableName = selectParts.strTableName;  // TODO: This borks on JOINs, right? That is, you need to call this something else "X JOIN Y" or similar.
             // So that I can have columns appear more than once in a single table,
             // I'm going to make a dupe of dictColToSelectMapping.  We'd have to go a
             // touch more complicated to keep the order from the original SELECT accurate.
@@ -334,7 +352,8 @@ namespace org.rufwork.mooresDb.infrastructure.commands
 
             // info on creating a datatable by hand here: 
             // http://msdn.microsoft.com/en-us/library/system.data.datacolumn.datatype.aspx
-            foreach (Column colTemp in selectParts.acolInSelect)
+            // TODO: Distinct() is probably/should be overkill.
+            foreach (Column colTemp in selectParts.acolInSelect.Distinct())
             {
                 // "Translate" the SqlDBSharp column name to the name used in the SELECT statement.
                 string strColNameForDT = WhereProcessor.GetFuzzyNameIfExists(colTemp.strColName, dictColMappingCopy);

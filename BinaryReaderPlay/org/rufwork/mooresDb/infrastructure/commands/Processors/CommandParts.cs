@@ -28,6 +28,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
         public Column[] acolInSelect;
         public Dictionary<string, string> dictUpdateColVals = new Dictionary<string, string>();
         public Dictionary<string, string> dictFuzzyToColNameMappings = new Dictionary<string, string>();
+        public Dictionary<string, string> dictRawNamesToASNames = new Dictionary<string, string>();
         public COMMAND_TYPES commandType;
 
         private DatabaseContext _database;
@@ -98,7 +99,6 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
                 }
                 this.dictUpdateColVals.Add(astrColAndVal[0].Trim(), astrColAndVal[1].Trim());
             }
-
         }
 
         public void _parseSelectStatement(string strSql)
@@ -115,6 +115,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
             if (-1 < intIndexOf)
             {
                 this.strOrderBy = strSql.Substring(intIndexOf, intTail - intIndexOf);
+                this.strOrderBy = System.Text.RegularExpressions.Regex.Replace(this.strOrderBy, @"[\s\n]+", " ");   // flatten whitespace to a single space.
                 intTail = intIndexOf;
             }
 
@@ -170,6 +171,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
                 //      of a certain table.
                 if (!astrCmdTokens[i].EndsWith("*"))
                 {
+                    #region doesn't end with *
                     if (astrCmdTokens[i].Contains('.'))
                     {
                         // again writing offensive parsing code.
@@ -189,11 +191,16 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
                         Column colTemp = _tableContext.getColumnByName(astrCmdTokens[i]);
                         if (null != colTemp)
                         {
-                            qCols.Enqueue(colTemp);
-                            if (!colTemp.strColName.Equals(astrCmdTokens[i], StringComparison.CurrentCultureIgnoreCase))
+                            // TODO: Handle repeated names better.
+                            if (!qCols.Any(col => col.strColName.Equals(colTemp.strColName)))
                             {
-                                this.dictFuzzyToColNameMappings.Add(astrCmdTokens[i], colTemp.strColName);
+                                qCols.Enqueue(colTemp);
+                                if (!colTemp.strColName.Equals(astrCmdTokens[i], StringComparison.CurrentCultureIgnoreCase))
+                                {
+                                    this.dictFuzzyToColNameMappings.Add(astrCmdTokens[i], colTemp.strColName);
+                                }
                             }
+                            
                         }
                         else
                         {
@@ -202,6 +209,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
                                 + "Active statement: " + this.strOriginal);
                         }
                     }
+                    #endregion doesn't end with *
                 }
                 else if (astrCmdTokens[i].Equals("*"))
                 {
@@ -217,7 +225,14 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
                 }
                 else if (astrCmdTokens[i].Contains('.'))
                 {
+                    // So we only come here if we DO end in `*` and contains a dot. So, eg, `SELECT CustomerName, CustomerId, Items.* FROM Customer INNER JOIN Items on Customer.Id = Items.CustomerId;`
                     this.qInnerJoinFields.Enqueue(astrCmdTokens[i]);    // remember these for later when you're adding columns from secondary tables to the datatable for joins.
+                }
+
+                if (i + 1 < astrCmdTokens.Length && astrCmdTokens[i + 1].ToLower().Equals("as"))
+                {
+                    this.dictRawNamesToASNames.Add(astrCmdTokens[i], astrCmdTokens[i + 2]);
+                    i = i + 2;
                 }
             }
 

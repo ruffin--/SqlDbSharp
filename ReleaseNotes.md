@@ -1,6 +1,10 @@
 #Release notes:
 <br>
 
+##0.0.4.2 - 20150409
+
+* [MVP](http://en.wikipedia.org/wiki/Minimum_viable_product) `AS` support for *columns only* added: Aliases for columns cannot have a space. If single quotes are used, they are currently output as part of name.
+
 ##0.0.4.1 - 20140906:
 
 * Fixed bug for `SELECT * FROM Table1 INNER JOIN Table2 ON Table1.LongFuzzyName = Table2.JoinField` -- Long fuzzy wouldn't be in the primary table's DataTable.
