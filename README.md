@@ -11,7 +11,7 @@
     // ======================== EO LICENSE ===============================
 
 
-### VERSION 0.0.4.1: Nothing is guaranteed to work.  NOTHING.  Use at your own risk.
+### VERSION 0.0.4.2: Nothing is guaranteed to work.  NOTHING.  Use at your own risk.
 
 ### Major TODOs:
 1. Tests.

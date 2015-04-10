@@ -213,6 +213,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
                 }
                 else if (astrCmdTokens[i].Equals("*"))
                 {
+                    // WET code, as in not DRY, as in "Why Echo This?"
                     foreach (Column column in _tableContext.getColumns())
                     {
                         // For now, we're just not allowing duplicates, which I know stink0rz,
@@ -226,19 +227,82 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
                 else if (astrCmdTokens[i].Contains('.'))
                 {
                     // So we only come here if we DO end in `*` and contains a dot. So, eg, `SELECT CustomerName, CustomerId, Items.* FROM Customer INNER JOIN Items on Customer.Id = Items.CustomerId;`
-                    this.qInnerJoinFields.Enqueue(astrCmdTokens[i]);    // remember these for later when you're adding columns from secondary tables to the datatable for joins.
+                    if (astrCmdTokens[i].StartsWith(_tableContext.strTableName + "."))
+                    {
+                        // WET code, as in not DRY, as in "Why Echo This?"
+                        foreach (Column column in _tableContext.getColumns())
+                        {
+                            // For now, we're just not allowing duplicates, which I know stink0rz,
+                            // but is probably only horribly useful with real aliases.
+                            if (!qCols.Any(col => col.strColName.Equals(column.strColName)))
+                            {
+                                qCols.Enqueue(column);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        this.qInnerJoinFields.Enqueue(astrCmdTokens[i]);    // remember these for later when you're adding columns from secondary tables to the datatable for joins.
+                    }
                 }
 
                 if (i + 1 < astrCmdTokens.Length && astrCmdTokens[i + 1].ToLower().Equals("as"))
                 {
-                    this.dictRawNamesToASNames.Add(astrCmdTokens[i], astrCmdTokens[i + 2]);
+                    string strOrigName = astrCmdTokens[i];
                     i = i + 2;
+                    string strAsName = astrCmdTokens[i];
+                    char? chrQuote = _findQuoteChar(strAsName);
+
+                    if (chrQuote.HasValue)
+                    {
+                        while (!_findQuoteChar(strAsName, false, chrQuote).HasValue)
+                        {
+                            strAsName += " " + astrCmdTokens[++i];  // TODO: Kinda nasty side-effect of tokenizing too soon; all whitespace becomes a single space for now.
+                        }
+                        strAsName = strAsName.Trim(chrQuote.Value);
+                        // asymmetric quoter.
+                        if (chrQuote.Equals('['))
+                        {
+                            strAsName = strAsName.TrimEnd(']');
+                        }
+                    }
+                    this.dictRawNamesToASNames.Add(strOrigName, strAsName);
                 }
             }
 
             this.acolInSelect = qCols.ToArray();
         }
-    }
 
+        // TODO: Right now, we're allowing any quote character to be doubled up as an escape value
+        // for a single char of that "quoter". Is that what we want?
+        private char? _findQuoteChar(string strIn, bool bStartNotFinish = true, char? chrSpecific = null)
+        {
+            char? chrRet = null;
+            Queue<char> qstrQuotes = new Queue<char>(new[] { '`', '\'', '"' });
+
+            qstrQuotes.Enqueue(bStartNotFinish ? '[' : ']');
+
+            if (chrSpecific.HasValue)
+            {
+                chrSpecific = chrSpecific.Value.Equals('[') && !bStartNotFinish ? ']' : chrSpecific;    // TODO: Reconsider. This is in case we were returned '[' on the first call, but now really want ']', so we don't have to sniff in calling code.
+                qstrQuotes = new Queue<char>(new[] { chrSpecific.Value });
+            }
+
+            foreach (char chr in qstrQuotes)
+            {
+                if (
+                    (bStartNotFinish && strIn.StartsWith(Char.ToString(chr)) && !strIn.StartsWith(new string(chr, 2)))
+                    ||
+                    (!bStartNotFinish && strIn.EndsWith(Char.ToString(chr)) && !strIn.EndsWith(new string(chr, 2)))
+                )
+                {
+                    chrRet = chr;
+                    break;
+                }
+            }
+
+            return chrRet;
+        }
+    }
 
 }

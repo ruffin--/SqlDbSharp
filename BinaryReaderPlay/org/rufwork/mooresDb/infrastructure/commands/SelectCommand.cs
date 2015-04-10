@@ -72,9 +72,9 @@ namespace org.rufwork.mooresDb.infrastructure.commands
             // just selected and then send those values down to a new _selectRows.
             if (selectParts.strInnerJoinKludge.Length > 0)
             {
-                if (selectParts.strSelect.Trim().ToUpper().Equals("SELECT *"))
+                if (selectParts.qInnerJoinFields.Count < 1)
                 {
-                    selectParts.qInnerJoinFields.EnqueueIfNotContains("*");  // Quick kludge for "SELECT * FROM Table1 INNER JOIN..."
+                    selectParts.qInnerJoinFields.EnqueueIfNotContains("*");  // Kludge for "SELECT * FROM Table1 INNER JOIN..." or "SELECT test, * From...", etc
                 }
 
                 // TODO: Why aren't we just throwing in the whole selectParts again?

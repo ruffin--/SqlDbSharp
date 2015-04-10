@@ -1,9 +1,9 @@
 #Release notes:
 <br>
 
-##0.0.4.2 - 20150409
+##0.0.4.2 - 20150410
 
-* [MVP](http://en.wikipedia.org/wiki/Minimum_viable_product) `AS` support for *columns only* added: Aliases for columns cannot have a space. If single quotes are used, they are currently output as part of name.
+* `AS` support for *columns only* added.
 
 ##0.0.4.1 - 20140906:
 

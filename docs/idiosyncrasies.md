@@ -19,9 +19,11 @@ Here are some major examples:
     * INSERT INTO Table (StringVal) VALUES ('Let''s go to the store!');
     * Will have the string value "Let`s go to the store!" inserted into the database.
     * WHEREs can use doubled single quotes or grave accents to search. 
-3. **Dot notation for tables not supported.**
-    * The following will *not* retrieve the column ID from Table1.
-         * SELECT Table1.ID from Table1;
+3. **Spaces are allowed in column *aliases*, but not "real" names.**
+    * Works:
+         * SELECT name as \`spam spam` from Table1;
+    * Doesn't:
+     	 * SELECT \`spam spam` as name from Table1;	
 4. **WHERE clauses in JOINs only apply to the first table in the FROM clause.**
     * SELECT * FROM Table1 INNER JOIN Table2 ON Table1.ID = Table2.Table1Id WHERE ID > 8 AND Table1Id = 7;
         * The AND clause will break.
@@ -35,13 +37,11 @@ Here are some major examples:
 7. **INNER JOIN equivalents in WHERE clauses are not supported.**
     * SELECT * FROM Table1, Table2 WHERE Table1.Id = Table2.CityId;
     	* Doesn't work.
-8. **No aliases for fields in statements.**
-	* SELECT Name AS BirthName FROM Names; -- No good.
-9. **No aliases for tables in statements.**
+8. **No aliases for tables in statements.**
 	* SELECT * FROM jive jiveTown INNER JOIN music GreatMusic on jiveTown.ID = GreatMusic.OriginId; -- Also no good.
-10. **AUTOINCREMENT columns must be four byte INTs**
+9. **AUTOINCREMENT columns must be four byte INTs**
     * ID INTEGER (4) AUTOINCREMENT
-11. **Columns of length 4369 aren't allowed**
+10. **Columns of length 4369 aren't allowed**
     * Definitively my new favorite idiosyncratic behavior.
     * Initially, columns this length would cause strange, destructive (?) errors.
     * Now the error: "Idiosyncratically, column lengths of [exactly] 4369 are not allowed." is displayed if you try.
