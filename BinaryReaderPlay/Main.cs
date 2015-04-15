@@ -22,4 +22,14 @@ public class MainClass
     public static bool bDebug = false;
     public static string buildData = "20150410";    // not always incremented with each build.
     public static string version = "0.0.4.2";
+
+    public static void logIt(string strMsg)
+    {
+        if (MainClass.bDebug) Console.WriteLine(strMsg);
+    }
+
+    public static void logIt(string strMsg, string strLoc)
+    {
+        if (MainClass.bDebug) SqlDbSharpLogger.LogMessage(strMsg, strLoc);
+    }
 }

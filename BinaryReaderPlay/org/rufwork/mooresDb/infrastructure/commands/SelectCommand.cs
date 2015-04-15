@@ -157,185 +157,233 @@ namespace org.rufwork.mooresDb.infrastructure.commands
             string strOldField = null;
             string strOldTable = null;
 
+            string strErrLoc = "init";
+
             Queue<string> qColsToSelectInNewTable = new Queue<string>();
+            MainClass.logIt("join fields: " + string.Join("\n", qInnerJoinFields.ToArray()));
 
-            strJoinText = System.Text.RegularExpressions.Regex.Replace(strJoinText, @"\s\n+", " ");
-            string[] astrInnerJoins = strJoinText.ToLower().Split(new string[] { "inner join" }, StringSplitOptions.RemoveEmptyEntries);
-            Dictionary<string, DataTable> dictTables = new Dictionary<string, DataTable>();
-            dictTables.Add(strParentTable.ToLower(), dtReturn);
-
-            foreach (string strInnerJoin in astrInnerJoins)
+            try
             {
-                // "from table1 inner join" <<< already removed
-                // "table2 on table1.field = table2.field2"
-                string[] astrTokens = strInnerJoin.Split(new string[] { " " }, StringSplitOptions.RemoveEmptyEntries);
+                strJoinText = System.Text.RegularExpressions.Regex.Replace(strJoinText, @"\s\n+", " ");
+                string[] astrInnerJoins = strJoinText.ToLower().Split(new string[] { "inner join" }, StringSplitOptions.RemoveEmptyEntries);
+                Dictionary<string, DataTable> dictTables = new Dictionary<string, DataTable>();
+                dictTables.Add(strParentTable.ToLower(), dtReturn);
 
-                if (!"=".Equals(astrTokens[3]))
+                strErrLoc = "starting inner join array";
+                foreach (string strInnerJoin in astrInnerJoins)
                 {
-                    throw new Exception("We're only supporting inner equi joins right now: " + strInnerJoin);
-                }
+                    // "from table1 inner join" <<< already removed
+                    // "table2 on table1.field = table2.field2"
+                    string[] astrTokens = strInnerJoin.Split(new string[] { " " }, StringSplitOptions.RemoveEmptyEntries);
 
-                // Kludge alert -- must have table prefixes for now.
-                if (!astrTokens[2].Contains(".") || !astrTokens[4].Contains("."))
-                {
-                    throw new Exception(string.Format(
-                        "For now, joined fields must include table prefixes: {0} {1}",
-                        astrTokens[2],
-                        astrTokens[2])
-                    );
-                }
-
-                string field1Parent = astrTokens[2].Substring(0, astrTokens[2].IndexOf("."));
-                string field2Parent = astrTokens[4].Substring(0, astrTokens[4].IndexOf("."));
-                string field1 = astrTokens[2].Substring(astrTokens[2].IndexOf(".") + 1);
-                string field2 = astrTokens[4].Substring(astrTokens[4].IndexOf(".") + 1);
-
-                if (dictTables.ContainsKey(field1Parent))   // TODO: Should probably check to see if they're both known and at least bork.
-                {
-                    strNewTable = field2Parent;
-                    strNewField = field2;
-                    strOldTable = field1Parent;
-                    strOldField = field1;
-                }
-                else
-                {
-                    strNewTable = field1Parent;
-                    strNewField = field1;
-                    strOldTable = field2Parent;
-                    strOldField = field2;
-                }
-
-                string strInClause = string.Empty;
-
-                TableContext tableOld = _database.getTableByName(strOldTable);
-                TableContext tableNew = _database.getTableByName(strNewTable);
-                qAllTables.Enqueue(tableNew);   // we need this to figure out column parents later.
-
-                // Now that we know the new table to add, we need to get a list of columns
-                // to select from it.
-                // Sources for these fields could be...
-                // 1.) The joining field.
-                // 2.) ORDER BY fields for the entire statement
-                // 3.) conventional SELECT fields.
-                //
-                // To prevent column name collision, let's go ahead and prefix them
-                // all with the table name.  A little unexpected, but a decent shortcut
-                // for now, I think.
-
-                // 1.) Add the joining field.
-                qColsToSelectInNewTable.EnqueueIfNotContains(strNewField);
-
-                // 2.) ORDER BY fields that belong to this table.
-                if (!string.IsNullOrWhiteSpace(strOrderBy))
-                {
-                    string[] astrOrderTokens = strOrderBy.StringToNonWhitespaceTokens2();
-                    for (int i = 2; i < astrOrderTokens.Length; i++)
+                    if (!"=".Equals(astrTokens[3]))
                     {
-                        string strOrderField = astrOrderTokens[i].Trim(' ', ',');
-                        string strOrderTable = strNewTable; // just to pretend. We'll skip it if the field doesn't exist here.  Course this means we might dupe some non-table prefixed fields.
-
-                        if (strOrderField.Contains("."))
-                        {
-                            strOrderTable = strOrderField.Substring(0, strOrderField.IndexOf("."));
-                            strOrderField = strOrderField.Substring(strOrderField.IndexOf(".") + 1);
-                        }
-
-                        if (strNewTable.Equals(strOrderTable, StringComparison.CurrentCultureIgnoreCase)
-                            && !tableNew.containsColumn(strOrderField, false)
-                            && tableNew.containsColumn(strOrderField, true))
-                        {
-                            qColsToSelectInNewTable.EnqueueIfNotContains(strNewTable + "." + strOrderField);
-                        }
+                        throw new Exception("We're only supporting inner equi joins right now: " + strInnerJoin);
                     }
-                }
 
-                // 3.) Conventional SELECT fields
-                if (qInnerJoinFields.Count > 0)
-                {
-                    if (qInnerJoinFields.Any(fld => fld.Equals(strNewTable + ".*", StringComparison.CurrentCultureIgnoreCase) || fld.Equals("*")))
+                    // Kludge alert -- must have table prefixes for now.
+                    if (!astrTokens[2].Contains(".") || !astrTokens[4].Contains("."))
                     {
-                        qColsToSelectInNewTable.EnqueueIfNotContains("*");
+                        throw new Exception(string.Format(
+                            "For now, joined fields must include table prefixes: {0} {1}",
+                            astrTokens[2],
+                            astrTokens[2])
+                        );
+                    }
+
+                    strErrLoc = "determine old and new tables and fields";
+                    string field1Parent = astrTokens[2].Substring(0, astrTokens[2].IndexOf("."));
+                    string field2Parent = astrTokens[4].Substring(0, astrTokens[4].IndexOf("."));
+                    string field1 = astrTokens[2].Substring(astrTokens[2].IndexOf(".") + 1);
+                    string field2 = astrTokens[4].Substring(astrTokens[4].IndexOf(".") + 1);
+
+                    if (dictTables.ContainsKey(field1Parent))   // TODO: Should probably check to see if they're both known and at least bork.
+                    {
+                        strNewTable = field2Parent;
+                        strNewField = field2;
+                        strOldTable = field1Parent;
+                        strOldField = field1;
                     }
                     else
                     {
-                        foreach (string strTableDotCol in qInnerJoinFields)
+                        strNewTable = field1Parent;
+                        strNewField = field1;
+                        strOldTable = field2Parent;
+                        strOldField = field2;
+                    }
+
+                    MainClass.logIt(string.Format(@"old table: {0} 
+old field: {1} 
+new table: {2} 
+new field: {3}", 
+                        strOldTable, strOldField, strNewTable, strNewField));
+
+                    string strInClause = string.Empty;
+
+                    TableContext tableOld = _database.getTableByName(strOldTable);
+                    TableContext tableNew = _database.getTableByName(strNewTable);
+                    qAllTables.Enqueue(tableNew);   // we need this to figure out column parents later.
+
+                    // Now that we know the new table to add, we need to get a list of columns
+                    // to select from it.
+                    // Sources for these fields could be...
+                    // 1.) The joining field.
+                    // 2.) ORDER BY fields for the entire statement
+                    // 3.) conventional SELECT fields.
+                    //
+                    // To prevent column name collision, let's go ahead and prefix them
+                    // all with the table name.  A little unexpected, but a decent shortcut
+                    // for now, I think.
+
+                    strErrLoc = "beginning inner join select construction";
+
+                    // 1.) Add the joining field.
+                    qColsToSelectInNewTable.EnqueueIfNotContains(strNewField);
+
+                    // 2.) ORDER BY fields that belong to this table.
+                    if (!string.IsNullOrWhiteSpace(strOrderBy))
+                    {
+                        MainClass.logIt(strOrderBy);
+
+                        strErrLoc = "constructing order by";
+                        string[] astrOrderTokens = strOrderBy.StringToNonWhitespaceTokens2();
+                        for (int i = 2; i < astrOrderTokens.Length; i++)
                         {
-                            string[] astrTableDotCol = strTableDotCol.Split('.');
-                            if (strNewTable.Equals(astrTableDotCol[0], StringComparison.CurrentCultureIgnoreCase))
+                            string strOrderField = astrOrderTokens[i].Trim(' ', ',');
+                            string strOrderTable = strNewTable; // just to pretend. We'll skip it if the field doesn't exist here.  Course this means we might dupe some non-table prefixed fields.
+
+                            if (strOrderField.Contains("."))
                             {
-                                qColsToSelectInNewTable.EnqueueIfNotContains(astrTableDotCol[1].ScrubValue()); // again, offensive parsing is the rule.
+                                strOrderTable = strOrderField.Substring(0, strOrderField.IndexOf("."));
+                                strOrderField = strOrderField.Substring(strOrderField.IndexOf(".") + 1);
+                            }
+
+                            if (strNewTable.Equals(strOrderTable, StringComparison.CurrentCultureIgnoreCase)
+                                && !tableNew.containsColumn(strOrderField, false)
+                                && tableNew.containsColumn(strOrderField, true))
+                            {
+                                qColsToSelectInNewTable.EnqueueIfNotContains(strNewTable + "." + strOrderField);
                             }
                         }
                     }
-                }
 
-                // TODO: Consider grabbing every column up front, perhaps, and
-                // then cutting out those columns that we didn't select -- but
-                // do SELECT fields as a post-processing task, rather than this
-                // inline parsing. Also allows us to bork on fields that aren't
-                // in tables a little easier; right now you could include bogus
-                // joined fields without error.
+                    // 3.) Conventional SELECT fields
+                    strErrLoc = "Creating select clause";
+                    if (qInnerJoinFields.Count > 0)
+                    {
+                        if (qInnerJoinFields.Any(fld => fld.Equals(strNewTable + ".*", StringComparison.CurrentCultureIgnoreCase) || fld.Equals("*")))
+                        {
+                            qColsToSelectInNewTable.EnqueueIfNotContains("*");
+                        }
+                        else
+                        {
+                            foreach (string strTableDotCol in qInnerJoinFields)
+                            {
+                                string[] astrTableDotCol = strTableDotCol.Split('.');
+                                if (strNewTable.Equals(astrTableDotCol[0], StringComparison.CurrentCultureIgnoreCase))
+                                {
+                                    MainClass.logIt("Adding field to join SELECT: " + astrTableDotCol[1].ScrubValue());
+                                    qColsToSelectInNewTable.EnqueueIfNotContains(astrTableDotCol[1].ScrubValue()); // again, offensive parsing is the rule.
+                                }
+                            }
+                        }
+                    }
 
-                dictTables[strOldTable].CaseSensitive = false;  // TODO: If we keep this, do it in a smarter place.
-                // Right now, strOldField has the name that's in the DataTable from the previous select.
+                    // TODO: Consider grabbing every column up front, perhaps, and
+                    // then cutting out those columns that we didn't select -- but
+                    // do SELECT fields as a post-processing task, rather than this
+                    // inline parsing. Also allows us to bork on fields that aren't
+                    // in tables a little easier; right now you could include bogus
+                    // joined fields without error.
 
-                // Now construct the `WHERE joinedField IN (X,Y,Z)` portion of the inner select
-                // we're about to fire off.
-                string strOperativeOldField = strOldField;
-                if (!dictTables[strOldTable].Columns.Contains(strOldField))
-                {
-                    // Allow fuzzy names in join, if not the DataTable -- yet.
-                    strOperativeOldField = tableOld.getRawColName(strOldField);
-                }
-                foreach (DataRow row in dictTables[strOldTable].Rows)
-                {
-                    strInClause += row[strOperativeOldField].ToString() + ",";
-                }
-                strInClause = strInClause.Trim(',');
+                    dictTables[strOldTable].CaseSensitive = false;  // TODO: If we keep this, do it in a smarter place.
+                    // Right now, strOldField has the name that's in the DataTable from the previous select.
 
-                if (string.IsNullOrEmpty(strInClause))
-                {
-                    dtReturn = new DataTable();
-                }
-                else
-                {
-                    string strInnerSelect = string.Format("SELECT {0} FROM {1} WHERE {2} IN ({3});",
-                        string.Join(",", qColsToSelectInNewTable.ToArray()),
-                        strNewTable,
-                        strNewField,
-                        strInClause
-                    );
-
-                    // TODO: Figure out the best time to handle the portion of the WHERE 
-                    // that impacts the tables mentioned in the join portion of the SQL.
-                    // Note: I think now we treat it just like the ORDER BY.  Not that
-                    // complicated to pull out table-specific WHERE fields and send along
-                    // with the reconsitituted "inner" SQL statement.
+                    strErrLoc = @"Create WHERE IN clause for join ""inner"" SELECT";
+                    // Now construct the `WHERE joinedField IN (X,Y,Z)` portion of the inner select
+                    // we're about to fire off.
+                    string strOperativeOldField = strOldField;
+                    if (!dictTables[strOldTable].Columns.Contains(strOldField))
+                    {
+                        // Allow fuzzy names in join, if not the DataTable -- yet.
+                        strOperativeOldField = tableOld.getRawColName(strOldField);
+                    }
 
                     if (MainClass.bDebug)
                     {
-                        SqlDbSharpLogger.LogMessage("Inner join: " + strInnerSelect + "\n\n", "select command _processInnerJoin");
+                        Console.WriteLine("Looking for " + strOperativeOldField + " in the columns");
+                        foreach (DataColumn column in dictTables[strOldTable].Columns)
+                        {
+                            Console.WriteLine(column.ColumnName);
+                        }
                     }
 
-                    SelectCommand selectCommand = new SelectCommand(_database);
-                    object objReturn = selectCommand.executeStatement(strInnerSelect);
-
-                    if (objReturn is DataTable)
+                    foreach (DataRow row in dictTables[strOldTable].Rows)
                     {
-                        DataTable dtInnerJoinResult = (DataTable)objReturn;
-                        dtReturn = InfrastructureUtils.equijoinTables(
-                            dtReturn,
-                            dtInnerJoinResult,
-                            strOperativeOldField,
-                            strNewField
-                        );
+                        strInClause += row[strOperativeOldField].ToString() + ",";
+                    }
+
+                    strErrLoc = "Completing SELECT construction";
+                    strInClause = strInClause.Trim(',');
+                    if (string.IsNullOrEmpty(strInClause))
+                    {
+                        dtReturn = new DataTable();
                     }
                     else
                     {
-                        throw new Exception("Illegal inner select: " + strInnerSelect);
+                        MainClass.logIt("Columns in inner JOIN select: " + string.Join(", ", qColsToSelectInNewTable.ToArray()));
+                        string strInnerSelect = string.Format("SELECT {0} FROM {1} WHERE {2} IN ({3});",
+                            string.Join(",", qColsToSelectInNewTable.ToArray()),
+                            strNewTable,
+                            strNewField,
+                            strInClause
+                        );
+                        qColsToSelectInNewTable = new Queue<string>();
+
+                        // TODO: Figure out the best time to handle the portion of the WHERE 
+                        // that impacts the tables mentioned in the join portion of the SQL.
+                        // Note: I think now we treat it just like the ORDER BY.  Not that
+                        // complicated to pull out table-specific WHERE fields and send along
+                        // with the reconsitituted "inner" SQL statement.
+
+                        MainClass.logIt("Inner join: " + strInnerSelect + "\n\n", "select command _processInnerJoin");
+
+                        SelectCommand selectCommand = new SelectCommand(_database);
+                        object objReturn = selectCommand.executeStatement(strInnerSelect);
+
+                        if (objReturn is DataTable)
+                        {
+                            DataTable dtInnerJoinResult = (DataTable)objReturn;
+                            dtReturn = InfrastructureUtils.equijoinTables(
+                                dtReturn,
+                                dtInnerJoinResult,
+                                strOperativeOldField,
+                                strNewField
+                            );
+                        }
+                        else
+                        {
+                            strErrLoc = "Datatable not returned";
+                            throw new SyntaxException("Illegal inner select: " + strInnerSelect);
+                        }
                     }
                 }
+
             }
+            catch (Exception e)
+            {
+                if (e.GetType() == typeof(SyntaxException))
+                {
+                    throw e;
+                }
+                else
+                {
+                    throw new SyntaxException(string.Format(@"Uncaptured join syntax error -- {0}: 
+{1} 
+{2}", strErrLoc, strJoinText, e.ToString()));
+                }
+            }
+
             return dtReturn;
         }
 
