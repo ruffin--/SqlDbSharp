@@ -205,7 +205,6 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
                         else
                         {
                             throw new Exception("SELECT Column does not exist: " + astrCmdTokens[i] + "\n"
-                                + astrCmdTokens[i] + " :: " + colTemp.strColName + "\n"
                                 + "Active statement: " + this.strOriginal);
                         }
                     }
