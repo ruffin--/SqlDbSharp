@@ -77,7 +77,7 @@ namespace org.rufwork.mooresDb.infrastructure
             for (int i = 0; i < dtIn.Columns.Count; i++)
             {
                 DataColumn dc = dtIn.Columns[i];
-                    strReturn += dc.ColumnName.PadLeftWithMax(aintColLength[i]) + " | ";
+                    strReturn += dc.ColumnName.PadLeftWithMax(aintColLength[i], true) + " | ";
             }
             strReturn += System.Environment.NewLine;
 
@@ -86,7 +86,7 @@ namespace org.rufwork.mooresDb.infrastructure
                 // TODO: Is foreach Column order guaranteed?
                 for (int i = 0; i < dtIn.Columns.Count; i++)
                 {
-                    strReturn += dr[dtIn.Columns[i]].ToString().PadLeftWithMax(aintColLength[i]) + " # ";
+                    strReturn += dr[dtIn.Columns[i]].ToString().PadLeftWithMax(aintColLength[i], true) + " # ";
                 }
                 strReturn += System.Environment.NewLine;
             }
