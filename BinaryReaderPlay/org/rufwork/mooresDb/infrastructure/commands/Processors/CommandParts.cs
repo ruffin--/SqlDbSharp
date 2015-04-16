@@ -26,6 +26,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
         public string strTableName; // TODO: Ob need to go to a collection of some sort
 
         public Column[] acolInSelect;
+        public Queue<string> qstrAllColumnNames = new Queue<string>();
         public Dictionary<string, string> dictUpdateColVals = new Dictionary<string, string>();
         public Dictionary<string, string> dictFuzzyToColNameMappings = new Dictionary<string, string>();
         public Dictionary<string, string> dictRawNamesToASNames = new Dictionary<string, string>();
@@ -101,7 +102,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
             }
         }
 
-        public void _parseSelectStatement(string strSql)
+        private void _parseSelectStatement(string strSql)
         {
             int intTail = strSql.Length;
             int intIndexOf = -1;
@@ -159,7 +160,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
             this.strSelect = strSql.Substring(0, intTail);
         }
 
-        public void _getColumnsToReturn()
+        private void _getColumnsToReturn()
         {
             Queue<Column> qCols = new Queue<Column>();
             string[] astrCmdTokens = this.strSelect.StringToNonWhitespaceTokens2().Skip(1).ToArray();   // Skip 1 to ignore SELECT.
@@ -171,6 +172,8 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
                 //      of a certain table.
                 if (!astrCmdTokens[i].EndsWith("*"))
                 {
+                    qstrAllColumnNames.Enqueue(astrCmdTokens[i]);
+
                     #region doesn't end with *
                     if (astrCmdTokens[i].Contains('.'))
                     {

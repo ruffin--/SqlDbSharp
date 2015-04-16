@@ -126,17 +126,13 @@ namespace org.rufwork.mooresDb.infrastructure
 
             foreach (DataColumn dc in dt2.Columns)
             {
-                string strColName = dc.ColumnName;
+                // We're going to swap to *always* return the table name as a prefix
+                // to the column name in the case of a joined table (ie, the first 
+                // table's column names won't have the prefix).
+                // TODO: Fairly inefficient as written. Refactor to smarter. See below.
+                string strColName = dt2.TableName + "." + dc.ColumnName;
 
-                // Check for names duplicated in both tables.
-                // Alias dt2's if there's a conflict.
-                if (dtReturn.Columns.Contains(strColName))
-                {
-                    // TODO: Of course this misses "Table2.Name' (inclusive of "Table2" -- see?  Crazy outlier.) as a column name for Table 1.
-                    // We'll risk that for now.  It really shouldn't happen.
-                    strColName = dt2.TableName + "." + strColName;
-                    dictTable2ColAliases.Add(dc.ColumnName, strColName);
-                }
+                dictTable2ColAliases.Add(dc.ColumnName, strColName);
                 DataColumn colForDt = new DataColumn(strColName);
                 colForDt.DataType = dc.DataType;
                 dtReturn.Columns.Add(colForDt);
@@ -159,6 +155,7 @@ namespace org.rufwork.mooresDb.infrastructure
                         foreach (DataColumn dc2 in dt2.Columns)
                         {
                             string strColName = dc2.ColumnName;
+                            // TODO: Con't inefficiency as written. See previous "Fairly inefficient" TODO.
                             if (dictTable2ColAliases.ContainsKey(strColName))
                             {
                                 strColName = dictTable2ColAliases[strColName];

@@ -79,6 +79,28 @@ namespace org.rufwork.mooresDb.infrastructure.commands
 
                 // TODO: Why aren't we just throwing in the whole selectParts again?
                 dtReturn = _processInnerJoin(qAllTables, dtReturn, selectParts.strInnerJoinKludge, selectParts.strTableName, selectParts.strOrderBy, selectParts.qInnerJoinFields);
+
+                // Now we need to make sure the order of the DataColumns reflects what we had
+                // in the original SQL. At least initially, column order wasn't guaranteed in
+                // _processInnerJoin, as it would add columns first for the "main" table and then
+                // for each "inner SELECT".
+                string strFromSelect = string.Join(", ", selectParts.qstrAllColumnNames.ToArray());
+                string strInTable = string.Join(", ", dtReturn.Columns.Cast<DataColumn>().Select(c => c.ColumnName).ToArray());
+                MainClass.logIt(string.Format(@"Select fields: {0}
+Fields pushed into dtReturn: {1}", strFromSelect, strInTable));
+
+                try
+                {
+                    string[] astrFromSelect = selectParts.qstrAllColumnNames.ToArray();
+                    for (int i = 0; i < astrFromSelect.Length; i++)
+                    {
+                        dtReturn.Columns[astrFromSelect[i]].SetOrdinal(i);
+                    }
+                }
+                catch (Exception e)
+                {
+                    throw new SyntaxException("Problem reordering columns in inner join -- " + e.ToString());
+                }
             }
 
             // strOrderBy has had all whitespace shortened to one space, so we can get away with the hardcoded 9.
@@ -339,6 +361,7 @@ new field: {3}",
                             strInClause
                         );
                         qColsToSelectInNewTable = new Queue<string>();
+                        strErrLoc = strInnerSelect;
 
                         // TODO: Figure out the best time to handle the portion of the WHERE 
                         // that impacts the tables mentioned in the join portion of the SQL.
@@ -363,7 +386,7 @@ new field: {3}",
                         }
                         else
                         {
-                            strErrLoc = "Datatable not returned";
+                            strErrLoc = "Datatable not returned: " + strInnerSelect;
                             throw new SyntaxException("Illegal inner select: " + strInnerSelect);
                         }
                     }
