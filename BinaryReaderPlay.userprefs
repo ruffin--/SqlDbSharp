@@ -1,12 +1,14 @@
-﻿<Properties>
-  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug|x86" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="BinaryReaderPlay\org\rufwork\mooresDb\infrastructure\commands\CreateTableCommand.cs">
+﻿<Properties StartupItem="SqlDbSharpMacUI/SqlDbSharpMacUI.csproj" MonoDevelop.MonoMac.LastXamMacNagTime="4/18/2015 10:52:45 PM">
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="SqlDbSharpMacUI/WidgetFactory.cs">
     <Files>
-      <File FileName="BinaryReaderPlay\Main.cs" Line="1" Column="1" />
-      <File FileName="BinaryReaderPlay\org\rufwork\utils\Utils.cs" Line="1" Column="1" />
-      <File FileName="BinaryReaderPlay\org\rufwork\utils\GlobalEnums.cs" Line="1" Column="1" />
-      <File FileName="BinaryReaderPlay\org\rufwork\mooresDb\clients\Isql.cs" Line="1" Column="1" />
-      <File FileName="BinaryReaderPlay\org\rufwork\mooresDb\infrastructure\commands\CreateTableCommand.cs" Line="52" Column="67" />
+      <File FileName="SqlDbSharpMacUI/MainWindow.cs" Line="1" Column="1" />
+      <File FileName="SqlDbSharpMacUI/WidgetFactory.cs" Line="69" Column="46" />
+      <File FileName="SqlDbSharpMacUI/DbInteractions.cs" Line="16" Column="1" />
+      <File FileName="ISQL/org/rufwork/mooresDb/clients/Isql.cs" Line="1" Column="1" />
+      <File FileName="BinaryReaderPlay/Main.cs" Line="1" Column="1" />
+      <File FileName="SqlDbSharpMacUI/MainWindowController.cs" Line="1" Column="1" />
+      <File FileName="BinaryReaderPlay/org/rufwork/mooresDb/infrastructure/commands/CreateTableCommand.cs" Line="1" Column="1" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>

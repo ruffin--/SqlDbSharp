@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Express 2012 for Windows Desktop
+# Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BinaryReaderPlay", "BinaryReaderPlay\BinaryReaderPlay.csproj", "{21089A8D-6944-4C6E-90F5-61BE82C9919C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ISQL", "ISQL\ISQL.csproj", "{AEC8C477-16CE-4DEF-A406-87A1C15A16AF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlDbSharpMacUI", "SqlDbSharpMacUI\SqlDbSharpMacUI.csproj", "{3963EFC9-2001-46BE-A7AD-46444F2B3861}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -13,8 +15,11 @@ Global
 		Release|Any CPU = Release|Any CPU
 		Release|Mixed Platforms = Release|Mixed Platforms
 		Release|x86 = Release|x86
+		AppStore|Any CPU = AppStore|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{21089A8D-6944-4C6E-90F5-61BE82C9919C}.AppStore|Any CPU.ActiveCfg = Debug|x86
+		{21089A8D-6944-4C6E-90F5-61BE82C9919C}.AppStore|Any CPU.Build.0 = Debug|x86
 		{21089A8D-6944-4C6E-90F5-61BE82C9919C}.Debug|Any CPU.ActiveCfg = Debug|x86
 		{21089A8D-6944-4C6E-90F5-61BE82C9919C}.Debug|Any CPU.Build.0 = Debug|x86
 		{21089A8D-6944-4C6E-90F5-61BE82C9919C}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
@@ -26,11 +31,28 @@ Global
 		{21089A8D-6944-4C6E-90F5-61BE82C9919C}.Release|Mixed Platforms.Build.0 = Release|x86
 		{21089A8D-6944-4C6E-90F5-61BE82C9919C}.Release|x86.ActiveCfg = Release|x86
 		{21089A8D-6944-4C6E-90F5-61BE82C9919C}.Release|x86.Build.0 = Release|x86
+		{3963EFC9-2001-46BE-A7AD-46444F2B3861}.AppStore|Any CPU.ActiveCfg = AppStore|Any CPU
+		{3963EFC9-2001-46BE-A7AD-46444F2B3861}.AppStore|Any CPU.Build.0 = AppStore|Any CPU
+		{3963EFC9-2001-46BE-A7AD-46444F2B3861}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3963EFC9-2001-46BE-A7AD-46444F2B3861}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3963EFC9-2001-46BE-A7AD-46444F2B3861}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{3963EFC9-2001-46BE-A7AD-46444F2B3861}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{3963EFC9-2001-46BE-A7AD-46444F2B3861}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{3963EFC9-2001-46BE-A7AD-46444F2B3861}.Debug|x86.Build.0 = Debug|Any CPU
+		{3963EFC9-2001-46BE-A7AD-46444F2B3861}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3963EFC9-2001-46BE-A7AD-46444F2B3861}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3963EFC9-2001-46BE-A7AD-46444F2B3861}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{3963EFC9-2001-46BE-A7AD-46444F2B3861}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{3963EFC9-2001-46BE-A7AD-46444F2B3861}.Release|x86.ActiveCfg = Release|Any CPU
+		{3963EFC9-2001-46BE-A7AD-46444F2B3861}.Release|x86.Build.0 = Release|Any CPU
+		{AEC8C477-16CE-4DEF-A406-87A1C15A16AF}.AppStore|Any CPU.ActiveCfg = Debug|Any CPU
+		{AEC8C477-16CE-4DEF-A406-87A1C15A16AF}.AppStore|Any CPU.Build.0 = Debug|Any CPU
 		{AEC8C477-16CE-4DEF-A406-87A1C15A16AF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{AEC8C477-16CE-4DEF-A406-87A1C15A16AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AEC8C477-16CE-4DEF-A406-87A1C15A16AF}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
 		{AEC8C477-16CE-4DEF-A406-87A1C15A16AF}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
 		{AEC8C477-16CE-4DEF-A406-87A1C15A16AF}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{AEC8C477-16CE-4DEF-A406-87A1C15A16AF}.Debug|x86.Build.0 = Debug|Any CPU
 		{AEC8C477-16CE-4DEF-A406-87A1C15A16AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AEC8C477-16CE-4DEF-A406-87A1C15A16AF}.Release|Any CPU.Build.0 = Release|Any CPU
 		{AEC8C477-16CE-4DEF-A406-87A1C15A16AF}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
@@ -39,8 +61,5 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(MonoDevelopProperties) = preSolution
-		StartupItem = BinaryReaderPlay\BinaryReaderPlay.csproj
 	EndGlobalSection
 EndGlobal

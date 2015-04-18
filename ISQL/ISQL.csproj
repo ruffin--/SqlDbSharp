@@ -21,6 +21,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Externalconsole>true</Externalconsole>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -35,10 +36,6 @@
     <StartupObject>org.rufwork.mooresDb.clients.Isql</StartupObject>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="RufworkExtensions, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\lib\RufworkExtensions.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -46,6 +43,9 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
+    <Reference Include="RufworkExtensions">
+      <HintPath>..\lib\RufworkExtensions.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="org\rufwork\mooresDb\clients\Isql.cs" />
@@ -56,7 +56,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\BinaryReaderPlay\BinaryReaderPlay.csproj">
-      <Project>{21089a8d-6944-4c6e-90f5-61be82c9919c}</Project>
+      <Project>{21089A8D-6944-4C6E-90F5-61BE82C9919C}</Project>
       <Name>BinaryReaderPlay</Name>
     </ProjectReference>
   </ItemGroup>
