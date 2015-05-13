@@ -44,7 +44,9 @@ namespace org.rufwork.mooresDb.infrastructure
             object objReturn = null;
 
             if (_logSql)
-                System.IO.File.AppendAllText (_database.strLogLoc, strSql + System.Environment.NewLine);
+                System.IO.File.AppendAllText (_database.strLogLoc, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + ": "
+                    + strSql + System.Environment.NewLine);
+
 
             // Not sure if I want CommandParser to know about DataTable.  I think that's okay.
             DataTable dtTemp = (DataTable)this.executeCommand(strSql);
@@ -61,7 +63,9 @@ namespace org.rufwork.mooresDb.infrastructure
             object objReturn = null;
 
             if (_logSql)
-                System.IO.File.AppendAllText (_database.strLogLoc, strSql + System.Environment.NewLine);
+                System.IO.File.AppendAllText (_database.strLogLoc, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + ": "
+                    + strSql + System.Environment.NewLine);
+
 
             strSql = strSql.RemoveNewlines(" ").BacktickQuotes(); // TODO: WHOA!  Super kludge for single quote escapes.  See "Grave accent" in idiosyncracies.
 

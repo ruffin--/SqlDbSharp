@@ -13,12 +13,6 @@
 
 ### VERSION 0.0.4.2: Nothing is guaranteed to work.  NOTHING.  Use at your own risk.
 
-### Major TODOs:
-1. Tests.
-2. Docs.
-3. Code review.
-4. ORs in WHERE clauses.
-
 ###Usage
 
 **Simple Usage**
@@ -42,6 +36,22 @@ Step 2: Use the code below *at your own risk*.
     DataTable dataTable = (DataTable)parser.executeCommand(sql);
     Console.WriteLine(InfrastructureUtils.dataTableToString(dataTable));
     parser.executeCommand("DROP TABLE TestTable;");
+
+
+###Mac OS X Notes
+SqlDb# as a library works fine on Xamarin.Mac or MonoMac. 
+
+**The Isql project**, however, does not echo content entered into a `Console.Read` or `.ReadLine()`, so you can't, for example, see what you're typing in as your SQL statement. I've [filed a bug](https://bugzilla.xamarin.com/show_bug.cgi?id=22262) with Xamarin, but it hasn't gotten much attention. That's somewhat understandable; I haven't been able to make a test case simpler than SqlDb#'s Isql project that exhibits this behavior.
+
+To avoid this echo issue when *developing SqlDb#* (not developing *against* or using; again, the library works fine) using MonoMac or Xamarin.Mac, please use the `MacUI` branch (which contains a native UI ISQL client), merge latest from the `master` branch, set `SqlDbSharpMacUI` as your startup project, and use that interface to run queries during development.
+
+<img src="http://rufwork.com/code/SqlDbSharp/MacIsql.png"><br>
+
+### Major TODOs:
+1. Tests.
+2. Docs.
+3. Code review.
+4. ORs in WHERE clauses.
 
 ---
 

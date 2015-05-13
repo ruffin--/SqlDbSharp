@@ -8,3 +8,5 @@ ISQL/bin/Debug/
 ISQL/obj/Debug/
 ISQL/bin/Release/
 ISQL/obj/Release/ISQL.csproj.FileListAbsolute.txt
+SqlDbSharpMacUI/bin
+SqlDbSharpMacUI/obj
