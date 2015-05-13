@@ -104,9 +104,9 @@ Fields pushed into dtReturn: {1}", strFromSelect, strInTable));
                     // TODO: There are better ways to do this.
                     // TODO: Figure out if this handles all fuzzy name translations
                     // earlier in the SELECT process.
-                    if (selectParts.lstrMainTableJoinONLYFields.Count() > 0)
+                    if (selectParts.lstrJoinONLYFields.Count() > 0)
                     {
-                        foreach (string colName in selectParts.lstrMainTableJoinONLYFields)
+                        foreach (string colName in selectParts.lstrJoinONLYFields)
                         {
                             dtReturn.Columns.Remove(colName);
                         }

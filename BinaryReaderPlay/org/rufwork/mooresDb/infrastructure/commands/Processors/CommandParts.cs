@@ -28,7 +28,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
 
         public Column[] acolInSelect;
         public Queue<string> qstrAllColumnNames = new Queue<string>();
-        public List<string> lstrMainTableJoinONLYFields = new List<string>();   // Sir Not Well Named in this Film.
+        public List<string> lstrJoinONLYFields = new List<string>();   // Sir Still Not Paricularly Well Named in this Film.
         public Dictionary<string, string> dictUpdateColVals = new Dictionary<string, string>();
         public Dictionary<string, string> dictFuzzyToColNameMappings = new Dictionary<string, string>();
         public Dictionary<string, string> dictRawNamesToASNames = new Dictionary<string, string>();
@@ -148,13 +148,35 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
                         // Keep track of the join fields so we can intelligently select but
                         // not display them if they are/aren't in the SELECT.
                         // Let's start with the bullheaded way.
+
+                        // The most natural place to find fields used to join "secondary
+                        // tables" (any table after the first in the FROM list) would
+                        // actually be in _processInnerJoin in SelectCommand, but this is
+                        // already spaghettied enough. So let's dupe some logic and do it
+                        // here.
+                        // TODO: Consider deciphering lists of tables and fields in a 
+                        // refactored CommandParts and removing that from SelectCommand, etc.
                         string strMainTableName = this.strFrom.Substring(4).Trim();
-                        string[] innerKludgeTokenized = this.strInnerJoinKludge.Split();
-                        foreach (string toke in innerKludgeTokenized)
+                        string[] innerKludgeTokenized = this.strInnerJoinKludge.StringToNonWhitespaceTokens2();
+                        Queue<string> qSecondaryTableNames = new Queue<string>();
+
+                        for (int i=0; i<innerKludgeTokenized.Length; i++)
                         {
+                            string toke = innerKludgeTokenized[i];
                             if (toke.ToUpper().StartsWith(strMainTableName.ToUpper()))
                             {
-                                this.lstrMainTableJoinONLYFields.Add(toke.ReplaceCaseInsensitiveFind(strMainTableName + ".", ""));
+                                this.lstrJoinONLYFields.Add(toke.ReplaceCaseInsensitiveFind(strMainTableName + ".", ""));
+                            }
+                            else if (qSecondaryTableNames.Any(s => toke.ToUpper().StartsWith(s.ToUpper() + ".")))   // TODO: this kinda suggests "." can't be in a table or column name either. Don't think we're checking that.
+                            {
+                                this.lstrJoinONLYFields.Add(toke);
+                            }
+
+                            // TODO: This makes JOIN a pretty hard keyword. I think that's safe, though.
+                            // If you want a table named JOIN, it'll have to be in brackets, right?
+                            if (toke.Equals("JOIN", StringComparison.CurrentCultureIgnoreCase))
+                            {
+                                qSecondaryTableNames.Enqueue(innerKludgeTokenized[i + 1]);
                             }
                         }
                     }
@@ -188,24 +210,39 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
                 // returning the DataTable.
                 // NOTE: I'm not taking into account fuzzily matching names, in part
                 // because I'm planning to remove that painful feature.
-                if (lstrCmdTokens.Contains("*"))
+                foreach (string strSelectCols in lstrCmdTokens)
                 {
-                    // If we're selecting everything from the main table,
-                    // no additional columns are needed.
-                    this.lstrMainTableJoinONLYFields = new List<string>();
-                }
-                else
-                {
-                    foreach (string strMainTableCol in lstrCmdTokens.Where(s => !s.Contains(".") && !s.Contains("*")))
+                    if (strSelectCols.Equals("*"))
                     {
-                        if (this.lstrMainTableJoinONLYFields.Contains(strMainTableCol))
+                        if (1 == lstrJoinONLYFields.Count())
                         {
-                            this.lstrMainTableJoinONLYFields.Remove(strMainTableCol);
+                            // If we're selecting * from everything, then there are no 
+                            // join-only fields/columns.
+                            this.lstrJoinONLYFields = new List<string>();
                         }
+                        else
+                        {
+                            // Else we're selecting everything from the main table.
+                            this.lstrJoinONLYFields.RemoveAll(s => !s.Contains("."));
+                        }
+                    }
+                    else if (strSelectCols.Contains("*"))
+                    {
+                        // Find what table we're removing jive from, then find all cols
+                        // that start with that prefix.
+                        // TODO: Double check if we every drop requirement to prefix join
+                        // columns with table names, though I don't think we will.
+                        // TODO: This all goes to heck when we alias JOIN table names. Idiot.
+                        string str2ndaryTable = strSelectCols.ReplaceCaseInsensitiveFind(".*", "");
+                        this.lstrJoinONLYFields.RemoveAll(s => s.StartsWith(str2ndaryTable + "."));
+                    }
+                    else if (this.lstrJoinONLYFields.Contains(strSelectCols))
+                    {
+                        this.lstrJoinONLYFields.Remove(strSelectCols);
                     }
                 }
 
-                foreach (string strJoinColName in this.lstrMainTableJoinONLYFields)
+                foreach (string strJoinColName in this.lstrJoinONLYFields)
                 {
                     lstrCmdTokens.Add(strJoinColName);
                 }
