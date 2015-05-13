@@ -210,11 +210,14 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
                 // returning the DataTable.
                 // NOTE: I'm not taking into account fuzzily matching names, in part
                 // because I'm planning to remove that painful feature.
-                foreach (string strSelectCols in lstrCmdTokens)
+                // TODO: I don't think you're really paying attention to aliased columns
+                // either, though it might not matter in this case. Still, pay more
+                // attention to AS'd columns in case I've missed something.
+                foreach (string strSelectCols in lstrCmdTokens.Where(s => !s.ToUpper().Equals("AS")))
                 {
                     if (strSelectCols.Equals("*"))
                     {
-                        if (1 == lstrJoinONLYFields.Count())
+                        if (1 == lstrCmdTokens.Count())
                         {
                             // If we're selecting * from everything, then there are no 
                             // join-only fields/columns.
