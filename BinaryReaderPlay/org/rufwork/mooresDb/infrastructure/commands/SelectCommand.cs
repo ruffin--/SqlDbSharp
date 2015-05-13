@@ -65,11 +65,15 @@ namespace org.rufwork.mooresDb.infrastructure.commands
 
             WhereProcessor.ProcessRows(ref dtReturn, _table, selectParts);
 
+
+            //=====================================================================
+            // POST-PROCESS INNER JOINS
             // (Joins are only in selects, so this isn't part of WhereProcessing.)
             //
             // To take account of joins, we basically need to create a SelectParts
             // per inner join.  So we need to create a WHERE from the table we 
             // just selected and then send those values down to a new _selectRows.
+            //=====================================================================
             if (selectParts.strInnerJoinKludge.Length > 0)
             {
                 if (selectParts.qInnerJoinFields.Count < 1)
@@ -96,12 +100,27 @@ Fields pushed into dtReturn: {1}", strFromSelect, strInTable));
                     {
                         dtReturn.Columns[astrFromSelect[i]].SetOrdinal(i);
                     }
+
+                    // TODO: There are better ways to do this.
+                    // TODO: Figure out if this handles all fuzzy name translations
+                    // earlier in the SELECT process.
+                    if (selectParts.lstrMainTableJoinONLYFields.Count() > 0)
+                    {
+                        foreach (string colName in selectParts.lstrMainTableJoinONLYFields)
+                        {
+                            dtReturn.Columns.Remove(colName);
+                        }
+                    }
                 }
                 catch (Exception e)
                 {
                     throw new SyntaxException("Problem reordering columns in inner join -- " + e.ToString());
                 }
             }
+            //=====================================================================
+            // EO POST-PROCESS INNER JOINS
+            //=====================================================================
+
 
             // strOrderBy has had all whitespace shortened to one space, so we can get away with the hardcoded 9.
             if (null != selectParts.strOrderBy && selectParts.strOrderBy.Length > 9)

@@ -198,7 +198,7 @@ SqlDbSharp.config, placed in this folder:
 
                                     if (objResult is DataTable)
                                     {
-                                        Console.WriteLine(InfrastructureUtils.dataTableToString((DataTable)objResult, intWindowWidth));
+                                        Console.WriteLine(InfrastructureUtils.dataTableToString((DataTable)objResult, intWindowWidth-1));
                                     }
                                     else if (objResult is string)
                                     {

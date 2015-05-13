@@ -6,6 +6,7 @@ using System.Text;
 using org.rufwork.mooresDb.infrastructure.contexts;
 using org.rufwork.mooresDb.infrastructure.tableParts;
 using org.rufwork.extensions;
+using org.rufwork.mooresDb.exceptions;
 
 namespace org.rufwork.mooresDb.infrastructure.commands.Processors
 {
@@ -27,6 +28,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
 
         public Column[] acolInSelect;
         public Queue<string> qstrAllColumnNames = new Queue<string>();
+        public List<string> lstrMainTableJoinONLYFields = new List<string>();   // Sir Not Well Named in this Film.
         public Dictionary<string, string> dictUpdateColVals = new Dictionary<string, string>();
         public Dictionary<string, string> dictFuzzyToColNameMappings = new Dictionary<string, string>();
         public Dictionary<string, string> dictRawNamesToASNames = new Dictionary<string, string>();
@@ -133,7 +135,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
                 this.strFrom = strSql.Substring(intIndexOf, intTail - intIndexOf);
 
                 // Look for inner join.
-                // TODO: Another reserved word that we don't really want a table to be named ("join").
+                // TODO: Another reserved word that we don't really want a table to be named: ("join").
                 this.strInnerJoinKludge = "";
                 if (this.strFrom.IndexOf(" join ", StringComparison.CurrentCultureIgnoreCase) > -1)
                 {
@@ -143,8 +145,22 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
                         this.strInnerJoinKludge = this.strFrom.Substring(intInnerJoin);
                         this.strFrom = this.strFrom.Substring(0, intInnerJoin);
 
-                        // TODO: Check the WHERE clause to see if anything belongs to the JOIN.
-                        //do that ^^^
+                        // Keep track of the join fields so we can intelligently select but
+                        // not display them if they are/aren't in the SELECT.
+                        // Let's start with the bullheaded way.
+                        string strMainTableName = this.strFrom.Substring(4).Trim();
+                        string[] innerKludgeTokenized = this.strInnerJoinKludge.Split();
+                        foreach (string toke in innerKludgeTokenized)
+                        {
+                            if (toke.ToUpper().StartsWith(strMainTableName.ToUpper()))
+                            {
+                                this.lstrMainTableJoinONLYFields.Add(toke.ReplaceCaseInsensitiveFind(strMainTableName + ".", ""));
+                            }
+                        }
+                    }
+                    else
+                    {
+                        throw new SyntaxException("Statement includes `join` keyword. Currently, only inner joins are supported.");
                     }
                 }
 
@@ -163,7 +179,38 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
         private void _getColumnsToReturn()
         {
             Queue<Column> qCols = new Queue<Column>();
-            string[] astrCmdTokens = this.strSelect.StringToNonWhitespaceTokens2().Skip(1).ToArray();   // Skip 1 to ignore SELECT.
+            List<string> lstrCmdTokens = this.strSelect.StringToNonWhitespaceTokens2().Skip(1).ToList();   // Skip 1 to ignore SELECT.
+
+            if (!string.IsNullOrEmpty(this.strInnerJoinKludge))
+            {
+                // TODO: Clean this kludge to get in INNER JOIN fields into datatable
+                // while selecting, but to remove these once we're done before
+                // returning the DataTable.
+                // NOTE: I'm not taking into account fuzzily matching names, in part
+                // because I'm planning to remove that painful feature.
+                if (lstrCmdTokens.Contains("*"))
+                {
+                    // If we're selecting everything from the main table,
+                    // no additional columns are needed.
+                    this.lstrMainTableJoinONLYFields = new List<string>();
+                }
+                else
+                {
+                    foreach (string strMainTableCol in lstrCmdTokens.Where(s => !s.Contains(".") && !s.Contains("*")))
+                    {
+                        if (this.lstrMainTableJoinONLYFields.Contains(strMainTableCol))
+                        {
+                            this.lstrMainTableJoinONLYFields.Remove(strMainTableCol);
+                        }
+                    }
+                }
+
+                foreach (string strJoinColName in this.lstrMainTableJoinONLYFields)
+                {
+                    lstrCmdTokens.Add(strJoinColName);
+                }
+            }   // end kludge for grafting main table join fields not explicitly in SELECT list.
+            string[] astrCmdTokens = lstrCmdTokens.ToArray();
 
             for (int i = 0; i < astrCmdTokens.Length; i++)
             {
