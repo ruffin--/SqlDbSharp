@@ -259,7 +259,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
                 //      of a certain table.
                 if (!astrCmdTokens[i].EndsWith("*"))
                 {
-                    qstrAllColumnNames.Enqueue(astrCmdTokens[i]);
+                    qstrAllColumnNames.EnqueueIfNotContainsCaseInsensitive(astrCmdTokens[i]);
 
                     #region doesn't end with *
                     if (astrCmdTokens[i].Contains('.'))
