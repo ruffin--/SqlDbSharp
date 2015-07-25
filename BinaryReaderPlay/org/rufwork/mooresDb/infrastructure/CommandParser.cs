@@ -69,12 +69,13 @@ namespace org.rufwork.mooresDb.infrastructure
 
             strSql = strSql.RemoveNewlines(" ").BacktickQuotes(); // TODO: WHOA!  Super kludge for single quote escapes.  See "Grave accent" in idiosyncracies.
 
-            // TODO: This is assuming a single command.  Add splits by semi-colon.
-            if (!strSql.Trim().EndsWith(";"))
-            {
-                throw new Exception("Unterminated command.");
-            }
+            // Sorry, I got tired of forgetting this.
+            //if (!strSql.Trim().EndsWith(";"))
+            //{
+            //    throw new Exception("Unterminated command.");
+            //}
 
+            // TODO: This is assuming a single command.  Add splits by semi-colon.
             strSql = strSql.TrimEnd(';');
 
             string[] astrCmdTokens = strSql.StringToNonWhitespaceTokens2();    // TODO: We're almost always immediately doing this again in the executeStatements.

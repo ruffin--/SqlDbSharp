@@ -64,7 +64,7 @@ namespace org.rufwork.mooresDb.infrastructure.serializers
             }
             if (4 < this.colRelated.intColLength)
             {
-                throw new Exception("INT column length is hard-coded to a max of four.");
+                throw new Exception("INT column length is hard-coded to a max of four bytes.");
             }
             else
             {
