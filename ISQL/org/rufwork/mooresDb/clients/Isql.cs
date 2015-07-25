@@ -19,6 +19,15 @@ namespace org.rufwork.mooresDb.clients
 {
     class Isql
     {
+		public static bool IsLinux
+		{
+			get
+			{
+				int p = (int) Environment.OSVersion.Platform;
+				return (p == 4) || (p == 6) || (p == 128);
+			}
+		}
+
         static void Main(string[] args)
         {
             string strInput = "";
@@ -38,7 +47,11 @@ namespace org.rufwork.mooresDb.clients
 
             DatabaseContext dbTemp = null;
 
-            Console.SetIn(new StreamReader(Console.OpenStandardInput(4096)));
+			if (!IsLinux)
+			{
+				Console.SetIn (new StreamReader (Console.OpenStandardInput (4096)));
+			}
+
             Console.WriteLine(@"SqlDb# ISQL client. 
 SqlDb# version: " + MainClass.version + @"
 
