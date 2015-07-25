@@ -11,3 +11,6 @@ ISQL/obj/Release/ISQL.csproj.FileListAbsolute.txt
 SqlDbSharpMacUI/bin
 SqlDbSharpMacUI/obj
 *.userprefs
+packages/*
+**/bin/*
+**/obj/*
