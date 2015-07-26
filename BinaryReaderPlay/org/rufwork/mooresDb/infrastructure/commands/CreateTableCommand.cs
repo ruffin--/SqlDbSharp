@@ -24,14 +24,14 @@ namespace org.rufwork.mooresDb.infrastructure.commands
     {
         private DatabaseContext _database;
         private TableContext _table;
-        private string _strDbLoc;
+        //private string _strDbLoc;
         private List<byte> _lstByteDataTypeRow = new List<byte>();
         private List<byte> _lstByteColNames = new List<byte>();
 
         public CreateTableCommand (DatabaseContext database)
         {
             _database = database;
-            _strDbLoc = _database.strDbLoc;
+            //_strDbLoc = _database.strDbLoc;
         }
 
         /// <summary>

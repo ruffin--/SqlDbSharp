@@ -142,7 +142,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
                                         foreach (Column mCol in table.getColumns())
                                         {
                                             Column colToPullValueFrom = null;
-                                            string strUpdateValueModifier = string.Empty;
+                                            //string strUpdateValueModifier = string.Empty;
 
                                             if (dictLaunderedUpdateVals.ContainsKey(mCol.strColName))
                                             {

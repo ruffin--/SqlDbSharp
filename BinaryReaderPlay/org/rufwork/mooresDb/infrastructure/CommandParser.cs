@@ -22,7 +22,7 @@ namespace org.rufwork.mooresDb.infrastructure
         //string strDatabaseLoc = null;
         private DatabaseContext _database;
         private bool _logSql = false;
-        private string _logLoc = string.Empty;
+        //private string _logLoc = string.Empty;
 
         // TODO: So, obviously, make a base ICommand or CommandBase that everything can implement/extend.
         // ????: What's the advantage of scoping these at object level, anyhow?  <<< What he said.  For now, lemming it up, boah.
