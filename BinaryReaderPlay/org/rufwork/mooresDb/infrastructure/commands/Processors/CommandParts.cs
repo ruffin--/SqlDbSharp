@@ -203,6 +203,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
             Queue<Column> qCols = new Queue<Column>();
             List<string> lstrCmdTokens = this.strSelect.StringToNonWhitespaceTokens2().Skip(1).ToList();   // Skip 1 to ignore SELECT.
 
+            #region INNER JOIN logic.
             if (!string.IsNullOrEmpty(this.strInnerJoinKludge))
             {
                 // TODO: Clean this kludge to get in INNER JOIN fields into datatable
@@ -250,6 +251,8 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
                     lstrCmdTokens.Add(strJoinColName);
                 }
             }   // end kludge for grafting main table join fields not explicitly in SELECT list.
+            #endregion INNER JOIN logic.
+
             string[] astrCmdTokens = lstrCmdTokens.ToArray();
 
             for (int i = 0; i < astrCmdTokens.Length; i++)
