@@ -114,9 +114,19 @@ namespace org.rufwork.mooresDb.infrastructure
                     break;
 
                 case "create":
-                    _createTableCommand = new CreateTableCommand(_database);
-                    _createTableCommand.executeStatement(strSql);
-                    objReturn = "Table created.";
+                    switch (astrCmdTokens[1].ToLower())
+                    {
+                        case "table":
+                            _createTableCommand = new CreateTableCommand(_database);
+                            objReturn = _createTableCommand.executeStatement(strSql);
+                            break;
+
+                        case "index":
+                            CreateIndexCommand createIndexCommand = new CreateIndexCommand(_database);
+                            objReturn = createIndexCommand.executeStatement(strSql);
+                            break;
+                    }
+                    
                     break;
 
                 case "drop":
