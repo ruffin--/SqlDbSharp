@@ -63,6 +63,7 @@
     <Compile Include="org\rufwork\mooresDb\infrastructure\commands\Processors\WhereProcessor.cs" />
     <Compile Include="org\rufwork\mooresDb\infrastructure\commands\SelectCommand.cs" />
     <Compile Include="org\rufwork\mooresDb\infrastructure\commands\SelectMaxCommand.cs" />
+    <Compile Include="org\rufwork\mooresDb\infrastructure\commands\SelectTopCommand.cs" />
     <Compile Include="org\rufwork\mooresDb\infrastructure\commands\UpdateCommand.cs" />
     <Compile Include="org\rufwork\mooresDb\infrastructure\Comparison.cs" />
     <Compile Include="org\rufwork\mooresDb\infrastructure\InfrastructureUtils.cs" />

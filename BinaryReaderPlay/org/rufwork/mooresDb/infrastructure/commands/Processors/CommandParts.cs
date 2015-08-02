@@ -21,6 +21,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
         public string strFrom;
         public string strWhere;
         public string strOrderBy;
+        public string strLimit;
         public string strInnerJoinKludge;
         public Queue<string> qInnerJoinFields = new Queue<string>();
 
@@ -114,7 +115,16 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
                 throw new Exception("Invalid SELECT statement");
             }
 
-            intIndexOf = strSql.IndexOf("ORDER BY", StringComparison.CurrentCultureIgnoreCase);
+            // TODO: Need some way to be sure what we're not false hitting
+            // on a table named NOLIMITHOLDEM or whatever.
+            intIndexOf = strSql.LastIndexOf("LIMIT", StringComparison.CurrentCultureIgnoreCase);
+            if (-1 < intIndexOf)
+            {
+                this.strLimit = strSql.Substring(intIndexOf, intTail - intIndexOf);
+                intTail = intIndexOf;
+            }
+
+            intIndexOf = strSql.LastIndexOf("ORDER BY", StringComparison.CurrentCultureIgnoreCase);
             if (-1 < intIndexOf)
             {
                 this.strOrderBy = strSql.Substring(intIndexOf, intTail - intIndexOf);
