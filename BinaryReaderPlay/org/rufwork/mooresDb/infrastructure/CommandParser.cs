@@ -99,11 +99,6 @@ namespace org.rufwork.mooresDb.infrastructure
                             objReturn = selectMaxCmd.executeStatement(strSql);
                             break;
 
-                        case "top":
-                            SelectTopCommand selectTopCmd = new SelectTopCommand(_database);
-                            objReturn = selectTopCmd.executeStatement(strSql);
-                            break;
-
                         default:
                             _selectCommand = new SelectCommand(_database);
                             objReturn = _selectCommand.executeStatement(strSql);

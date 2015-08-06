@@ -120,15 +120,14 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
             intIndexOf = strSql.LastIndexOf("LIMIT", StringComparison.CurrentCultureIgnoreCase);
             if (-1 < intIndexOf)
             {
-                this.strLimit = strSql.Substring(intIndexOf, intTail - intIndexOf);
+                this.strLimit = strSql.Substring(intIndexOf, intTail - intIndexOf).FlattenWhitespace();
                 intTail = intIndexOf;
             }
 
             intIndexOf = strSql.LastIndexOf("ORDER BY", StringComparison.CurrentCultureIgnoreCase);
             if (-1 < intIndexOf)
             {
-                this.strOrderBy = strSql.Substring(intIndexOf, intTail - intIndexOf);
-                this.strOrderBy = System.Text.RegularExpressions.Regex.Replace(this.strOrderBy, @"[\s\n]+", " ");   // flatten whitespace to a single space.
+                this.strOrderBy = strSql.Substring(intIndexOf, intTail - intIndexOf).FlattenWhitespace();
                 intTail = intIndexOf;
             }
 
