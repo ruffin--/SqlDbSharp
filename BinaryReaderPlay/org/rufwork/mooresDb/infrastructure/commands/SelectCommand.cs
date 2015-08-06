@@ -64,29 +64,6 @@ namespace org.rufwork.mooresDb.infrastructure.commands
             dtReturn = _initDataTable(selectParts);
 
             WhereProcessor.ProcessRows(ref dtReturn, _table, selectParts);
-            // TODO: This is kind of cheesy and inefficient. Move real logic
-            // that skips and takes without grabbing everything into the
-            // WhereProcessor.
-            if (!String.IsNullOrWhiteSpace(selectParts.strLimit))
-            {
-                string strAfterLimit = selectParts.strLimit.Substring("LIMIT ".Length);
-                string strTake = strAfterLimit;
-                int intSkip = 0;
-                int intTake;
-
-                if (strAfterLimit.Contains(","))
-                {
-                    string[] astrSkipTake = strAfterLimit.Split(',');
-                    if (!int.TryParse(astrSkipTake[0], out intSkip))
-                        throw new Exception("Illegal LIMIT clause: " + selectParts.strLimit);
-                    strTake = astrSkipTake[1];
-                }
-
-                if (int.TryParse(strTake, out intTake))
-                    dtReturn = dtReturn.SkipTakeToTable(intSkip, intTake);
-                else
-                    throw new Exception("Illegal LIMIT clause: " + selectParts.strLimit);
-            }
 
             //=====================================================================
             // POST-PROCESS INNER JOINS
@@ -205,6 +182,30 @@ Fields pushed into dtReturn: {1}", strFromSelect, strInTable));
                     throw new SyntaxException("Illegal AS usage: " + e.ToString());
                 }
                 
+            }
+
+            // TODO: This is kind of cheesy and inefficient. Move real logic
+            // that skips and takes without grabbing everything into the
+            // WhereProcessor.
+            if (!String.IsNullOrWhiteSpace(selectParts.strLimit))
+            {
+                string strAfterLimit = selectParts.strLimit.Substring("LIMIT ".Length);
+                string strTake = strAfterLimit;
+                int intSkip = 0;
+                int intTake;
+
+                if (strAfterLimit.Contains(","))
+                {
+                    string[] astrSkipTake = strAfterLimit.Split(',');
+                    if (!int.TryParse(astrSkipTake[0], out intSkip))
+                        throw new Exception("Illegal LIMIT clause: " + selectParts.strLimit);
+                    strTake = astrSkipTake[1];
+                }
+
+                if (int.TryParse(strTake, out intTake))
+                    dtReturn = dtReturn.SkipTakeToTable(intSkip, intTake);
+                else
+                    throw new Exception("Illegal LIMIT clause: " + selectParts.strLimit);
             }
 
             return dtReturn;
