@@ -200,7 +200,7 @@ SqlDbSharp.config, placed in this folder:
                                     {
                                         Console.WriteLine(InfrastructureUtils.dataTableToString((DataTable)objResult, intWindowWidth-1));
                                     }
-                                    else if (objResult is string)
+                                    else if (objResult is string || objResult is int)
                                     {
                                         Console.WriteLine(objResult.ToString());
                                     }

@@ -35,8 +35,9 @@ namespace org.rufwork.mooresDb.infrastructure.commands
         }
 
         // TODO: Create Command interface
-        public DataTable executeStatement(string strSql)
+        public object executeStatement(string strSql)
         {
+            object objReturn = null;
             DataTable dtReturn = new DataTable();
 
             // TODO: Think how to track multiple tables/TableContexts
@@ -184,9 +185,30 @@ Fields pushed into dtReturn: {1}", strFromSelect, strInTable));
                 
             }
 
+            if (selectParts.dictFnsAndFields.Count() > 0)
+            {
+                foreach (KeyValuePair<string, string> kvp in selectParts.dictFnsAndFields)
+                {
+                    switch (kvp.Key)
+                    {
+                        case "COUNT":
+                            if (kvp.Value.Trim().Equals("*"))
+                            {
+                                objReturn = dtReturn.Rows.Count;
+                            }
+                            break;
+
+                        default:
+                            throw new SyntaxException("Unhandled function type: " + kvp.Key);
+                    }
+                }
+            }
+
             // TODO: This is kind of cheesy and inefficient. Move real logic
             // that skips and takes without grabbing everything into the
             // WhereProcessor.
+            // Note also that this works with the dictFnsAndFields stuff because
+            // you shouldn't have LIMIT with MAX or COUNT.
             if (!String.IsNullOrWhiteSpace(selectParts.strLimit))
             {
                 string strAfterLimit = selectParts.strLimit.Substring("LIMIT ".Length);
@@ -208,7 +230,8 @@ Fields pushed into dtReturn: {1}", strFromSelect, strInTable));
                     throw new Exception("Illegal LIMIT clause: " + selectParts.strLimit);
             }
 
-            return dtReturn;
+            objReturn = objReturn.Equals(null) ? dtReturn : objReturn;
+            return objReturn;
         }
 
         private DataTable _processInnerJoin(Queue<TableContext> qAllTables, DataTable dtReturn, string strJoinText,

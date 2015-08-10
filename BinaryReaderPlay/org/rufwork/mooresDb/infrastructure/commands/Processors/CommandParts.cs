@@ -7,10 +7,11 @@ using org.rufwork.mooresDb.infrastructure.contexts;
 using org.rufwork.mooresDb.infrastructure.tableParts;
 using org.rufwork.extensions;
 using org.rufwork.mooresDb.exceptions;
+using com.rufwork.utils;
 
 namespace org.rufwork.mooresDb.infrastructure.commands.Processors
 {
-    // convenience class to hold different parts of the SELECT
+    // Convenience class to hold different parts of the SELECT
     // statement's text.
     public class CommandParts
     {
@@ -24,6 +25,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
         public string strLimit;
         public string strInnerJoinKludge;
         public Queue<string> qInnerJoinFields = new Queue<string>();
+        public Dictionary<string, string> dictFnsAndFields = new Dictionary<string, string>();
 
         public string strTableName; // TODO: Ob need to go to a collection of some sort
 
@@ -52,6 +54,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
             {
                 case COMMAND_TYPES.SELECT:
                     _parseSelectStatement(strSql);
+                    _findSelectFunctionCalls();
                     _getColumnsToReturn();
                     break;
 
@@ -207,9 +210,40 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
             this.strSelect = strSql.Substring(0, intTail);
         }
 
+        // TODO: IF you keep this convention, you need to kick out errors if 
+        // the function "abbreviations" are in the original SQL.
+        private void _findSelectFunctionCalls()
+        {
+            try
+            {
+                string[] functionNames = { "MAX", "COUNT" };
+                foreach (string strFn in functionNames)
+                {
+                    string strFnParens = strFn + "(";
+                    if (this.strSelect.ToUpper().Contains(strFnParens))
+                    {
+                        int intFnLoc = this.strSelect.IndexOf(strFnParens, StringComparison.CurrentCultureIgnoreCase);
+                        string before = this.strSelect.Substring(0, intFnLoc);
+                        int intOpenParen = intFnLoc + strFnParens.Length;
+                        int intCloseParen = this.strSelect.IndexOf(')', intFnLoc);
+                        string after = this.strSelect.Substring(intCloseParen).TrimStart(')');
+                        string middle = this.strSelect.Substring(intOpenParen, intCloseParen - intOpenParen);
+
+                        this.dictFnsAndFields.Add(strFn, middle);
+                        this.strSelect = before + middle + after;
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                ErrHand.LogErr(e, "_findFunctionCalls", "Illegal function call: " + this.strSelect);
+            }
+        }
+
         private void _getColumnsToReturn()
         {
             Queue<Column> qCols = new Queue<Column>();
+
             List<string> lstrCmdTokens = this.strSelect.StringToNonWhitespaceTokens2().Skip(1).ToList();   // Skip 1 to ignore SELECT.
 
             #region INNER JOIN logic.
