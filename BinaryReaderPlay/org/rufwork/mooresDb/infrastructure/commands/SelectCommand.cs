@@ -230,7 +230,7 @@ Fields pushed into dtReturn: {1}", strFromSelect, strInTable));
                     throw new Exception("Illegal LIMIT clause: " + selectParts.strLimit);
             }
 
-            objReturn = objReturn.Equals(null) ? dtReturn : objReturn;
+            objReturn = null == objReturn ? dtReturn : objReturn;
             return objReturn;
         }
 

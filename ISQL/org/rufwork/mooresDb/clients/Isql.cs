@@ -14,6 +14,7 @@ using System.IO;
 using org.rufwork.extensions;
 using org.rufwork.mooresDb.infrastructure;
 using org.rufwork.mooresDb.infrastructure.contexts;
+using com.rufwork.utils;
 
 namespace org.rufwork.mooresDb.clients
 {
@@ -191,10 +192,11 @@ SqlDbSharp.config, placed in this folder:
                             }
                             else
                             {
+                                object objResult = null;
                                 try
                                 {
                                     CommandParser parser = new CommandParser(dbTemp);
-                                    object objResult = parser.executeCommand(strCmd);
+                                    objResult = parser.executeCommand(strCmd);
 
                                     if (objResult is DataTable)
                                     {
@@ -219,7 +221,7 @@ SqlDbSharp.config, placed in this folder:
                                 }
                                 catch (Exception e)
                                 {
-                                    Console.WriteLine("Error executing statement.\n\t" + e.Message);
+                                    ErrHand.LogErr(e, "Isql.Main", objResult.GetType().ToString());
                                 }
 
                             }
