@@ -103,6 +103,9 @@ namespace org.rufwork.mooresDb.infrastructure.contexts
                 this.strDbLoc = strDbLoc;
                 _dictTables = new Dictionary<string, TableContext>();   // blank whatever was in there before.
 
+                // TODO: Check for "lone" "*.mdbi" files without mdbf.
+                // That is, if there's an index without a main database file, delete
+                // the index.
                 string[] astrTableName = Directory.GetFiles(strDbLoc, "*.mdbf");
                 for (i = 0; i < astrTableName.Length; i++)
                 {
