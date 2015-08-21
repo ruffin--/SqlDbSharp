@@ -68,7 +68,7 @@ The [master branch](https://github.com/ruffin--/SqlDbSharp/tree/master) should c
 
 ### Warnings!
 
-SqlDb# is a minimally viable product.  It does not currently support the creation of keys, constraints, searching with LIKE and "%" wildcards, NOTs, JOINs beyond the simplest INNER JOINs, INSERTING more than one row in a single statement, any in-database functions (like CONCAT or MAX), TRIGGERs, OR in a WHERE clause (though IN works), SELECT INTO, or many datatypes.  **SqlDb# is surprisingly idiosyncratic.**  Please read through the [Idiosyncracies.md](https://github.com/ruffin--/SqlDbSharp/blob/master/docs/idiosyncrasies.md) file in the docs folder.
+SqlDb# is a minimally viable product.  It does not currently support the creation of keys, constraints, NOTs, JOINs beyond the simplest INNER JOINs, INSERTING more than one row in a single statement, many in-database functions (like CONCAT), TRIGGERs, OR in a WHERE clause (though IN works), SELECT INTO, or many datatypes.  **SqlDb# is surprisingly idiosyncratic.**  Please read through the [Idiosyncracies.md](https://github.com/ruffin--/SqlDbSharp/blob/master/docs/idiosyncrasies.md) file in the docs folder.
 
 Though its internal structure is designed to make it easy to visualize tables as raw hexadecimal values, the same structure makes column naming, well, strange.  Please read the documentation about "fuzzy" naming closely.  Additionally, some seemingly legitimate column lengths are not allowed.  **The previous paragraph may have undersold the project's [idiosyncrasies](https://github.com/ruffin--/SqlDbSharp/blob/master/docs/idiosyncrasies.md).**
 
@@ -93,7 +93,7 @@ This package is offered under the [Mozilla Public License (MPL)](http://mozilla.
 
 ### Utilities?
 
-As stated before, SqlDb#'s internal structure is designed to make it easy to visualize tables as raw hexadecimal values.  A very simple reader/visualizer is included in the SqlDb# repository or can be downloaded separately for [Windows](http://rufwork.com/code/SqlDbSharp/HexReader.zip) or <a style="color:orange" href="http://rufwork.com/code/SqlDbSharp/HexReaderMac.zip">Mac</a>. Mac version requires Mono, run the following from the command line: `mono HexReader.exe`
+As stated before, SqlDb#'s internal structure is designed to make it easy to visualize tables as raw hexadecimal values.  A very simple reader/visualizer is included in the SqlDb# repository or can be downloaded separately for [Windows](http://rufwork.com/code/SqlDbSharp/HexReader.zip) or <a style="color:orange" href="http://rufwork.com/code/SqlDbSharp/HexReaderMac.zip">Mac</a>. Mac version requires Mono; run the following from the command line: `mono HexReader.exe`
 
 <img src="http://rufwork.com/code/SqlDbSharp/HexReaderScreenshot.png"><br>
 

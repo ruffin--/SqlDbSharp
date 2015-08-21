@@ -273,21 +273,31 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
         /// Takes in a row's worth of bytes in a byte array and sees
         /// if the row's proper value matches the active comparison.
         /// </summary>
-        /// <returns></returns>
+        /// <param name="comparison">The comparison information being evaluated.</param>
+        /// <param name="abytRow">The raw bytes to the row being compared to the Comparison object's values.</param>
+        /// <returns>True if the row's column matches the comparison type in the Comparison object, and false otherwise.</returns>
         private static bool _ComparisonEngine(Comparison comparison, byte[] abytRow)
         {
             byte[] abytRowValue = new byte[comparison.colRelated.intColLength];
             Array.Copy(abytRow, comparison.colRelated.intColStart, abytRowValue, 0, comparison.colRelated.intColLength);
+            COMPARISON_TYPE? valueRelationship = null;
+            BaseSerializer serializer = Router.routeMe(comparison.colRelated);
 
-            // TODO: This is ugly.  Having CompareByteArrays on the serializers is ungainly at best.  Just not sure where else to put it.
-            COMPARISON_TYPE? valueRelationship = Router.routeMe(comparison.colRelated).CompareBytesToVal(abytRowValue, comparison.objParsedValue);
-
-            if (null == valueRelationship)
+            // TODO: Compounding the ugliness, we're going to shunt off CHAR LIKE comparisons
+            // here. It was going to be tough to shoehorn into CompareBytesToVal, as you could be
+            // LIKE *and* greater than, LIKE *and* less than, LIKE *and* equal, etc.
+            // I'm going to let it blow up if the Serializer doesn't support a "CompareBytesToLikeVal"
+            if (comparison.comparisonType == COMPARISON_TYPE.LIKE)
             {
-                throw new Exception("Invalid value comparison in SELECT");
+                valueRelationship = ((CharSerializer)serializer).CompareBytesToLikeVal(abytRowValue, comparison.objParsedValue);
+            }
+            else
+            {
+                // TODO: This is ugly.  Having CompareByteArrays on the serializers is ungainly at best.  Just not sure where else to put it.
+                valueRelationship = serializer.CompareBytesToVal(abytRowValue, comparison.objParsedValue);
             }
 
-            return valueRelationship == comparison.comparisonType;
+            return null != valueRelationship && valueRelationship.Value == comparison.comparisonType;
         }
 
 #region whereToComparisons

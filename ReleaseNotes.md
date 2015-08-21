@@ -1,6 +1,15 @@
 #Release notes:
 <br>
 
+##0.0.4.4 - 20150814
+
+* Added MAX
+* WHERE clauses now support LIKE
+* LIMIT clauses supported
+* CREATE INDEX happens now, though nothing's done with them yet.
+* Bug fixes
+
+
 ##0.0.4.3 - 20150513
 
 * Fields from "main" table not explicitly mentioned in the SELECT are no longer returned by INNER JOINs that require them.
