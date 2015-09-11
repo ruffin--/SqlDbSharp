@@ -55,6 +55,15 @@ namespace org.rufwork.mooresDb.infrastructure.tableParts
             }
         }
 
+        public Column() { }
+
+        public Column(string name, COLUMN_TYPES colType, int intColStart, int intColLength)
+        {
+            this.strColName = name;
+            this.intColStart = intColStart;
+            this.intColLength = intColLength;
+        }
+
         public static bool IsSingleByteType(COLUMN_TYPES colType)
         {
             COLUMN_TYPES[] asingleByteTypes = new COLUMN_TYPES[] { 

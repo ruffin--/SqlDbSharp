@@ -4,12 +4,13 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 // ======================== EO LICENSE ===============================
 
-using org.rufwork.mooresDb.infrastructure.tableParts;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 
+using org.rufwork.mooresDb.infrastructure.tableParts;
 using org.rufwork.utils;
 
 namespace org.rufwork.mooresDb.infrastructure.serializers
@@ -36,6 +37,48 @@ namespace org.rufwork.mooresDb.infrastructure.serializers
             }
 
             comparisonOutcome = this.CompareByteArrays(abytValFromDB, this.toByteArray(objNative.ToString()));
+
+            return comparisonOutcome;
+        }
+
+        public COMPARISON_TYPE? CompareBytesToLikeVal(byte[] abytValFromDB, object objNative)
+        {
+            COMPARISON_TYPE? comparisonOutcome = null;
+
+            if (objNative.GetType() != typeof(String))
+            {
+                throw new Exception("Unexpected value to compare against a CHAR type column: " + objNative.GetType());
+            }
+
+            string strLike = objNative.ToString();
+            string strOrig = (string)this.toNative(abytValFromDB);
+
+            bool isMatch = false;
+
+            if (null == strOrig || null == strLike)
+            {
+                isMatch = false;
+            }
+            else
+            {
+                string strSub = "HGGH";
+                while (strOrig.Contains(strSub))
+                {
+                    strSub += "HGGH";
+                }
+                string strSearch = Regex.Escape(strLike).Replace("%%", strSub);
+                strSearch = strSearch.Replace("%", ".*").Replace(strSub, "%");
+                strSearch = "^" + strSearch + "$";
+
+                Regex regex = new Regex(strSearch, RegexOptions.IgnoreCase);
+                Match match = regex.Match(strOrig);
+                isMatch = match.Success;
+            }
+
+            if (isMatch)
+            {
+                comparisonOutcome = COMPARISON_TYPE.LIKE;
+            }
 
             return comparisonOutcome;
         }

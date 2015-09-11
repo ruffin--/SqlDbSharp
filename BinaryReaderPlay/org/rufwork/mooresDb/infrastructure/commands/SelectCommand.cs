@@ -35,8 +35,9 @@ namespace org.rufwork.mooresDb.infrastructure.commands
         }
 
         // TODO: Create Command interface
-        public DataTable executeStatement(string strSql)
+        public object executeStatement(string strSql)
         {
+            object objReturn = null;
             DataTable dtReturn = new DataTable();
 
             // TODO: Think how to track multiple tables/TableContexts
@@ -65,11 +66,14 @@ namespace org.rufwork.mooresDb.infrastructure.commands
 
             WhereProcessor.ProcessRows(ref dtReturn, _table, selectParts);
 
+            //=====================================================================
+            // POST-PROCESS INNER JOINS
             // (Joins are only in selects, so this isn't part of WhereProcessing.)
             //
             // To take account of joins, we basically need to create a SelectParts
             // per inner join.  So we need to create a WHERE from the table we 
             // just selected and then send those values down to a new _selectRows.
+            //=====================================================================
             if (selectParts.strInnerJoinKludge.Length > 0)
             {
                 if (selectParts.qInnerJoinFields.Count < 1)
@@ -96,12 +100,27 @@ Fields pushed into dtReturn: {1}", strFromSelect, strInTable));
                     {
                         dtReturn.Columns[astrFromSelect[i]].SetOrdinal(i);
                     }
+
+                    // TODO: There are better ways to do this.
+                    // TODO: Figure out if this handles all fuzzy name translations
+                    // earlier in the SELECT process.
+                    if (selectParts.lstrJoinONLYFields.Count() > 0)
+                    {
+                        foreach (string colName in selectParts.lstrJoinONLYFields)
+                        {
+                            dtReturn.Columns.Remove(colName);
+                        }
+                    }
                 }
                 catch (Exception e)
                 {
                     throw new SyntaxException("Problem reordering columns in inner join -- " + e.ToString());
                 }
             }
+            //=====================================================================
+            // EO POST-PROCESS INNER JOINS
+            //=====================================================================
+
 
             // strOrderBy has had all whitespace shortened to one space, so we can get away with the hardcoded 9.
             if (null != selectParts.strOrderBy && selectParts.strOrderBy.Length > 9)
@@ -166,7 +185,53 @@ Fields pushed into dtReturn: {1}", strFromSelect, strInTable));
                 
             }
 
-            return dtReturn;
+            if (selectParts.dictFnsAndFields.Count() > 0)
+            {
+                foreach (KeyValuePair<string, string> kvp in selectParts.dictFnsAndFields)
+                {
+                    switch (kvp.Key)
+                    {
+                        case "COUNT":
+                            if (kvp.Value.Trim().Equals("*"))
+                            {
+                                objReturn = dtReturn.Rows.Count;
+                            }
+                            break;
+
+                        default:
+                            throw new SyntaxException("Unhandled function type: " + kvp.Key);
+                    }
+                }
+            }
+
+            // TODO: This is kind of cheesy and inefficient. Move real logic
+            // that skips and takes without grabbing everything into the
+            // WhereProcessor.
+            // Note also that this works with the dictFnsAndFields stuff because
+            // you shouldn't have LIMIT with MAX or COUNT.
+            if (!String.IsNullOrWhiteSpace(selectParts.strLimit))
+            {
+                string strAfterLimit = selectParts.strLimit.Substring("LIMIT ".Length);
+                string strTake = strAfterLimit;
+                int intSkip = 0;
+                int intTake;
+
+                if (strAfterLimit.Contains(","))
+                {
+                    string[] astrSkipTake = strAfterLimit.Split(',');
+                    if (!int.TryParse(astrSkipTake[0], out intSkip))
+                        throw new Exception("Illegal LIMIT clause: " + selectParts.strLimit);
+                    strTake = astrSkipTake[1];
+                }
+
+                if (int.TryParse(strTake, out intTake))
+                    dtReturn = dtReturn.SkipTakeToTable(intSkip, intTake);
+                else
+                    throw new Exception("Illegal LIMIT clause: " + selectParts.strLimit);
+            }
+
+            objReturn = null == objReturn ? dtReturn : objReturn;
+            return objReturn;
         }
 
         private DataTable _processInnerJoin(Queue<TableContext> qAllTables, DataTable dtReturn, string strJoinText,

@@ -22,8 +22,8 @@ namespace org.rufwork.mooresDb
         // Right now, on Windows, that's "C:\\Users\\YourUserName\\Documents\\MooresDbPlay"
         //public static readonly string cstrDbDir = Utils.cstrHomeDir + Path.DirectorySeparatorChar + "MooresDbPlay";
         public static bool bDebug = false;
-        public static string buildData = "20150410";    // not always incremented with each build.
-        public static string version = "0.0.4.2";
+        public static string buildData = "20150814";    // not always incremented with each build.
+        public static string version = "0.0.4.4";
 
         public static void logIt(string strMsg)
         {

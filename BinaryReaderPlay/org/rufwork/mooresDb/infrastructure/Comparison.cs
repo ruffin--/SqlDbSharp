@@ -64,7 +64,8 @@ namespace org.rufwork.mooresDb.infrastructure
 
                 case "like":
                 case "LIKE":
-                    throw new NotImplementedException("LIKE comparison not yet implemented.");
+                    type = COMPARISON_TYPE.LIKE;
+                    break;
 
                 default:
                     throw new Exception("Illegal comparison type: " + strOperator);

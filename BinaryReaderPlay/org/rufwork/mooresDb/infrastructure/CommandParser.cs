@@ -69,34 +69,40 @@ namespace org.rufwork.mooresDb.infrastructure
 
             strSql = strSql.RemoveNewlines(" ").BacktickQuotes(); // TODO: WHOA!  Super kludge for single quote escapes.  See "Grave accent" in idiosyncracies.
 
-            // TODO: This is assuming a single command.  Add splits by semi-colon.
-            if (!strSql.Trim().EndsWith(";"))
-            {
-                throw new Exception("Unterminated command.");
-            }
+            // Sorry, I got tired of forgetting this.
+            //if (!strSql.Trim().EndsWith(";"))
+            //{
+            //    throw new Exception("Unterminated command.");
+            //}
 
+            // TODO: This is assuming a single command.  Add splits by semi-colon.
             strSql = strSql.TrimEnd(';');
 
             string[] astrCmdTokens = strSql.StringToNonWhitespaceTokens2();    // TODO: We're almost always immediately doing this again in the executeStatements.
 
             // TODO: Want to ISqlCommand this stuff -- we need to have execute
             // methods that don't take strings but "command tokens".
+            // TODO: Once indicies are live, we're going to have to check for them
+            // after any CUD operations.
             switch (astrCmdTokens[0].ToLower())    {
                 case "insert":
                     _insertCommand = new InsertCommand(_database); // TODO: This is too much repeat instantiation.  Rethink that.
                     objReturn = _insertCommand.executeInsert(strSql);
+                    System.Diagnostics.Debug.Print("Update any indicies");
                     break;
                 
                 case "select":
-                    if (strSql.ToLower().StartsWith("select max("))
+                    switch (astrCmdTokens[1].ToLower())
                     {
-                        SelectMaxCommand selectMaxCmd = new SelectMaxCommand(_database);
-                        objReturn = selectMaxCmd.executeStatement(strSql);
-                    }
-                    else
-                    {
-                        _selectCommand = new SelectCommand(_database);
-                        objReturn = _selectCommand.executeStatement(strSql);
+                        case "max":
+                            SelectMaxCommand selectMaxCmd = new SelectMaxCommand(_database);
+                            objReturn = selectMaxCmd.executeStatement(strSql);
+                            break;
+
+                        default:
+                            _selectCommand = new SelectCommand(_database);
+                            objReturn = _selectCommand.executeStatement(strSql);
+                            break;
                     }
                     break;
                 
@@ -104,18 +110,30 @@ namespace org.rufwork.mooresDb.infrastructure
                     _deleteCommand = new DeleteCommand(_database);
                     _deleteCommand.executeStatement(strSql);
                     objReturn = "DELETE executed."; // TODO: Add ret val of how many rows returned
+                    System.Diagnostics.Debug.Print("Update any indicies");
                     break;
 
                 case "update":
                     _updateCommand = new UpdateCommand(_database);
                     _updateCommand.executeStatement(strSql);
                     objReturn = "UPDATE executed."; // TODO: Add ret val of how many rows returned
+                    System.Diagnostics.Debug.Print("Update any indicies");
                     break;
 
                 case "create":
-                    _createTableCommand = new CreateTableCommand(_database);
-                    _createTableCommand.executeStatement(strSql);
-                    objReturn = "Table created.";
+                    switch (astrCmdTokens[1].ToLower())
+                    {
+                        case "table":
+                            _createTableCommand = new CreateTableCommand(_database);
+                            objReturn = _createTableCommand.executeStatement(strSql);
+                            break;
+
+                        case "index":
+                            CreateIndexCommand createIndexCommand = new CreateIndexCommand(_database);
+                            objReturn = createIndexCommand.executeStatement(strSql);
+                            break;
+                    }
+                    
                     break;
 
                 case "drop":

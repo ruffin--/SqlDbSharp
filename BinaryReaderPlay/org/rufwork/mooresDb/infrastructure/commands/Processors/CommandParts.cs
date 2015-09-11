@@ -6,10 +6,12 @@ using System.Text;
 using org.rufwork.mooresDb.infrastructure.contexts;
 using org.rufwork.mooresDb.infrastructure.tableParts;
 using org.rufwork.extensions;
+using org.rufwork.mooresDb.exceptions;
+using com.rufwork.utils;
 
 namespace org.rufwork.mooresDb.infrastructure.commands.Processors
 {
-    // convenience class to hold different parts of the SELECT
+    // Convenience class to hold different parts of the SELECT
     // statement's text.
     public class CommandParts
     {
@@ -20,13 +22,16 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
         public string strFrom;
         public string strWhere;
         public string strOrderBy;
+        public string strLimit;
         public string strInnerJoinKludge;
         public Queue<string> qInnerJoinFields = new Queue<string>();
+        public Dictionary<string, string> dictFnsAndFields = new Dictionary<string, string>();
 
         public string strTableName; // TODO: Ob need to go to a collection of some sort
 
         public Column[] acolInSelect;
         public Queue<string> qstrAllColumnNames = new Queue<string>();
+        public List<string> lstrJoinONLYFields = new List<string>();   // Sir Still Not Paricularly Well Named in this Film.
         public Dictionary<string, string> dictUpdateColVals = new Dictionary<string, string>();
         public Dictionary<string, string> dictFuzzyToColNameMappings = new Dictionary<string, string>();
         public Dictionary<string, string> dictRawNamesToASNames = new Dictionary<string, string>();
@@ -49,6 +54,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
             {
                 case COMMAND_TYPES.SELECT:
                     _parseSelectStatement(strSql);
+                    _findSelectFunctionCalls();
                     _getColumnsToReturn();
                     break;
 
@@ -112,11 +118,19 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
                 throw new Exception("Invalid SELECT statement");
             }
 
-            intIndexOf = strSql.IndexOf("ORDER BY", StringComparison.CurrentCultureIgnoreCase);
+            // TODO: Need some way to be sure what we're not false hitting
+            // on a table named NOLIMITHOLDEM or whatever.
+            intIndexOf = strSql.LastIndexOf("LIMIT", StringComparison.CurrentCultureIgnoreCase);
             if (-1 < intIndexOf)
             {
-                this.strOrderBy = strSql.Substring(intIndexOf, intTail - intIndexOf);
-                this.strOrderBy = System.Text.RegularExpressions.Regex.Replace(this.strOrderBy, @"[\s\n]+", " ");   // flatten whitespace to a single space.
+                this.strLimit = strSql.Substring(intIndexOf, intTail - intIndexOf).FlattenWhitespace();
+                intTail = intIndexOf;
+            }
+
+            intIndexOf = strSql.LastIndexOf("ORDER BY", StringComparison.CurrentCultureIgnoreCase);
+            if (-1 < intIndexOf)
+            {
+                this.strOrderBy = strSql.Substring(intIndexOf, intTail - intIndexOf).FlattenWhitespace();
                 intTail = intIndexOf;
             }
 
@@ -133,7 +147,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
                 this.strFrom = strSql.Substring(intIndexOf, intTail - intIndexOf);
 
                 // Look for inner join.
-                // TODO: Another reserved word that we don't really want a table to be named ("join").
+                // TODO: Another reserved word that we don't really want a table to be named: ("join").
                 this.strInnerJoinKludge = "";
                 if (this.strFrom.IndexOf(" join ", StringComparison.CurrentCultureIgnoreCase) > -1)
                 {
@@ -143,8 +157,44 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
                         this.strInnerJoinKludge = this.strFrom.Substring(intInnerJoin);
                         this.strFrom = this.strFrom.Substring(0, intInnerJoin);
 
-                        // TODO: Check the WHERE clause to see if anything belongs to the JOIN.
-                        //do that ^^^
+                        // Keep track of the join fields so we can intelligently select but
+                        // not display them if they are/aren't in the SELECT.
+                        // Let's start with the bullheaded way.
+
+                        // The most natural place to find fields used to join "secondary
+                        // tables" (any table after the first in the FROM list) would
+                        // actually be in _processInnerJoin in SelectCommand, but this is
+                        // already spaghettied enough. So let's dupe some logic and do it
+                        // here.
+                        // TODO: Consider deciphering lists of tables and fields in a 
+                        // refactored CommandParts and removing that from SelectCommand, etc.
+                        string strMainTableName = this.strFrom.Substring(4).Trim();
+                        string[] innerKludgeTokenized = this.strInnerJoinKludge.StringToNonWhitespaceTokens2();
+                        Queue<string> qSecondaryTableNames = new Queue<string>();
+
+                        for (int i=0; i<innerKludgeTokenized.Length; i++)
+                        {
+                            string toke = innerKludgeTokenized[i];
+                            if (toke.ToUpper().StartsWith(strMainTableName.ToUpper()))
+                            {
+                                this.lstrJoinONLYFields.Add(toke.ReplaceCaseInsensitiveFind(strMainTableName + ".", ""));
+                            }
+                            else if (qSecondaryTableNames.Any(s => toke.ToUpper().StartsWith(s.ToUpper() + ".")))   // TODO: this kinda suggests "." can't be in a table or column name either. Don't think we're checking that.
+                            {
+                                this.lstrJoinONLYFields.Add(toke);
+                            }
+
+                            // TODO: This makes JOIN a pretty hard keyword. I think that's safe, though.
+                            // If you want a table named JOIN, it'll have to be in brackets, right?
+                            if (toke.Equals("JOIN", StringComparison.CurrentCultureIgnoreCase))
+                            {
+                                qSecondaryTableNames.Enqueue(innerKludgeTokenized[i + 1]);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        throw new SyntaxException("Statement includes `join` keyword. Currently, only inner joins are supported.");
                     }
                 }
 
@@ -160,10 +210,93 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
             this.strSelect = strSql.Substring(0, intTail);
         }
 
+        // TODO: IF you keep this convention, you need to kick out errors if 
+        // the function "abbreviations" are in the original SQL.
+        private void _findSelectFunctionCalls()
+        {
+            try
+            {
+                string[] functionNames = { "MAX", "COUNT" };
+                foreach (string strFn in functionNames)
+                {
+                    string strFnParens = strFn + "(";
+                    if (this.strSelect.ToUpper().Contains(strFnParens))
+                    {
+                        int intFnLoc = this.strSelect.IndexOf(strFnParens, StringComparison.CurrentCultureIgnoreCase);
+                        string before = this.strSelect.Substring(0, intFnLoc);
+                        int intOpenParen = intFnLoc + strFnParens.Length;
+                        int intCloseParen = this.strSelect.IndexOf(')', intFnLoc);
+                        string after = this.strSelect.Substring(intCloseParen).TrimStart(')');
+                        string middle = this.strSelect.Substring(intOpenParen, intCloseParen - intOpenParen);
+
+                        this.dictFnsAndFields.Add(strFn, middle);
+                        this.strSelect = before + middle + after;
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                ErrHand.LogErr(e, "_findFunctionCalls", "Illegal function call: " + this.strSelect);
+            }
+        }
+
         private void _getColumnsToReturn()
         {
             Queue<Column> qCols = new Queue<Column>();
-            string[] astrCmdTokens = this.strSelect.StringToNonWhitespaceTokens2().Skip(1).ToArray();   // Skip 1 to ignore SELECT.
+
+            List<string> lstrCmdTokens = this.strSelect.StringToNonWhitespaceTokens2().Skip(1).ToList();   // Skip 1 to ignore SELECT.
+
+            #region INNER JOIN logic.
+            if (!string.IsNullOrEmpty(this.strInnerJoinKludge))
+            {
+                // TODO: Clean this kludge to get in INNER JOIN fields into datatable
+                // while selecting, but to remove these once we're done before
+                // returning the DataTable.
+                // NOTE: I'm not taking into account fuzzily matching names, in part
+                // because I'm planning to remove that painful feature.
+                // TODO: I don't think you're really paying attention to aliased columns
+                // either, though it might not matter in this case. Still, pay more
+                // attention to AS'd columns in case I've missed something.
+                foreach (string strSelectCols in lstrCmdTokens.Where(s => !s.ToUpper().Equals("AS")))
+                {
+                    if (strSelectCols.Equals("*"))
+                    {
+                        if (1 == lstrCmdTokens.Count())
+                        {
+                            // If we're selecting * from everything, then there are no 
+                            // join-only fields/columns.
+                            this.lstrJoinONLYFields = new List<string>();
+                        }
+                        else
+                        {
+                            // Else we're selecting everything from the main table.
+                            this.lstrJoinONLYFields.RemoveAll(s => !s.Contains("."));
+                        }
+                    }
+                    else if (strSelectCols.Contains("*"))
+                    {
+                        // Find what table we're removing jive from, then find all cols
+                        // that start with that prefix.
+                        // TODO: Double check if we every drop requirement to prefix join
+                        // columns with table names, though I don't think we will.
+                        // TODO: This all goes to heck when we alias JOIN table names. Idiot.
+                        string str2ndaryTable = strSelectCols.ReplaceCaseInsensitiveFind(".*", "");
+                        this.lstrJoinONLYFields.RemoveAll(s => s.StartsWith(str2ndaryTable + "."));
+                    }
+                    else if (this.lstrJoinONLYFields.Contains(strSelectCols))
+                    {
+                        this.lstrJoinONLYFields.Remove(strSelectCols);
+                    }
+                }
+
+                foreach (string strJoinColName in this.lstrJoinONLYFields)
+                {
+                    lstrCmdTokens.Add(strJoinColName);
+                }
+            }   // end kludge for grafting main table join fields not explicitly in SELECT list.
+            #endregion INNER JOIN logic.
+
+            string[] astrCmdTokens = lstrCmdTokens.ToArray();
 
             for (int i = 0; i < astrCmdTokens.Length; i++)
             {
@@ -172,7 +305,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
                 //      of a certain table.
                 if (!astrCmdTokens[i].EndsWith("*"))
                 {
-                    qstrAllColumnNames.Enqueue(astrCmdTokens[i]);
+                    qstrAllColumnNames.EnqueueIfNotContainsCaseInsensitive(astrCmdTokens[i]);
 
                     #region doesn't end with *
                     if (astrCmdTokens[i].Contains('.'))

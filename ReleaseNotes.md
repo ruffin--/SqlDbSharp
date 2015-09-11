@@ -1,6 +1,22 @@
 #Release notes:
 <br>
 
+##0.0.4.4 - 20150814
+
+* Added MAX
+* WHERE clauses now support LIKE
+* LIMIT clauses supported
+* CREATE INDEX happens now, though nothing's done with them yet.
+* Bug fixes
+
+
+##0.0.4.3 - 20150513
+
+* Fields from "main" table not explicitly mentioned in the SELECT are no longer returned by INNER JOINs that require them.
+	* For example, `SELECT field1, field2, table2.field1 FROM table1 INNER JOIN table2 ON table1.t2Id = table2.id` will no longer return `table1.t2Id`. 
+	* It does, however, still return `table2.id`, which I'll take a look at next (and potentially not increment the version).
+	* The method used here is particularly bullheaded, spaghetti-ish, and inane.
+
 ##0.0.4.2 - 20150410
 
 * `AS` support for *columns only* added.

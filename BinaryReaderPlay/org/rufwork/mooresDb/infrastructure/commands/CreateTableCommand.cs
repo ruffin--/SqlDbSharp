@@ -39,7 +39,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands
         /// Throws any Exception on any failure.
         /// </summary>
         /// <param name="strSql"></param>
-        public void executeStatement(string strSql)
+        public object executeStatement(string strSql)
         {
             string strErr = "";
 
@@ -198,11 +198,8 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                 throw new SyntaxException(strErr);
             }
 
-            if (!strErr.Equals(""))
-            {
-                throw new Exception("Create table error" + System.Environment.NewLine
-                    + strErr);
-            }
+            strErr = strErr.Equals("") ? "Table created successfully." : "Create table error" + System.Environment.NewLine + strErr;
+            return strErr;
         }
 
         // A very tedious function.

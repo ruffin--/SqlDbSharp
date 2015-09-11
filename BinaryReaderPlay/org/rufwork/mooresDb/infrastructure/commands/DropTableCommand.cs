@@ -68,6 +68,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                 }
                 else
                 {
+                    Console.WriteLine("TODO: Check for indices and delete them first.");
                     File.Delete(_table.strTableFileLoc);
                     _database.removeExistingTable(_table);
                 }
