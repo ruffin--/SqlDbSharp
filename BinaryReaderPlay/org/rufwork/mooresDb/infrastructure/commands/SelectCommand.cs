@@ -74,6 +74,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands
             // per inner join.  So we need to create a WHERE from the table we 
             // just selected and then send those values down to a new _selectRows.
             //=====================================================================
+            #region Post process inner joins
             if (selectParts.strInnerJoinKludge.Length > 0)
             {
                 if (selectParts.qInnerJoinFields.Count < 1)
@@ -117,6 +118,7 @@ Fields pushed into dtReturn: {1}", strFromSelect, strInTable));
                     throw new SyntaxException("Problem reordering columns in inner join -- " + e.ToString());
                 }
             }
+            #endregion Post process inner joins
             //=====================================================================
             // EO POST-PROCESS INNER JOINS
             //=====================================================================
@@ -300,9 +302,9 @@ Fields pushed into dtReturn: {1}", strFromSelect, strInTable));
                     }
 
                     MainClass.logIt(string.Format(@"old table: {0} 
-old field: {1} 
-new table: {2} 
-new field: {3}", 
+old field: {1}
+new table: {2}
+new field: {3}",
                         strOldTable, strOldField, strNewTable, strNewField));
 
                     string strInClause = string.Empty;

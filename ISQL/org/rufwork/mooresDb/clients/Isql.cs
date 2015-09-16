@@ -222,6 +222,7 @@ SqlDbSharp.config, placed in this folder:
                                 catch (Exception e)
                                 {
                                     ErrHand.LogErr(e, "Isql.Main", objResult.GetType().ToString());
+                                    throw e;
                                 }
 
                             }

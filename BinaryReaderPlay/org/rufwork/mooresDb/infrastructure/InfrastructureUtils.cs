@@ -35,9 +35,9 @@ namespace org.rufwork.mooresDb.infrastructure
                 // for the current data.  I'm going to ignore performance for now.
                 foreach (DataRow dr in dtIn.Rows)
                 {
-                    if (dr[dc].ToString().Length > aintColLength[i])
+                    if (_dbObjectAsString(dr[dc]).Length > aintColLength[i])
                     {
-                        aintColLength[i] = dr[dc].ToString().Length;
+                        aintColLength[i] = _dbObjectAsString(dr[dc]).Length;
                     }
                 }
             }
@@ -86,12 +86,23 @@ namespace org.rufwork.mooresDb.infrastructure
                 // TODO: Is foreach Column order guaranteed?
                 for (int i = 0; i < dtIn.Columns.Count; i++)
                 {
-                    strReturn += dr[dtIn.Columns[i]].ToString().PadLeftWithMax(aintColLength[i], true) + " # ";
+                    strReturn += _dbObjectAsString(dr[dtIn.Columns[i]]).PadLeftWithMax(aintColLength[i], true) + " # ";
                 }
                 strReturn += System.Environment.NewLine;
             }
 
             return strReturn;
+        }
+
+        private static string _dbObjectAsString(object obj)
+        {
+            string strDisplay = string.Empty;
+            if (obj is DateTime)
+                strDisplay = ((DateTime)obj).ToRufString();
+            else
+                strDisplay = obj.ToString();
+
+            return strDisplay;
         }
 
         // I could do this with DataSets and DataRelations, but this 
