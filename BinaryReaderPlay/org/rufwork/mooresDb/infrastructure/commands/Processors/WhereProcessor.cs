@@ -6,7 +6,7 @@ using org.rufwork.utils;
 using org.rufwork.extensions;
 using System;
 using System.Collections.Generic;
-using System.Data;
+using org.rufwork.shims.data; // using System.Data;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -315,6 +315,12 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
                 {
                     Comparison comparison = null;
                     string strClause = astrClauses[i].Trim();
+
+                    if (strClause.ContainsOutsideOfQuotes("OR", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        System.Diagnostics.Debugger.Break();
+                    }
+
                     if (MainClass.bDebug) Console.WriteLine("Where clause #" + i + " " + strClause);
 
                     if (strClause.SplitSeeingSingleQuotesAndBackticks(" IN ", false).Count > 1)
@@ -361,15 +367,9 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
             {
                 strOperator = ">";
             }
-            else if (strClause.ContainsOutsideOfQuotes("LIKE", '\'', '`'))
+            else if (strClause.ContainsOutsideOfQuotes("LIKE", StringComparison.CurrentCultureIgnoreCase, '\'', '`'))
             {
                 strOperator = "LIKE";
-            }
-            else if (strClause.ContainsOutsideOfQuotes("like", '\'', '`'))
-            {
-                // kludge until I get case sensitivity into ContainsOutsideOfQuotes.
-                // Too bad, lIkE.
-                strOperator = "like";
             }
             else if (!strClause.ContainsOutsideOfQuotes("="))
             {

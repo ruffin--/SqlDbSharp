@@ -8,7 +8,7 @@ using System;
 
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using System.Data;
+using org.rufwork.shims.data; // using System.Data;
 
 using org.rufwork.mooresDb.infrastructure.commands;
 using org.rufwork.mooresDb.infrastructure.contexts;
@@ -65,7 +65,6 @@ namespace org.rufwork.mooresDb.infrastructure
             if (_logSql)
                 System.IO.File.AppendAllText (_database.strLogLoc, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + ": "
                     + strSql + System.Environment.NewLine);
-
 
             strSql = strSql.RemoveNewlines(" ").BacktickQuotes(); // TODO: WHOA!  Super kludge for single quote escapes.  See "Grave accent" in idiosyncracies.
 

@@ -132,14 +132,8 @@ SqlDbSharp.config, placed in this folder:
                                         TIMESTAMP DATETIME(8));";
                                     goto case "goto kludge";
 
-                                case "test create2;":
-                                    strTestTableName = "rest" + DateTime.Now.Ticks;
-                                    strCmd = @"create TABLE " + strTestTableName + @"
-                                        (
-                                        ID INTEGER (4) AUTOINCREMENT,
-                                        CityId INTEGER (4),
-                                        Name CHAR (30)
-                                        );";
+                                case "ortest;":
+                                    strCmd = @"select * from messages where subject like '%Home%' or subject like '%jslint%';";
                                     goto case "goto kludge";
 
                                 case "test select;":
@@ -232,7 +226,7 @@ SqlDbSharp.config, placed in this folder:
                 catch (Exception ex)
                 {
                     Console.WriteLine("Something borked: " + ex.ToString());
-                    strParentDir = "";
+                    //strParentDir = "";
                 }
                 Console.WriteLine(System.Environment.NewLine + System.Environment.NewLine);
             }
