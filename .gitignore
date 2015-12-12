@@ -7,6 +7,8 @@ BinaryReaderPlay/obj/
 ISQL/bin/Debug/
 ISQL/obj/Debug/
 ISQL/bin/Release/
-ISQL/obj/Release/ISQL.csproj.FileListAbsolute.txt
 SqlDbSharpMacUI/bin
 SqlDbSharpMacUI/obj
+packages/WPtoolkit.4.2013.08.16/
+packages/Xamarin.Forms.1.3.3.6323/
+packages/Xamarin.Android.Support.v4.21.0.3.0/
