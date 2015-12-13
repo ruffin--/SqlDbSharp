@@ -66,6 +66,7 @@ namespace org.rufwork.mooresDb.infrastructure
                 System.IO.File.AppendAllText (_database.strLogLoc, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + ": "
                     + strSql + System.Environment.NewLine);
 
+
             strSql = strSql.RemoveNewlines(" ").BacktickQuotes(); // TODO: WHOA!  Super kludge for single quote escapes.  See "Grave accent" in idiosyncracies.
 
             // Sorry, I got tired of forgetting this.
@@ -87,7 +88,7 @@ namespace org.rufwork.mooresDb.infrastructure
                 case "insert":
                     _insertCommand = new InsertCommand(_database); // TODO: This is too much repeat instantiation.  Rethink that.
                     objReturn = _insertCommand.executeInsert(strSql);
-                    System.Diagnostics.Debug.Print("Update any indicies");
+                    System.Diagnostics.Debug.WriteLine("Update any indicies");
                     break;
                 
                 case "select":
@@ -109,14 +110,14 @@ namespace org.rufwork.mooresDb.infrastructure
                     _deleteCommand = new DeleteCommand(_database);
                     _deleteCommand.executeStatement(strSql);
                     objReturn = "DELETE executed."; // TODO: Add ret val of how many rows returned
-                    System.Diagnostics.Debug.Print("Update any indicies");
+                    System.Diagnostics.Debug.WriteLine("Update any indicies");
                     break;
 
                 case "update":
                     _updateCommand = new UpdateCommand(_database);
                     _updateCommand.executeStatement(strSql);
                     objReturn = "UPDATE executed."; // TODO: Add ret val of how many rows returned
-                    System.Diagnostics.Debug.Print("Update any indicies");
+                    System.Diagnostics.Debug.WriteLine("Update any indicies");
                     break;
 
                 case "create":

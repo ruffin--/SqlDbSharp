@@ -45,7 +45,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands
             // in the SELECT statement in _table.
             CommandParts selectParts = new CommandParts(_database, _table, strSql, CommandParts.COMMAND_TYPES.SELECT);
 
-            if (MainClass.bDebug)
+            if (Globals.bDebug)
             {
                 string strDebug = "SELECT: " + selectParts.strSelect + "\n";
                 strDebug += "FROM: " + selectParts.strFrom + "\n";
@@ -332,7 +332,7 @@ new field: {3}",
                     // 2.) ORDER BY fields that belong to this table.
                     if (!string.IsNullOrWhiteSpace(strOrderBy))
                     {
-                        MainClass.logIt(strOrderBy);
+                        Globals.logIt(strOrderBy);
 
                         strErrLoc = "constructing order by";
                         string[] astrOrderTokens = strOrderBy.StringToNonWhitespaceTokens2();
@@ -398,7 +398,7 @@ new field: {3}",
                         strOperativeOldField = tableOld.getRawColName(strOldField);
                     }
 
-                    if (MainClass.bDebug)
+                    if (Globals.bDebug)
                     {
                         Console.WriteLine("Looking for " + strOperativeOldField + " in the columns");
                         foreach (DataColumn column in dictTables[strOldTable].Columns)

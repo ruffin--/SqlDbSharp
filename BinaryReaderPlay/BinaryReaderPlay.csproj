@@ -83,6 +83,11 @@
     <Compile Include="org\rufwork\mooresDb\infrastructure\serializers\IntSerializer.cs" />
     <Compile Include="org\rufwork\mooresDb\infrastructure\serializers\Router.cs" />
     <Compile Include="org\rufwork\mooresDb\SqlDbSharpLogger.cs" />
+    <Compile Include="org\rufwork\shims\data\collections\DataColumnSet.cs" />
+    <Compile Include="org\rufwork\shims\data\DataColumn.cs" />
+    <Compile Include="org\rufwork\shims\data\DataRow.cs" />
+    <Compile Include="org\rufwork\shims\data\DataTable.cs" />
+    <Compile Include="org\rufwork\shims\data\DataView.cs" />
     <Compile Include="org\rufwork\utils\GlobalEnums.cs" />
     <Compile Include="org\rufwork\utils\Utils.cs" />
     <Compile Include="org\rufwork\mooresDb\infrastructure\CommandParser.cs" />
