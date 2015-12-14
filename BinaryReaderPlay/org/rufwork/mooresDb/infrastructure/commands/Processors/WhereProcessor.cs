@@ -1,18 +1,21 @@
-﻿using org.rufwork.mooresDb.infrastructure;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Text;
+
+using org.rufwork.mooresDb.exceptions;
+using org.rufwork.mooresDb.infrastructure;
 using org.rufwork.mooresDb.infrastructure.contexts;
+using org.rufwork.mooresDb.infrastructure.commands.Modifiers;
 using org.rufwork.mooresDb.infrastructure.serializers;
 using org.rufwork.mooresDb.infrastructure.tableParts;
 using org.rufwork.utils;
 using org.rufwork.extensions;
-using System;
-using System.Collections.Generic;
+
+using org.rufwork.shims;
 using org.rufwork.shims.data; // using System.Data;
-using System.IO;
-using System.Linq;
-using System.Text;
-using org.rufwork.mooresDb.exceptions;
-using org.rufwork.mooresDb.infrastructure.commands.Modifiers;
-using System.Threading;
 
 namespace org.rufwork.mooresDb.infrastructure.commands.Processors
 {
@@ -103,7 +106,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
                                     {
                                         byte[] abytCol = new byte[mCol.intColLength];
                                         Array.Copy(abytRow, mCol.intColStart, abytCol, 0, mCol.intColLength);
-                                        //Console.WriteLine(System.Text.Encoding.Default.GetString(abytCol));
+                                        //PCLConsole.WriteLine(System.Text.Encoding.Default.GetString(abytCol));
 
                                         // now translate/cast the value to the column in the row.
                                         // OLD:  row[OperativeName(mCol.strColName, dictColNameMapping)] = Router.routeMe(mCol).toNative(abytCol);
@@ -321,12 +324,12 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
                         System.Diagnostics.Debugger.Break();
                     }
 
-                    if (MainClass.bDebug) Console.WriteLine("Where clause #" + i + " " + strClause);
+                    if (Globals.bDebug) PCLConsole.WriteLine("Where clause #" + i + " " + strClause);
 
                     if (strClause.SplitSeeingSingleQuotesAndBackticks(" IN ", false).Count > 1)
                     {
                         CompoundComparison inClause = new CompoundComparison(GROUP_TYPE.OR);
-                        if (MainClass.bDebug) Console.WriteLine("IN clause: " + strClause);
+                        if (Globals.bDebug) PCLConsole.WriteLine("IN clause: " + strClause);
                         string strField = strClause.Substring(0, strClause.IndexOf(' '));
 
                         string strIn = strClause.Substring(strClause.IndexOf('(') + 1, strClause.LastIndexOf(')') - strClause.IndexOf('(') - 1);
@@ -347,7 +350,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
                         }
                         else
                         {
-                            Console.WriteLine("Uncaptured WHERE clause type: " + strClause);
+                            PCLConsole.WriteLine("Uncaptured WHERE clause type: " + strClause);
                         }
                     }
                 }

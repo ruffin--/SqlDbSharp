@@ -130,7 +130,7 @@ namespace org.rufwork.mooresDb.infrastructure.contexts
                 // an absolute ceiling.  (Divided by 2 b/c there are always at least 
                 // two lines of metadata at the start of a mdbf file.)
                 long lngStopTryingAt = (info.Length / 2) + 1; // TODO: Laziness alert with the +1.
-                if (MainClass.bDebug) Console.WriteLine("Preparing table from: " + info.FullName);
+                if (Globals.bDebug) Console.WriteLine("Preparing table from: " + info.FullName);
 
                 int intPullSize = 500;
                 int intLineLength = -1;     // we can't know until we've actually found the first 0x11 0x11 combo.

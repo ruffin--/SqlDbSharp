@@ -21,6 +21,8 @@ using org.rufwork.mooresDb.infrastructure.commands.Processors;
 
 using org.rufwork.utils;
 using org.rufwork.extensions;
+using org.rufwork.shims;
+using org.rufwork.shims.data;
 
 namespace org.rufwork.mooresDb.infrastructure.commands
 {
@@ -91,7 +93,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                 // for each "inner SELECT".
                 string strFromSelect = string.Join(", ", selectParts.qstrAllColumnNames.ToArray());
                 string strInTable = string.Join(", ", dtReturn.Columns.Cast<DataColumn>().Select(c => c.ColumnName).ToArray());
-                MainClass.logIt(string.Format(@"Select fields: {0}
+                PCLConsole.WriteLine(string.Format(@"Select fields: {0}
 Fields pushed into dtReturn: {1}", strFromSelect, strInTable));
 
                 try
@@ -249,7 +251,7 @@ Fields pushed into dtReturn: {1}", strFromSelect, strInTable));
             string strErrLoc = "init";
 
             Queue<string> qColsToSelectInNewTable = new Queue<string>();
-            MainClass.logIt("join fields: " + string.Join("\n", qInnerJoinFields.ToArray()));
+            PCLConsole.WriteLine("join fields: " + string.Join("\n", qInnerJoinFields.ToArray()));
 
             try
             {
@@ -301,7 +303,7 @@ Fields pushed into dtReturn: {1}", strFromSelect, strInTable));
                         strOldField = field2;
                     }
 
-                    MainClass.logIt(string.Format(@"old table: {0} 
+                    Globals.logIt(string.Format(@"old table: {0} 
 old field: {1}
 new table: {2}
 new field: {3}",
@@ -371,7 +373,7 @@ new field: {3}",
                                 string[] astrTableDotCol = strTableDotCol.Split('.');
                                 if (strNewTable.Equals(astrTableDotCol[0], StringComparison.CurrentCultureIgnoreCase))
                                 {
-                                    MainClass.logIt("Adding field to join SELECT: " + astrTableDotCol[1].ScrubValue());
+                                    Globals.logIt("Adding field to join SELECT: " + astrTableDotCol[1].ScrubValue());
                                     qColsToSelectInNewTable.EnqueueIfNotContains(astrTableDotCol[1].ScrubValue()); // again, offensive parsing is the rule.
                                 }
                             }
@@ -420,7 +422,7 @@ new field: {3}",
                     }
                     else
                     {
-                        MainClass.logIt("Columns in inner JOIN select: " + string.Join(", ", qColsToSelectInNewTable.ToArray()));
+                        Globals.logIt("Columns in inner JOIN select: " + string.Join(", ", qColsToSelectInNewTable.ToArray()));
                         string strInnerSelect = string.Format("SELECT {0} FROM {1} WHERE {2} IN ({3});",
                             string.Join(",", qColsToSelectInNewTable.ToArray()),
                             strNewTable,
@@ -436,7 +438,7 @@ new field: {3}",
                         // complicated to pull out table-specific WHERE fields and send along
                         // with the reconsitituted "inner" SQL statement.
 
-                        MainClass.logIt("Inner join: " + strInnerSelect + "\n\n", "select command _processInnerJoin");
+                        Globals.logIt("Inner join: " + strInnerSelect + "\n\n", "select command _processInnerJoin");
 
                         SelectCommand selectCommand = new SelectCommand(_database);
                         object objReturn = selectCommand.executeStatement(strInnerSelect);

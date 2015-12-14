@@ -92,7 +92,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                         + "Names: " + String.Join(", ", lstColumnNames) + Environment.NewLine
                         + "Values: " + String.Join(", ", lstStringRowValues) + Environment.NewLine);
                 }   else {
-                    if (MainClass.bDebug)
+                    if (Globals.bDebug)
                     {
                         for (int j = 0; j < lstStringRowValues.Count; j++)
                         {

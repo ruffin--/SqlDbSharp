@@ -4,16 +4,17 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 // ======================== EO LICENSE ===============================
 
-using org.rufwork.mooresDb.infrastructure.contexts;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 
 using org.rufwork.extensions;
-using System.IO;
+using org.rufwork.mooresDb.infrastructure.contexts;
 using org.rufwork.mooresDb.infrastructure.tableParts;
 using org.rufwork.mooresDb.infrastructure.serializers;
+using org.rufwork.shims;
 
 namespace org.rufwork.mooresDb.infrastructure.commands
 {
@@ -63,7 +64,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands
 
                 foreach (string str in astrTokes)
                 {
-                    Console.WriteLine(str);
+                    PCLConsole.WriteLine(str);
                 }
 
                 string strIndexName = astrTokes[0];

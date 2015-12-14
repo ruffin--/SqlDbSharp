@@ -41,7 +41,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands
             // in the SELECT statement in _table.
             CommandParts updateParts = new CommandParts(_database, _table, strSql, CommandParts.COMMAND_TYPES.UPDATE);
 
-            if (MainClass.bDebug)
+            if (Globals.bDebug)
             {
                 Console.WriteLine("SELECT: " + updateParts.strSelect);
                 Console.WriteLine("FROM: " + updateParts.strFrom);

@@ -17,6 +17,7 @@ using org.rufwork.mooresDb.infrastructure.contexts;
 using org.rufwork.mooresDb.exceptions;
 
 using org.rufwork.extensions;
+using org.rufwork.shims;
 
 namespace org.rufwork.mooresDb.infrastructure.commands
 {
@@ -94,7 +95,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                                 //=====================
                                 //======= DEBUG =======
                                 //=====================
-                                if (MainClass.bDebug)
+                                if (Globals.bDebug)
                                 {
                                     for (int j = 0; j < astrColInfo.Length; j++)
                                     {
@@ -164,7 +165,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                         }   // end check for unsupported directives (like defining a primary key)
                     }   // eo table column creation for loop
 
-                    if (MainClass.bDebug)
+                    if (Globals.bDebug)
                     {
                         string strDebug = string.Empty;
                         for (int j = 0; j < _lstByteDataTypeRow.Count; j++)
@@ -287,9 +288,9 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                     int i = 0;
 
                     int intPaddingLength = intLength - ((abyteIntLength.Length - i) + 1);
-                    if (MainClass.bDebug)
+                    if (Globals.bDebug)
                     {
-                        Console.WriteLine("intLength: " + intLength + " i: " + i
+                        PCLConsole.WriteLine("intLength: " + intLength + " i: " + i
                             + " bytes for length: " + (abyteIntLength.Length - i)
                             + " intPaddingLength: " + intPaddingLength);
                     }

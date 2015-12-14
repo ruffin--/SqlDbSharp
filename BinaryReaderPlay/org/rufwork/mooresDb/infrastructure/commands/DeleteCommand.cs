@@ -93,7 +93,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands  {
         {
             DeleteParts deleteParts = new DeleteParts(_database, strSql);
 
-            if (MainClass.bDebug)
+            if (Globals.bDebug)
             {
                 Console.WriteLine("DELETE: " + deleteParts.strDelete);
                 Console.WriteLine("FROM: " + deleteParts.strFrom);
@@ -118,7 +118,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands  {
                 for (int i=0; i < astrClauses.Length; i++)    {
                     Comparison comparison = null;
                     string strClause = astrClauses[i].Trim();
-                    if (MainClass.bDebug) Console.WriteLine("Where clause #" + i + " " + strClause);
+                    if (Globals.bDebug) Console.WriteLine("Where clause #" + i + " " + strClause);
 
                     // TODO: Use real RegExes so we're not keying on non-actionable signs.
                     // TODO: Do the selecting in the binary, but sort with DataTable.
@@ -127,7 +127,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands  {
                     if (equalsMatch.Success)
                     {
                         string[] astrEqualsParts = Regex.Split(strClause, patternHasEquals);
-                        if (MainClass.bDebug) Console.WriteLine("Equals clause: " + astrEqualsParts[0] + " :: " + astrEqualsParts[1]);
+                        if (Globals.bDebug) Console.WriteLine("Equals clause: " + astrEqualsParts[0] + " :: " + astrEqualsParts[1]);
 
                         // TODO: Trim in regexp processing?
                         // TODO: Factor out split on token by doing all three in one regexp before hitting the if tree.
@@ -151,7 +151,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands  {
                         if (ltMatch.Success)
                         {
                             string[] astrLtParts = Regex.Split(strClause, patternHasLt);
-                            if (MainClass.bDebug) Console.WriteLine("Less than clause: " + astrLtParts[0] + " :: " + astrLtParts[1]);
+                            if (Globals.bDebug) Console.WriteLine("Less than clause: " + astrLtParts[0] + " :: " + astrLtParts[1]);
 
                             // TODO: Trim in regexp processing?
                             Column colToConstrain = _table.getColumnByName(astrLtParts[0].Trim());
@@ -173,7 +173,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands  {
                             if (gtMatch.Success)
                             {
                                 string[] astrGtParts = Regex.Split(strClause, patternHasGt);
-                                if (MainClass.bDebug) Console.WriteLine("Greater than clause: " + astrGtParts[0] + " :: " + astrGtParts[1]);
+                                if (Globals.bDebug) Console.WriteLine("Greater than clause: " + astrGtParts[0] + " :: " + astrGtParts[1]);
 
                                 // TODO: Trim in regexp processing?
                                 Column colToConstrain = _table.getColumnByName(astrGtParts[0].Trim());

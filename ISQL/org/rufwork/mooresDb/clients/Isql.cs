@@ -41,7 +41,7 @@ namespace org.rufwork.mooresDb.clients
 
             Console.SetIn(new StreamReader(Console.OpenStandardInput(4096)));
             Console.WriteLine(@"SqlDb# ISQL client. 
-SqlDb# version: " + MainClass.version + @"
+SqlDb# version: " + Globals.version + @"
 
 Type one or more statements terminated by semi-colons and then a period on a line by itself to execute.
 Type only a period on a line by itself to quit.
