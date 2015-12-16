@@ -15,6 +15,7 @@ using org.rufwork.mooresDb.infrastructure.contexts;
 using System.IO;
 
 using org.rufwork.extensions;
+using org.rufwork.shims;
 
 namespace org.rufwork.mooresDb.infrastructure.commands
 {
@@ -68,7 +69,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                 }
                 else
                 {
-                    Console.WriteLine("TODO: Check for indices and delete them first.");
+                    PCLConsole.WriteLine("TODO: Check for indices and delete them first.");
                     File.Delete(_table.strTableFileLoc);
                     _database.removeExistingTable(_table);
                 }

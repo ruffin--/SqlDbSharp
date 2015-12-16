@@ -8,6 +8,7 @@ using org.rufwork.mooresDb.infrastructure.tableParts;
 using org.rufwork.extensions;
 using org.rufwork.mooresDb.exceptions;
 using org.rufwork.utils;
+using com.rufwork.utils;
 
 namespace org.rufwork.mooresDb.infrastructure.commands.Processors
 {

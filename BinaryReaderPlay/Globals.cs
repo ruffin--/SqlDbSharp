@@ -5,6 +5,7 @@
 // ======================== EO LICENSE ===============================
 
 using System;
+using org.rufwork.shims;
 
 public static class Globals
 {
@@ -13,4 +14,12 @@ public static class Globals
     public static bool bDebug = false;
     public static string buildData = "20151213";    // not always incremented with each build.
     public static string version = "0.0.4.5";
+
+    public static void logit(string strMsg)
+    {
+        if (Globals.bDebug)
+        {
+            PCLConsole.WriteLine(strMsg);
+        }
+    }
 }

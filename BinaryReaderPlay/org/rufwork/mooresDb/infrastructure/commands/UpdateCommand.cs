@@ -18,6 +18,7 @@ using org.rufwork.mooresDb.infrastructure.contexts;
 using org.rufwork.mooresDb.infrastructure;
 using org.rufwork.mooresDb.infrastructure.commands.Processors;
 using org.rufwork.utils;
+using org.rufwork.shims;
 
 namespace org.rufwork.mooresDb.infrastructure.commands
 {
@@ -43,14 +44,14 @@ namespace org.rufwork.mooresDb.infrastructure.commands
 
             if (Globals.bDebug)
             {
-                Console.WriteLine("SELECT: " + updateParts.strSelect);
-                Console.WriteLine("FROM: " + updateParts.strFrom);
+                PCLConsole.WriteLine("SELECT: " + updateParts.strSelect);
+                PCLConsole.WriteLine("FROM: " + updateParts.strFrom);
                 if (!string.IsNullOrEmpty(updateParts.strInnerJoinKludge))
                 {
                     throw new Exception("Syntax error: INNER JOIN in an UPDATE statement is not supported: " + strSql);
                 }
-                Console.WriteLine("WHERE: " + updateParts.strWhere);    // Note that WHEREs aren't applied to inner joined tables right now.
-                Console.WriteLine("ORDER BY: " + updateParts.strOrderBy);
+                PCLConsole.WriteLine("WHERE: " + updateParts.strWhere);    // Note that WHEREs aren't applied to inner joined tables right now.
+                PCLConsole.WriteLine("ORDER BY: " + updateParts.strOrderBy);
             }
 
             _table = _database.getTableByName(updateParts.strTableName);

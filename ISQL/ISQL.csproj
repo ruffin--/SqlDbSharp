@@ -55,6 +55,10 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\DataTableWP8\DataShim\DataShim.csproj">
+      <Project>{0694aac9-d25b-4982-9e8f-9a0e83d814c2}</Project>
+      <Name>DataShim</Name>
+    </ProjectReference>
     <ProjectReference Include="..\BinaryReaderPlay\BinaryReaderPlay.csproj">
       <Project>{21089a8d-6944-4c6e-90f5-61be82c9919c}</Project>
       <Name>BinaryReaderPlay</Name>

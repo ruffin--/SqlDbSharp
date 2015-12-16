@@ -84,12 +84,6 @@
     <Compile Include="org\rufwork\mooresDb\infrastructure\serializers\IntSerializer.cs" />
     <Compile Include="org\rufwork\mooresDb\infrastructure\serializers\Router.cs" />
     <Compile Include="org\rufwork\mooresDb\SqlDbSharpLogger.cs" />
-    <Compile Include="org\rufwork\shims\data\collections\DataColumnSet.cs" />
-    <Compile Include="org\rufwork\shims\data\DataColumn.cs" />
-    <Compile Include="org\rufwork\shims\data\DataRow.cs" />
-    <Compile Include="org\rufwork\shims\data\DataTable.cs" />
-    <Compile Include="org\rufwork\shims\data\DataView.cs" />
-    <Compile Include="org\rufwork\shims\PCLConsole.cs" />
     <Compile Include="org\rufwork\utils\GlobalEnums.cs" />
     <Compile Include="org\rufwork\utils\Utils.cs" />
     <Compile Include="org\rufwork\mooresDb\infrastructure\CommandParser.cs" />
@@ -99,12 +93,6 @@
     <Compile Include="org\rufwork\mooresDb\infrastructure\contexts\TableContext.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
-  <ItemGroup>
-    <ProjectReference Include="..\..\XamFormsWin\XamFormsWin\DataTableWP8\DataShim.csproj">
-      <Project>{0694aac9-d25b-4982-9e8f-9a0e83d814c2}</Project>
-      <Name>DataShim</Name>
-    </ProjectReference>
-  </ItemGroup>
   <ProjectExtensions>
     <MonoDevelop>
       <Properties>
@@ -115,5 +103,10 @@
       </Properties>
     </MonoDevelop>
   </ProjectExtensions>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\..\DataTableWP8\DataShim\DataShim.csproj">
+      <Project>{0694aac9-d25b-4982-9e8f-9a0e83d814c2}</Project>
+      <Name>DataShim</Name>
+    </ProjectReference>
+  </ItemGroup>
 </Project>

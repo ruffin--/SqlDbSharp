@@ -25,6 +25,7 @@ using System.Text.RegularExpressions;
 using System.Linq;
 using org.rufwork.shims.data; // using System.Data;
 using System.Text;
+using org.rufwork.shims;
 
 namespace org.rufwork
 {
@@ -57,8 +58,8 @@ namespace org.rufwork
         /// <param name="strLoc">Where the error occurred.</param>
         public static void LogErr (string strErrDesc, string strLoc)
         {
-            Console.WriteLine ("ERROR: " + strLoc + "\n" + strErrDesc);
-            Utils.LogStuff ("ERROR: " + strLoc + "\n" + strErrDesc);
+            PCLConsole.WriteLine("ERROR: " + strLoc + "\n" + strErrDesc);
+            Utils.LogStuff("ERROR: " + strLoc + "\n" + strErrDesc);
         }
         
         // Convenience function to log jive.
@@ -111,12 +112,6 @@ namespace org.rufwork
                 // it'll quietly fail.
             }
             
-        }
-
-        // put debugging here so it's easier to blast or reroute later.
-        public static void Write2Console (string strToWrite)
-        {
-            Console.WriteLine (strToWrite);
         }
 
         public static string PrintByte(byte bytIn)
@@ -319,7 +314,7 @@ namespace org.rufwork
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Unsuccessful ReadToLength call. " + ex.ToString());
+                PCLConsole.WriteLine("Unsuccessful ReadToLength call. " + ex.ToString());
                 abytReturn = null;
             }
 

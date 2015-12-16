@@ -1,4 +1,5 @@
-﻿using System;
+﻿using org.rufwork.shims;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -21,7 +22,7 @@ namespace org.rufwork.mooresDb
                 + Environment.NewLine;
 
             if (!SqlDbSharpLogger.SuppressLogging)
-                Console.WriteLine(strPayload);
+                PCLConsole.WriteLine(strPayload);
         }
 
     }

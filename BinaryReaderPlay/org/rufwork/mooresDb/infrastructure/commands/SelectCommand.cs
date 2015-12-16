@@ -303,7 +303,7 @@ Fields pushed into dtReturn: {1}", strFromSelect, strInTable));
                         strOldField = field2;
                     }
 
-                    Globals.logIt(string.Format(@"old table: {0} 
+                    Globals.logit(string.Format(@"old table: {0} 
 old field: {1}
 new table: {2}
 new field: {3}",
@@ -334,7 +334,7 @@ new field: {3}",
                     // 2.) ORDER BY fields that belong to this table.
                     if (!string.IsNullOrWhiteSpace(strOrderBy))
                     {
-                        Globals.logIt(strOrderBy);
+                        Globals.logit(strOrderBy);
 
                         strErrLoc = "constructing order by";
                         string[] astrOrderTokens = strOrderBy.StringToNonWhitespaceTokens2();
@@ -373,7 +373,7 @@ new field: {3}",
                                 string[] astrTableDotCol = strTableDotCol.Split('.');
                                 if (strNewTable.Equals(astrTableDotCol[0], StringComparison.CurrentCultureIgnoreCase))
                                 {
-                                    Globals.logIt("Adding field to join SELECT: " + astrTableDotCol[1].ScrubValue());
+                                    Globals.logit("Adding field to join SELECT: " + astrTableDotCol[1].ScrubValue());
                                     qColsToSelectInNewTable.EnqueueIfNotContains(astrTableDotCol[1].ScrubValue()); // again, offensive parsing is the rule.
                                 }
                             }
@@ -402,10 +402,10 @@ new field: {3}",
 
                     if (Globals.bDebug)
                     {
-                        Console.WriteLine("Looking for " + strOperativeOldField + " in the columns");
+                        PCLConsole.WriteLine("Looking for " + strOperativeOldField + " in the columns");
                         foreach (DataColumn column in dictTables[strOldTable].Columns)
                         {
-                            Console.WriteLine(column.ColumnName);
+                            PCLConsole.WriteLine(column.ColumnName);
                         }
                     }
 
@@ -422,7 +422,7 @@ new field: {3}",
                     }
                     else
                     {
-                        Globals.logIt("Columns in inner JOIN select: " + string.Join(", ", qColsToSelectInNewTable.ToArray()));
+                        Globals.logit("Columns in inner JOIN select: " + string.Join(", ", qColsToSelectInNewTable.ToArray()));
                         string strInnerSelect = string.Format("SELECT {0} FROM {1} WHERE {2} IN ({3});",
                             string.Join(",", qColsToSelectInNewTable.ToArray()),
                             strNewTable,
@@ -438,7 +438,7 @@ new field: {3}",
                         // complicated to pull out table-specific WHERE fields and send along
                         // with the reconsitituted "inner" SQL statement.
 
-                        Globals.logIt("Inner join: " + strInnerSelect + "\n\n", "select command _processInnerJoin");
+                        Globals.logit("Inner join: " + strInnerSelect + "\n\n", "select command _processInnerJoin");
 
                         SelectCommand selectCommand = new SelectCommand(_database);
                         object objReturn = selectCommand.executeStatement(strInnerSelect);

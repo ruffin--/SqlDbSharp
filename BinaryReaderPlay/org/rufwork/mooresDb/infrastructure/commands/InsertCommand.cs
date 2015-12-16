@@ -14,6 +14,7 @@ using org.rufwork.mooresDb.infrastructure.serializers;
 using org.rufwork.mooresDb.infrastructure.contexts;
 
 using org.rufwork.extensions;
+using org.rufwork.shims;
 
 namespace org.rufwork.mooresDb.infrastructure.commands
 {
@@ -96,7 +97,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands
                     {
                         for (int j = 0; j < lstStringRowValues.Count; j++)
                         {
-                            Console.WriteLine(lstColumnNames[j] + " :: " + lstStringRowValues[j]);
+                            PCLConsole.WriteLine(lstColumnNames[j] + " :: " + lstStringRowValues[j]);
                         }
                     }
 

@@ -297,7 +297,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands
 
                     while (i < abyteIntLength.Length)
                     {
-                        //Console.WriteLine("adding: " + abyteInt[i].ToString("X")); 
+                        //PCLConsole.WriteLine("adding: " + abyteInt[i].ToString("X")); 
                         lstBytToAdd.Add(abyteIntLength[i++]);
                     }
 
@@ -334,7 +334,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands
             else
             {
                 string strShortenedName = strName.Substring(0, intLength);
-                Console.WriteLine("TODO: Write out a file with shortened name mappings just to make things easier.");
+                PCLConsole.WriteLine("TODO: Write out a file with shortened name mappings just to make things easier.");
                 foreach (byte bytTemp in strShortenedName.ToCharArray())
                 {
                     _lstByteColNames.Add(bytTemp);

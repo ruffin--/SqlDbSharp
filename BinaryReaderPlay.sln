@@ -1,9 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Express 2012 for Windows Desktop
+# Visual Studio 14
+VisualStudioVersion = 14.0.23107.0
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BinaryReaderPlay", "BinaryReaderPlay\BinaryReaderPlay.csproj", "{21089A8D-6944-4C6E-90F5-61BE82C9919C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ISQL", "ISQL\ISQL.csproj", "{AEC8C477-16CE-4DEF-A406-87A1C15A16AF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataShim", "..\DataTableWP8\DataShim\DataShim.csproj", "{0694AAC9-D25B-4982-9E8F-9A0E83D814C2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -36,6 +40,18 @@ Global
 		{AEC8C477-16CE-4DEF-A406-87A1C15A16AF}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{AEC8C477-16CE-4DEF-A406-87A1C15A16AF}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{AEC8C477-16CE-4DEF-A406-87A1C15A16AF}.Release|x86.ActiveCfg = Release|Any CPU
+		{0694AAC9-D25B-4982-9E8F-9A0E83D814C2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0694AAC9-D25B-4982-9E8F-9A0E83D814C2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0694AAC9-D25B-4982-9E8F-9A0E83D814C2}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{0694AAC9-D25B-4982-9E8F-9A0E83D814C2}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{0694AAC9-D25B-4982-9E8F-9A0E83D814C2}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{0694AAC9-D25B-4982-9E8F-9A0E83D814C2}.Debug|x86.Build.0 = Debug|Any CPU
+		{0694AAC9-D25B-4982-9E8F-9A0E83D814C2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0694AAC9-D25B-4982-9E8F-9A0E83D814C2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0694AAC9-D25B-4982-9E8F-9A0E83D814C2}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{0694AAC9-D25B-4982-9E8F-9A0E83D814C2}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{0694AAC9-D25B-4982-9E8F-9A0E83D814C2}.Release|x86.ActiveCfg = Release|Any CPU
+		{0694AAC9-D25B-4982-9E8F-9A0E83D814C2}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

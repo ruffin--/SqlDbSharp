@@ -8,6 +8,7 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using org.rufwork.mooresDb.exceptions;
+using org.rufwork.shims;
 
 namespace org.rufwork.mooresDb.infrastructure.contexts
 {
@@ -33,7 +34,7 @@ namespace org.rufwork.mooresDb.infrastructure.contexts
             }
             catch (Exception e)
             {
-                Console.WriteLine("Error initializing database: " + e.Message);
+                PCLConsole.WriteLine("Error initializing database: " + e.Message);
             }
         }
 
@@ -117,13 +118,13 @@ namespace org.rufwork.mooresDb.infrastructure.contexts
                     catch (ImproperDatabaseFileException eFile)
                     {
                         // quietly eat/log this one; we just don't have that table loaded.
-                        Console.WriteLine("@@@@@  Bogus db file: " + eFile.Message);
+                        PCLConsole.WriteLine("@@@@@  Bogus db file: " + eFile.Message);
                     }
                     // TODO: Consider continuing to parse out different exception types.
                     // and throwing if something happens here (uncaptured).
                     catch (Exception e)
                     {
-                        Console.WriteLine("@@@@@  General catch for bogus db file: " + astrTableName[i] + System.Environment.NewLine
+                        PCLConsole.WriteLine("@@@@@  General catch for bogus db file: " + astrTableName[i] + System.Environment.NewLine
                             + "\t" + e.Message);
                     }
 
