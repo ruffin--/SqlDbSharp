@@ -1,13 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
+﻿using org.rufwork.extensions;
+using org.rufwork.mooresDb.exceptions;
 using org.rufwork.mooresDb.infrastructure.contexts;
 using org.rufwork.mooresDb.infrastructure.tableParts;
-using org.rufwork.extensions;
-using org.rufwork.mooresDb.exceptions;
-using com.rufwork.utils;
+using org.rufwork.utils;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace org.rufwork.mooresDb.infrastructure.commands.Processors
 {
@@ -166,7 +164,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
                         // actually be in _processInnerJoin in SelectCommand, but this is
                         // already spaghettied enough. So let's dupe some logic and do it
                         // here.
-                        // TODO: Consider deciphering lists of tables and fields in a 
+                        // TODO: Consider deciphering lists of tables and fields in a
                         // refactored CommandParts and removing that from SelectCommand, etc.
                         string strMainTableName = this.strFrom.Substring(4).Trim();
                         string[] innerKludgeTokenized = this.strInnerJoinKludge.StringToNonWhitespaceTokens2();
@@ -210,7 +208,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
             this.strSelect = strSql.Substring(0, intTail);
         }
 
-        // TODO: IF you keep this convention, you need to kick out errors if 
+        // TODO: IF you keep this convention, you need to kick out errors if
         // the function "abbreviations" are in the original SQL.
         private void _findSelectFunctionCalls()
         {
@@ -263,7 +261,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
                     {
                         if (1 == lstrCmdTokens.Count())
                         {
-                            // If we're selecting * from everything, then there are no 
+                            // If we're selecting * from everything, then there are no
                             // join-only fields/columns.
                             this.lstrJoinONLYFields = new List<string>();
                         }
@@ -336,7 +334,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
                                     this.dictFuzzyToColNameMappings.Add(astrCmdTokens[i], colTemp.strColName);
                                 }
                             }
-                            
+
                         }
                         else
                         {

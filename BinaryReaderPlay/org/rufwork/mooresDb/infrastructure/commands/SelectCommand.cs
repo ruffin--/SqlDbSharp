@@ -4,23 +4,17 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 // ======================== EO LICENSE ===============================
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-using System.Data;
-using System.IO;
-using System.Text.RegularExpressions;
-using org.rufwork.mooresDb.exceptions;
-using org.rufwork.mooresDb.infrastructure.tableParts;
-using org.rufwork.mooresDb.infrastructure.serializers;
-using org.rufwork.mooresDb.infrastructure.contexts;
-using org.rufwork.mooresDb.infrastructure;
-using org.rufwork.mooresDb.infrastructure.commands.Processors;
-
-using org.rufwork.utils;
 using org.rufwork.extensions;
+using org.rufwork.mooresDb.exceptions;
+using org.rufwork.mooresDb.infrastructure.commands.Processors;
+using org.rufwork.mooresDb.infrastructure.contexts;
+using org.rufwork.mooresDb.infrastructure.tableParts;
+using org.rufwork.utils;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Data;
+using System.Linq;
 
 namespace org.rufwork.mooresDb.infrastructure.commands
 {
@@ -71,7 +65,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands
             // (Joins are only in selects, so this isn't part of WhereProcessing.)
             //
             // To take account of joins, we basically need to create a SelectParts
-            // per inner join.  So we need to create a WHERE from the table we 
+            // per inner join.  So we need to create a WHERE from the table we
             // just selected and then send those values down to a new _selectRows.
             //=====================================================================
             #region Post process inner joins
@@ -184,7 +178,7 @@ Fields pushed into dtReturn: {1}", strFromSelect, strInTable));
                 {
                     throw new SyntaxException("Illegal AS usage: " + e.ToString());
                 }
-                
+
             }
 
             if (selectParts.dictFnsAndFields.Count() > 0)
@@ -430,7 +424,7 @@ new field: {3}",
                         qColsToSelectInNewTable = new Queue<string>();
                         strErrLoc = strInnerSelect;
 
-                        // TODO: Figure out the best time to handle the portion of the WHERE 
+                        // TODO: Figure out the best time to handle the portion of the WHERE
                         // that impacts the tables mentioned in the join portion of the SQL.
                         // Note: I think now we treat it just like the ORDER BY.  Not that
                         // complicated to pull out table-specific WHERE fields and send along
@@ -488,7 +482,7 @@ new field: {3}",
             // touch more complicated to keep the order from the original SELECT accurate.
             Dictionary<string, string> dictColMappingCopy = new Dictionary<string, string>(selectParts.dictFuzzyToColNameMappings);
 
-            // info on creating a datatable by hand here: 
+            // info on creating a datatable by hand here:
             // http://msdn.microsoft.com/en-us/library/system.data.datacolumn.datatype.aspx
             // TODO: Distinct() is probably/should be overkill.
             foreach (Column colTemp in selectParts.acolInSelect.Distinct())
@@ -532,7 +526,7 @@ new field: {3}",
                     default:
                         throw new Exception("Unhandled column type in Select Command: " + colTemp.colType);
                 }
-                
+
                 dtReturn.Columns.Add(colForDt);
             }
 

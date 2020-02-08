@@ -6,13 +6,13 @@ using org.rufwork.utils;
 using org.rufwork.extensions;
 using System;
 using System.Collections.Generic;
-using System.Data;
+using System.Collections;
 using System.IO;
 using System.Linq;
-using System.Text;
 using org.rufwork.mooresDb.exceptions;
 using org.rufwork.mooresDb.infrastructure.commands.Modifiers;
 using System.Threading;
+using System.Data;
 
 namespace org.rufwork.mooresDb.infrastructure.commands.Processors
 {
@@ -45,10 +45,10 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
                         byte[] abytRow = b.ReadBytes(table.intRowLength);
                         bool bMatchingRow = true;
 
-                        // Check and make sure this is an active row, and has 
+                        // Check and make sure this is an active row, and has
                         // the standard row lead byte, 0x11.  If not, the row
                         // should not be read.
-                        // I'm going to switch this to make it more defensive 
+                        // I'm going to switch this to make it more defensive
                         // and a little easier to follow.
                         switch (abytRow[0])
                         {
@@ -132,7 +132,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
                                     #region UPDATE
                                     // kludge for fuzzy names:
                                     // (This should be a one-way process, so I don't think having the logic
-                                    // in this cruddy a place is a huge problem that'll cause wasted 
+                                    // in this cruddy a place is a huge problem that'll cause wasted
                                     // resources; it's just having me rethink fuzzy names in general.)
                                     Dictionary<string, string> dictLaunderedUpdateVals = new Dictionary<string,string>();
 
@@ -140,7 +140,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
                                     {
                                         dictLaunderedUpdateVals.Add(table.getRawColName(key), commandParts.dictUpdateColVals[key]);
                                     }
-                                    
+
                                     foreach (Column mCol in table.getColumns())
                                     {
                                         Column colToPullValueFrom = null;
@@ -197,7 +197,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
 
                                             // double check that the serializer at least
                                             // gave you a value that's the right length so
-                                            // that everything doesn't go to heck (moved where 
+                                            // that everything doesn't go to heck (moved where
                                             // that was previously checked into the serializers)
                                             if (abytNewColVal.Length != mCol.intColLength)
                                             {
@@ -215,7 +215,7 @@ namespace org.rufwork.mooresDb.infrastructure.commands.Processors
                                             Buffer.BlockCopy(abytNewColVal, 0, abytRow, mCol.intColStart, abytNewColVal.Length);
                                         }   // else don't touch what's in the row; it's not an updated colum
                                     }
-      
+
                                     b.BaseStream.Seek(-1 * table.intRowLength, SeekOrigin.Current);
                                     b.BaseStream.Write(abytRow, 0, abytRow.Length);
 
