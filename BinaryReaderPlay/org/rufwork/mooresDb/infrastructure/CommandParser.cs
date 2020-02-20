@@ -69,7 +69,7 @@ namespace org.rufwork.mooresDb.infrastructure
 
             strSql = strSql.RemoveNewlines(" ").BacktickQuotes(); // TODO: WHOA!  Super kludge for single quote escapes.  See "Grave accent" in idiosyncracies.
 
-            // Sorry, I got tired of forgetting this.
+            // Sorry, I got tired of forgetting this so I stopped checking for it.
             //if (!strSql.Trim().EndsWith(";"))
             //{
             //    throw new Exception("Unterminated command.");
@@ -90,7 +90,7 @@ namespace org.rufwork.mooresDb.infrastructure
                     objReturn = _insertCommand.executeInsert(strSql);
                     System.Diagnostics.Debug.Print("Update any indicies");
                     break;
-                
+
                 case "select":
                     switch (astrCmdTokens[1].ToLower())
                     {
@@ -105,7 +105,7 @@ namespace org.rufwork.mooresDb.infrastructure
                             break;
                     }
                     break;
-                
+
                 case "delete":
                     _deleteCommand = new DeleteCommand(_database);
                     _deleteCommand.executeStatement(strSql);
@@ -133,7 +133,7 @@ namespace org.rufwork.mooresDb.infrastructure
                             objReturn = createIndexCommand.executeStatement(strSql);
                             break;
                     }
-                    
+
                     break;
 
                 case "drop":

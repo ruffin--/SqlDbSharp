@@ -1,4 +1,5 @@
 ﻿using System.Data;
+using System.Linq;
 
 namespace org.rufwork.utils
 {
@@ -8,7 +9,7 @@ namespace org.rufwork.utils
         {
             DataTable table = new DataTable();
 
-            if (rows.Length > 1)
+            if (rows.Any())
             {
                 foreach (DataColumn col in rows[0].Table.Columns)
                 {
@@ -24,6 +25,7 @@ namespace org.rufwork.utils
                     {
                         newRow[dc] = existingRow[dc.ColumnName];    // ????: I *think* I can't reuse the DataColumn here, maybe? Is dc === dc2?
                     }
+                    table.Rows.Add(newRow);
                 }
             }
 

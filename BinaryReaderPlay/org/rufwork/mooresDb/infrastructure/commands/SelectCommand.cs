@@ -205,7 +205,7 @@ Fields pushed into dtReturn: {1}", strFromSelect, strInTable));
             // WhereProcessor.
             // Note also that this works with the dictFnsAndFields stuff because
             // you shouldn't have LIMIT with MAX or COUNT.
-            if (!String.IsNullOrWhiteSpace(selectParts.strLimit))
+            if (!string.IsNullOrWhiteSpace(selectParts.strLimit))
             {
                 string strAfterLimit = selectParts.strLimit.Substring("LIMIT ".Length);
                 string strTake = strAfterLimit;
@@ -224,6 +224,7 @@ Fields pushed into dtReturn: {1}", strFromSelect, strInTable));
                     dtReturn = dtReturn.SkipTakeToTable(intSkip, intTake);
                 else
                     throw new Exception("Illegal LIMIT clause: " + selectParts.strLimit);
+
             }
 
             objReturn = null == objReturn ? dtReturn : objReturn;
@@ -233,7 +234,7 @@ Fields pushed into dtReturn: {1}", strFromSelect, strInTable));
         private DataTable _processInnerJoin(Queue<TableContext> qAllTables, DataTable dtReturn, string strJoinText,
             string strParentTable, string strOrderBy, Queue<string> qInnerJoinFields)
         {
-            SqlDbSharpLogger.LogMessage("Note that WHERE clauses are not yet applied to JOINed tables.", "SelectCommnd _processInnerJoin");
+            SqlDbSharpLogger.LogMessage("Note that WHERE clauses are not yet applied to JOINed tables.", "SelectCommnd _processInnerJoin"); // ???? Do you just mean that we're in for a full table scan?
 
             string strNewTable = null;
             string strNewField = null;
@@ -308,7 +309,9 @@ new field: {3}",
                     qAllTables.Enqueue(tableNew);   // we need this to figure out column parents later.
 
                     // Now that we know the new table to add, we need to get a list of columns
-                    // to select from it.
+                    // to select from it. We're essentially putting together a SELECT clause for
+                    // the joined tables.
+                    //
                     // Sources for these fields could be...
                     // 1.) The joining field.
                     // 2.) ORDER BY fields for the entire statement
@@ -332,6 +335,7 @@ new field: {3}",
                         string[] astrOrderTokens = strOrderBy.StringToNonWhitespaceTokens2();
                         for (int i = 2; i < astrOrderTokens.Length; i++)
                         {
+                            // TODO: Handle DESC, ASC, etc (?)
                             string strOrderField = astrOrderTokens[i].Trim(' ', ',');
                             string strOrderTable = strNewTable; // just to pretend. We'll skip it if the field doesn't exist here.  Course this means we might dupe some non-table prefixed fields.
 

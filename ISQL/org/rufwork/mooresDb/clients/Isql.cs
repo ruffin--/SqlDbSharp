@@ -40,13 +40,13 @@ namespace org.rufwork.mooresDb.clients
             DatabaseContext dbTemp = null;
 
             Console.SetIn(new StreamReader(Console.OpenStandardInput(4096)));
-            Console.WriteLine(@"SqlDb# ISQL client. 
+            Console.WriteLine(@"SqlDb# ISQL client.
 SqlDb# version: " + MainClass.version + @"
 
 Type one or more statements terminated by semi-colons and then a period on a line by itself to execute.
 Type only a period on a line by itself to quit.
 
-You may set a start-up database by including the full path on a single line in a file called 
+You may set a start-up database by including the full path on a single line in a file called
 SqlDbSharp.config, placed in this folder:
 
      " + Environment.GetFolderPath(Environment.SpecialFolder.Personal) + @"
